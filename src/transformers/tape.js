@@ -1,5 +1,5 @@
 /**
- * Codemod for transforming Tape tests into AVA.
+ * Codemod for transforming Tape tests into Jest.
  */
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
