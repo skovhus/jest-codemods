@@ -4,7 +4,6 @@ Codemods for [Jest](https://facebook.github.io/jest/) that simplify migrating to
 
 [![Build Status][build-badge]][build]
 [![version][version-badge]][package]
-[![MIT License][license-badge]][LICENSE]
 [![Tweet][twitter-badge]][twitter]
 
 Codemods are small programs that help you automate changes to your codebase. Think of them as search and replace on steroids. They are executed by the [Facebook jscodeshift](https://github.com/facebook/jscodeshift) tool.
@@ -69,6 +68,5 @@ MIT
 [build]: https://travis-ci.org/skovhus/jest-codemods
 [version-badge]: https://img.shields.io/npm/v/jest-codemods.svg?style=flat-square
 [package]: https://www.npmjs.com/package/jest-codemods
-[license]: https://github.com/skovhus/jest-codemods/blob/master/LICENSE
 [twitter]: https://twitter.com/intent/tweet?text=Check%20out%20jest-codemods!%20https://github.com/skovhus/jest-codemods%20%F0%9F%91%8D
 [twitter-badge]: https://img.shields.io/twitter/url/https/github.com/skovhus/jest-codemods.svg?style=social
