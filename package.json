@@ -1,0 +1,55 @@
+{
+  "name": "jest-codemods",
+  "version": "0.0.1",
+  "description": "Codemods to switch test framework to Jest",
+  "license": "MIT",
+  "repository": "skovhus/jest-codemods",
+  "author": {
+    "name": "Kenneth Skovhus",
+    "email": "kenneth.skovhus@gmail.com",
+    "url": "github.com/skovhus"
+  },
+  "bin": {
+    "tape-to-jest": "src/cli/bin.js"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "scripts": {
+    "clean": "rm -rf lib .*.made coverage npm-debug.log",
+    "lint": "eslint --fix src",
+    "test": "npm run-script lint && npm run-script test-unit",
+    "test-unit": "jest --env node",
+    "test-unit-watch": "jest --env node"
+  },
+  "keywords": [
+    "codemod",
+    "jest",
+    "tape",
+    "migrate",
+    "migrations",
+    "upgrade",
+    "transform",
+    "jscodeshift",
+    "codemods"
+  ],
+  "dependencies": {
+    "babel-register": "~6.14.0",
+    "execa": "~0.4.0",
+    "is-git-clean": "~1.0.0",
+    "jscodeshift": "~0.3.28",
+    "meow": "~3.7.0",
+    "update-notifier": "~1.0.2"
+  },
+  "devDependencies": {
+    "babel-polyfill": "6.13.0",
+    "babel-preset-es2015": "^6.14.0",
+    "eslint": "^3.5.0",
+    "eslint-config-airbnb-base": "^7.1.0",
+    "eslint-plugin-import": "^1.15.0",
+    "jest": "^15.1.1"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
