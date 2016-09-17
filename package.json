@@ -1,7 +1,7 @@
 {
   "name": "jest-codemods",
-  "version": "0.0.1",
-  "description": "Codemods to switch test framework to Jest",
+  "version": "0.0.2",
+  "description": "Codemods for switching test framework to Jest",
   "license": "MIT",
   "repository": "skovhus/jest-codemods",
   "author": {
@@ -9,18 +9,21 @@
     "email": "kenneth.skovhus@gmail.com",
     "url": "github.com/skovhus"
   },
-  "bin": {
-    "tape-to-jest": "src/cli/bin.js"
-  },
+  "bin": "src/cli/bin.js",
   "engines": {
     "node": ">=4"
   },
+  "files": [
+    "src"
+  ],
   "scripts": {
-    "clean": "rm -rf lib .*.made coverage npm-debug.log",
+    "check": "npm run lint && npm run test",
+    "clean": "rm -rf lib coverage npm-debug.log",
     "lint": "eslint --fix src",
-    "test": "npm run-script lint && npm run-script test-unit",
-    "test-unit": "jest --env node",
-    "test-unit-watch": "jest --env node"
+    "prepublish": "npm run clean && npm run check",
+    "test:cov": "npm run test -- --coverage",
+    "test:watch": "npm run test -- --watch",
+    "test": "jest"
   },
   "keywords": [
     "codemod",

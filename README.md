@@ -1,6 +1,6 @@
 # jest-codemods
 
-Codemods for [Jest](https://facebook.github.io/jest/) that simplify migrating to Jest. Currently only from [Tape](https://github.com/substack/tape).
+Codemods for [Jest](https://facebook.github.io/jest/) that simplify migrating to Jest. Currently we support migrating from [Tape](https://github.com/substack/tape) to Jest. But we hope to support for [AVA](https://github.com/avajs/ava) and other test runners in the future.
 
 [![Build Status][build-badge]][build]
 [![version][version-badge]][package]
@@ -9,24 +9,25 @@ Codemods for [Jest](https://facebook.github.io/jest/) that simplify migrating to
 
 Codemods are small programs that help you automate changes to your codebase. Think of them as search and replace on steroids. They are executed by the [Facebook jscodeshift](https://github.com/facebook/jscodeshift) tool.
 
+
 ## Install
 
 ```
 $ npm install --global jest-codemods
 ```
 
-This installs a binary `tape-to-jest`.
+This installs a binary `jest-covemods`.
 
 
-## Tape to Jest codemod
+## Usage
 
 Currently we support migrating from [Tape](https://github.com/substack/tape) to Jest.
 
 ```
-$ tape-to-jest --help
+$ jest-covemods --help
 
 	Usage
-	  $ tape-to-jest <path> [options]
+	  $ jest-covemods <path> [options]
 
 	path	Files or directory to transform. Can be a glob like src/**.test.js
 
@@ -36,12 +37,28 @@ $ tape-to-jest --help
 	  --parser		The parser to use for parsing your source files (babel | babylon | flow)  [babel]
 ```
 
-To transform all test files in a directory run `tape-to-jest mySrcFolder` in your terminal. Only files requiring or importing tape will be transformed. Notice the console output for errors, manual intervention might be required.
+To transform all test files in a directory run `jest-covemods mySrcFolder` in your terminal.
+
+Only files requiring or importing Tape will be transformed. Notice the console output for errors, manual intervention might be required.
 
 
 ## Inspiration
 
 Thanks to [ava-codemods](https://github.com/avajs/ava-codemods) for inspiration.
+
+
+## Contributing
+
+To get started, run:
+
+	npm install
+
+When developing:
+
+	npm run check (lint and unit test)
+	npm run test
+	npm run test:cov
+	npm run test:watch
 
 
 ## License
