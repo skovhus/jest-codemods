@@ -2,7 +2,7 @@
 
 Codemods for [Jest](https://facebook.github.io/jest/) that simplify migrating to Jest. Currently we support migrating from [Tape](https://github.com/substack/tape) to Jest. But we hope to support for [AVA](https://github.com/avajs/ava) and other test runners in the future.
 
-[![Build Status][build-badge]][build]
+[![Build Status](https://travis-ci.org/skovhus/jest-codemods.svg?branch=master)](https://travis-ci.org/skovhus/jest-codemods)
 [![version][version-badge]][package]
 [![Tweet][twitter-badge]][twitter]
 
@@ -64,8 +64,6 @@ When developing:
 
 MIT
 
-[build-badge]: https://img.shields.io/travis/skovhus/jest-codemods?style=flat-square
-[build]: https://travis-ci.org/skovhus/jest-codemods
 [version-badge]: https://img.shields.io/npm/v/jest-codemods.svg?style=flat-square
 [package]: https://www.npmjs.com/package/jest-codemods
 [twitter]: https://twitter.com/intent/tweet?text=Check%20out%20jest-codemods!%20https://github.com/skovhus/jest-codemods%20%F0%9F%91%8D
