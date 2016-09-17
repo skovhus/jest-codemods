@@ -1,6 +1,8 @@
 /**
  * Codemod for transforming Tape tests into Jest.
  */
+import detectQuoteStyle from '../utils/quote-style';
+import removeRequireAndImport from '../utils/import-removal';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
 
@@ -68,61 +70,11 @@ const unsupportedTestFunctionProperties = new Set([
     'onFinish',
 ]);
 
-function detectQuoteStyle(j, ast) {
-    let detectedQuoting = null;
-
-    ast.find(j.Literal, {
-        value: v => typeof v === 'string',
-        raw: v => typeof v === 'string',
-    })
-    .forEach(p => {
-        // The raw value is from the original babel source
-        if (p.value.raw[0] === '\'') {
-            detectedQuoting = 'single';
-        }
-
-        if (p.value.raw[0] === '"') {
-            detectedQuoting = 'double';
-        }
-    });
-
-    return detectedQuoting;
-}
-
-/**
- * Remove CommonJS and import statements from Tape
- * @return string with test function name if transformations were made
- */
-function removeTapeRequireAndImport(j, ast) {
-    let testFunctionName = null;
-    ast.find(j.CallExpression, {
-        callee: { name: 'require' },
-        arguments: arg => arg[0].value === 'tape',
-    })
-    .filter(p => p.value.arguments.length === 1)
-    .forEach(p => {
-        testFunctionName = p.parentPath.value.id.name;
-        p.parentPath.prune();
-    });
-
-    ast.find(j.ImportDeclaration, {
-        source: {
-            value: 'tape',
-        },
-    })
-    .forEach(p => {
-        testFunctionName = p.value.specifiers[0].local.name;
-        p.prune();
-    });
-
-    return testFunctionName;
-}
-
 export default function tapeToJest(fileInfo, api) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
 
-    const testFunctionName = removeTapeRequireAndImport(j, ast);
+    const testFunctionName = removeRequireAndImport(j, ast, 'tape');
 
     if (!testFunctionName) {
         // No Tape require/import were found
@@ -324,8 +276,6 @@ export default function tapeToJest(fileInfo, api) {
 
     // As Recast is not preserving original quoting, we try to detect it,
     // and default to something sane.
-    // See https://github.com/benjamn/recast/issues/171
-    // and https://github.com/facebook/jscodeshift/issues/143
     const quote = detectQuoteStyle(j, ast) || 'single';
     return ast.toSource({ quote });
 }
