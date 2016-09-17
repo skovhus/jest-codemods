@@ -45,7 +45,6 @@
     "update-notifier": "~1.0.2"
   },
   "devDependencies": {
-    "babel-polyfill": "6.13.0",
     "babel-preset-es2015": "^6.14.0",
     "eslint": "^3.5.0",
     "eslint-config-airbnb-base": "^7.1.0",
@@ -53,6 +52,7 @@
     "jest": "^15.1.1"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest"
   }
 }
