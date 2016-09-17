@@ -1,6 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-env jest */
-import 'babel-polyfill';
 
 import { wrapPlugin } from '../utils/test-helpers';
 import plugin from './tape';
