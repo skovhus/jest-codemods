@@ -3,4 +3,9 @@ node_js:
   - '6'
   - '4'
 script:
-  - npm run check
+  - npm prune
+  - npm update
+  - npm run prepublish
+cache:
+  directories:
+    - node_modules
