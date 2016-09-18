@@ -15,7 +15,7 @@ Codemods are small programs that help you automate changes to your codebase. Thi
 $ npm install --global jest-codemods
 ```
 
-This installs a binary `jest-covemods`.
+This installs a binary `jest-codemods`.
 
 
 ## Usage
@@ -23,12 +23,16 @@ This installs a binary `jest-covemods`.
 Currently we support migrating from [Tape](https://github.com/substack/tape) to Jest.
 
 ```
-$ jest-covemods --help
+$ jest-codemods --help
+
+	Codemod that simplify migrating to Jest
 
 	Usage
-	  $ jest-covemods <path> [options]
+	  $ jest-codemods <path> [options]
 
 	path	Files or directory to transform. Can be a glob like src/**.test.js
+
+	Only files with Tape will be converted.
 
 	Options
 	  --force, -f	Bypass Git safety checks and forcibly run codemods
@@ -36,7 +40,7 @@ $ jest-covemods --help
 	  --parser		The parser to use for parsing your source files (babel | babylon | flow)  [babel]
 ```
 
-To transform all test files in a directory run `jest-covemods mySrcFolder` in your terminal.
+To transform all test files in a directory run `jest-codemods mySrcFolder` in your terminal.
 
 Only files requiring or importing Tape will be transformed. Notice the console output for errors, manual intervention might be required.
 

@@ -9,18 +9,20 @@
     "email": "kenneth.skovhus@gmail.com",
     "url": "github.com/skovhus"
   },
-  "bin": "src/cli/bin.js",
+  "bin": "bin/jest-codemods.js",
   "engines": {
     "node": ">=4"
   },
   "files": [
-    "src"
+    "bin",
+    "dist"
   ],
   "scripts": {
-    "check": "npm run lint && npm run test",
-    "clean": "rm -rf lib coverage npm-debug.log",
+    "build": "babel src -d dist",
+    "check": "npm run lint && npm run test:cov",
+    "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
-    "prepublish": "npm run clean && npm run check",
+    "prepublish": "npm run clean && npm run check && npm run build",
     "test:cov": "npm run test -- --coverage",
     "test:watch": "npm run test -- --watch",
     "test": "jest"
@@ -37,7 +39,6 @@
     "codemods"
   ],
   "dependencies": {
-    "babel-register": "~6.14.0",
     "execa": "~0.4.0",
     "is-git-clean": "~1.0.0",
     "jscodeshift": "~0.3.28",
@@ -45,8 +46,9 @@
     "update-notifier": "~1.0.2"
   },
   "devDependencies": {
+    "babel-cli": "^6.14.0",
     "babel-jest": "^15.0.0",
-    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-es2015-node4": "2.1.0",
     "eslint": "^3.5.0",
     "eslint-config-airbnb-base": "^7.1.0",
     "eslint-plugin-import": "^1.15.0",

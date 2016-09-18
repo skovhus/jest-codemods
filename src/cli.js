@@ -58,12 +58,14 @@ function executeTransformation(files, flags) {
 
 const cli = meow(
     {
-        description: 'Codemod to change test runner from Tape to Jest',
+        description: 'Codemod that simplify migrating to Jest',
         help: `
     Usage
-      $ tape-to-jest <path> [options]
+      $ jest-codemods <path> [options]
 
-    path    Files or directory to transform. Can be a glob like src/**.test.js (only files with Tape will be converted)
+    path    Files or directory to transform. Can be a glob like src/**.test.js
+
+    Only files with Tape will be converted.
 
     Options
       --force, -f   Bypass Git safety checks and forcibly run codemods
