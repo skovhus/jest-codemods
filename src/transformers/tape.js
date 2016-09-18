@@ -2,7 +2,9 @@
  * Codemod for transforming Tape tests into Jest.
  */
 import detectQuoteStyle from '../utils/quote-style';
-import { hasRequireOrImport, removeRequireAndImport } from '../utils/imports';
+import { removeRequireAndImport } from '../utils/imports';
+import detectIncompatiblePackages from '../utils/incompatible-packages';
+import { PROP_WITH_SECONDS_ARGS } from '../utils/consts';
 import logger from '../utils/logger';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
@@ -64,6 +66,7 @@ const unsupportedTProperties = new Set([
     'ifErr',
     'iferror',
     'skip',
+    // FIXME: plan?
 ]);
 
 const unsupportedTestFunctionProperties = new Set([
@@ -169,7 +172,6 @@ export default function tapeToJest(fileInfo, api) {
                         );
                     }
                 } else {
-                    const PROP_WITH_SECONDS_ARGS = ['toBe', 'not.toBe', 'toEqual', 'not.toEqual'];
                     const hasSecondArgument = PROP_WITH_SECONDS_ARGS.indexOf(newPropertyName) >= 0;
                     const conditionArgs = hasSecondArgument ? [args[1]] : [];
                     newCondition = j.callExpression(
@@ -288,13 +290,7 @@ export default function tapeToJest(fileInfo, api) {
             });
         },
 
-        function detectProblematicPackages() {
-            ['proxyquire', 'testdouble'].forEach(pkg => {
-                if (hasRequireOrImport(j, ast, pkg)) {
-                    logWarning(`Usage of package "${pkg}" might be incompatible with Jest`);
-                }
-            });
-        },
+        () => detectIncompatiblePackages(fileInfo, j, ast),
     ];
 
     transforms.forEach(t => t());

@@ -1,22 +1,29 @@
 /**
- * Codemod for transforming Tape tests into Jest.
+ * Codemod for transforming AVA tests into Jest.
  */
+
 import detectQuoteStyle from '../utils/quote-style';
-import { hasRequireOrImport, removeRequireAndImport } from '../utils/imports';
+import { removeRequireAndImport } from '../utils/imports';
+import detectIncompatiblePackages from '../utils/incompatible-packages';
+import { PROP_WITH_SECONDS_ARGS } from '../utils/consts';
 import logger from '../utils/logger';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
+const SPECIAL_BOOL = '(special bool case)';
 
 const avaToJestExpect = {
-    // FIXME: make exs. list
     truthy: 'toBeTruthy',
     falsy: 'toBeFalsy',
+    true: SPECIAL_BOOL,
+    false: SPECIAL_BOOL,
     is: 'toBe',
     not: 'not.toBe',
     deepEqual: 'toEqual',
     notDeepEqual: 'not.toEqual',
     throws: SPECIAL_THROWS_CASE,
     notThrows: SPECIAL_THROWS_CASE,
+    regex: 'toMatch',
+    notRegex: 'not.toMatch',
 };
 
 const unsupportedTProperties = new Set([
@@ -24,6 +31,7 @@ const unsupportedTProperties = new Set([
     'pass',
     'ifError',
     'skip',
+    'plan',
 ]);
 
 export default function avaToJest(fileInfo, api) {
@@ -92,13 +100,13 @@ export default function avaToJest(fileInfo, api) {
 
                 let newCondition;
 
-                if (newPropertyName === SPECIAL_THROWS_CASE) {
-                    // FIXME:
-                    throw new Error('not implemented...');
-                    /*
-                    const secondArgString = args.length === 2 && args[1].type === 'Literal' && typeof args[1].value === 'string';
-                    const noErrorType = args.length === 1 || secondArgString;
-                    if (noErrorType) {
+                if (newPropertyName === SPECIAL_BOOL) {
+                    newCondition = j.callExpression(
+                        j.identifier('toBe'),
+                        [j.identifier(oldPropertyName)]
+                    );
+                } else if (newPropertyName === SPECIAL_THROWS_CASE) {
+                    if (args.length === 1) {
                         newCondition = j.callExpression(
                             j.identifier(oldPropertyName === 'throws' ? 'toThrow' : 'not.toThrow'),
                             []
@@ -109,9 +117,7 @@ export default function avaToJest(fileInfo, api) {
                             [args[1]]
                         );
                     }
-                    */
                 } else {
-                    const PROP_WITH_SECONDS_ARGS = ['toBe', 'not.toBe', 'toEqual', 'not.toEqual'];
                     const hasSecondArgument = PROP_WITH_SECONDS_ARGS.indexOf(newPropertyName) >= 0;
                     const conditionArgs = hasSecondArgument ? [args[1]] : [];
                     newCondition = j.callExpression(
@@ -153,13 +159,7 @@ export default function avaToJest(fileInfo, api) {
             });
         },
 
-        function detectProblematicPackages() {
-            ['proxyquire', 'testdouble'].forEach(pkg => {
-                if (hasRequireOrImport(j, ast, pkg)) {
-                    logWarning(`Usage of package "${pkg}" might be incompatible with Jest`);
-                }
-            });
-        },
+        () => detectIncompatiblePackages(fileInfo, j, ast),
     ];
 
     transforms.forEach(t => t());
