@@ -58,7 +58,7 @@ function executeTransformation(files, flags) {
 
 const cli = meow(
     {
-        description: 'Codemod that simplify migrating to Jest',
+        description: 'Codemod that simplify migrating to Jest.',
         help: `
     Usage
       $ jest-codemods <path> [options]
