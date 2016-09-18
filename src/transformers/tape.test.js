@@ -264,8 +264,9 @@ test('not supported warnings: createStream', () => {
         test.createStream(() => {});
         test.createStream(() => {}); // only logs once
     `);
-    expect(consoleWarnings.length).toBe(1);
-    expect(consoleWarnings[0]).toBe('jest-codemods warning: (test.js line 3) "createStream" is currently not supported');
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 3) "createStream" is currently not supported',
+    ]);
 });
 
 test('not supported warnings: onFinish', () => {
@@ -273,8 +274,9 @@ test('not supported warnings: onFinish', () => {
         import test from 'tape';
         test.onFinish(() => {});
     `);
-    expect(consoleWarnings.length).toBe(1);
-    expect(consoleWarnings[0]).toBe('jest-codemods warning: (test.js line 3) "onFinish" is currently not supported');
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 3) "onFinish" is currently not supported',
+    ]);
 });
 
 test('not supported warnings: timeoutAfter', () => {
@@ -284,8 +286,9 @@ test('not supported warnings: timeoutAfter', () => {
             t.timeoutAfter(100);
         });
     `);
-    expect(consoleWarnings.length).toBe(1);
-    expect(consoleWarnings[0]).toBe('jest-codemods warning: (test.js line 4) "timeoutAfter" is currently not supported');
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) "timeoutAfter" is currently not supported',
+    ]);
 });
 
 test('not supported warnings: looseEquals', () => {
@@ -295,8 +298,9 @@ test('not supported warnings: looseEquals', () => {
             t.looseEquals({}, {});
         });
     `);
-    expect(consoleWarnings.length).toBe(1);
-    expect(consoleWarnings[0]).toBe('jest-codemods warning: (test.js line 4) "looseEquals" is currently not supported. Try the stricter "toEqual" or "not.toEqual"');
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) "looseEquals" is currently not supported. Try the stricter "toEqual" or "not.toEqual"',
+    ]);
 });
 
 test('not supported warnings: t.fail', () => {
@@ -306,8 +310,9 @@ test('not supported warnings: t.fail', () => {
             t.fail();
         });
     `);
-    expect(consoleWarnings.length).toBe(1);
-    expect(consoleWarnings[0]).toBe('jest-codemods warning: (test.js line 4) "fail" is currently not supported');
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) "fail" is currently not supported',
+    ]);
 });
 
 test('not supported warnings: timeout option', () => {
@@ -317,8 +322,9 @@ test('not supported warnings: timeout option', () => {
             t.equal(1, 1);
         });
     `);
-    expect(consoleWarnings.length).toBe(1);
-    expect(consoleWarnings[0]).toBe('jest-codemods warning: (test.js line 3) "timeout" option is currently not supported');
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 3) "timeout" option is currently not supported',
+    ]);
 });
 
 test('not supported warnings: non standard argument for test', () => {
@@ -328,8 +334,9 @@ test('not supported warnings: non standard argument for test', () => {
             x.equal(1, 1);
         });
     `);
-    expect(consoleWarnings.length).toBe(1);
-    expect(consoleWarnings[0]).toBe('jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "x"');
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "x"',
+    ]);
 });
 
 test('not supported warnings: non standard argument for test.skip', () => {
@@ -339,8 +346,9 @@ test('not supported warnings: non standard argument for test.skip', () => {
             y.equal(1, 1);
         });
     `);
-    expect(consoleWarnings.length).toBe(1);
-    expect(consoleWarnings[0]).toBe('jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "y"');
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "y"',
+    ]);
 });
 
 test('not supported warnings: t.end in callbacks', () => {
@@ -352,6 +360,20 @@ test('not supported warnings: t.end in callbacks', () => {
             }, 0);
         });
     `);
-    expect(consoleWarnings.length).toBe(1);
-    expect(consoleWarnings[0]).toBe('jest-codemods warning: (test.js line 3) t.end is currently not supported in callbacks (maybe return a promise)');
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 3) t.end is currently not supported in callbacks (maybe return a promise)',
+    ]);
+});
+
+test('warns about some conflicting packages', () => {
+    wrappedPlugin(`
+        import test from 'tape';
+        import test from 'proxyquire';
+        import test from 'testdouble';
+        test(t => {});
+    `);
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js) Usage of package "proxyquire" might be incompatible with Jest',
+        'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
+    ]);
 });

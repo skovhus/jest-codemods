@@ -2,7 +2,7 @@
  * Codemod for transforming Tape tests into Jest.
  */
 import detectQuoteStyle from '../utils/quote-style';
-import removeRequireAndImport from '../utils/import-removal';
+import { hasRequireOrImport, removeRequireAndImport } from '../utils/imports';
 import logger from '../utils/logger';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
@@ -263,8 +263,14 @@ export default function tapeToJest(fileInfo, api) {
                     p.node.arguments[p.node.arguments.length - 1] = arrowFunction;
                 } else if (lastArg.type === 'FunctionExpression') {
                     lastArg.params = [j.identifier('')];
-                } else {
-                    logWarning('Unknown last argument to test function', p);
+                }
+            });
+        },
+
+        function detectProblematicPackages() {
+            ['proxyquire', 'testdouble'].forEach(pkg => {
+                if (hasRequireOrImport(j, ast, pkg)) {
+                    logWarning(`Usage of package "${pkg}" might be incompatible with Jest`);
                 }
             });
         },
