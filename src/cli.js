@@ -6,7 +6,7 @@ import isGitClean from 'is-git-clean';
 import meow from 'meow';
 import updateNotifier from 'update-notifier';
 
-const PATH_TRANSFORMER = path.join(__dirname, '../', 'transformers', 'tape.js');
+const PATH_TRANSFORMER = path.join(__dirname, 'transformers', 'tape.js');
 
 function checkGitStatus(force) {
     let clean = false;
