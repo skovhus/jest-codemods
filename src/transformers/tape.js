@@ -3,6 +3,7 @@
  */
 import detectQuoteStyle from '../utils/quote-style';
 import removeRequireAndImport from '../utils/import-removal';
+import logger from '../utils/logger';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
 
@@ -49,7 +50,7 @@ const tapeToJestExpect = {
 const unsupportedTProperties = new Set([
     'timeoutAfter',
 
-    // t.toEqual is more strict but might be used in some cases:
+    // toEqual is more strict but might be used in some cases:
     'deepLooseEqual',
     'looseEqual',
     'looseEquals',
@@ -81,14 +82,7 @@ export default function tapeToJest(fileInfo, api) {
         return fileInfo.source;
     }
 
-    const warnings = new Set();
-    function logWarning(msg, node) {
-        if (warnings.has(msg)) {
-            return;
-        }
-        console.warn(`tape-to-jest warning: (${fileInfo.path} line ${node.value.loc.start.line}) ${msg}`);
-        warnings.add(msg);
-    }
+    const logWarning = (msg, node) => logger(fileInfo, msg, node);
 
     const transforms = [
         function detectUnsupportedNaming() {
@@ -125,7 +119,11 @@ export default function tapeToJest(fileInfo, api) {
             })
             .forEach(p => {
                 const propertyName = p.value.callee.property.name;
-                logWarning(`"${propertyName}" is currently not supported`, p);
+                if (propertyName.toLowerCase().indexOf('looseequal') >= 0) {
+                    logWarning(`"${propertyName}" is currently not supported. Try the stricter "toEqual" or "not.toEqual"`, p);
+                } else {
+                    logWarning(`"${propertyName}" is currently not supported`, p);
+                }
             });
 
             ast.find(j.CallExpression, {
@@ -228,7 +226,7 @@ export default function tapeToJest(fileInfo, api) {
                 .size() > 0;
 
                 if (containsDeepEndFunction) {
-                    logWarning('t.end used in callbacks is unsupported', p);
+                    logWarning('t.end is currently not supported in callbacks (maybe return a promise)', p);
                 }
 
                 // Convert Tape option parameters, test([name], [opts], cb)
@@ -242,7 +240,7 @@ export default function tapeToJest(fileInfo, api) {
                             }
 
                             if (tapeOptionKey === 'timeout') {
-                                logWarning('"timeout" option is not supported', p);
+                                logWarning('"timeout" option is currently not supported', p);
                             }
                         });
 
