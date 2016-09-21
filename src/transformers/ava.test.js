@@ -50,6 +50,7 @@ test('mapping', (t) => {
   t.notDeepEqual(abc, {a: 'x', b: 'y', c: 'z'})
   t.notRegex(abc, /xyz/)
   t.regex(abc, /abc/)
+  t.ifError(abc)
 })
 `,
 `
@@ -69,6 +70,7 @@ it('mapping', () => {
   expect(abc).not.toEqual({a: 'x', b: 'y', c: 'z'})
   expect(abc).not.toMatch(/xyz/)
   expect(abc).toMatch(/abc/)
+  expect(abc).toBeFalsy()
 })
 `);
 

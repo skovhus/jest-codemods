@@ -21,6 +21,11 @@ const tapeToJestExpect = {
     false: 'toBeFalsy',
     notok: 'toBeFalsy',
 
+    error: 'toBeFalsy',
+    ifError: 'toBeFalsy',
+    ifErr: 'toBeFalsy',
+    iferror: 'toBeFalsy',
+
     equal: 'toBe',
     equals: 'toBe',
     isEqual: 'toBe',
@@ -63,13 +68,8 @@ const unsupportedTProperties = new Set([
     'notLooseEqual',
     'notLooseEquals',
 
-    'fail',
-    'pass',
-    'error',
-    'ifErr',
-    'iferror',
     'skip',
-    // FIXME: plan?
+    'plan',
 ]);
 
 const unsupportedTestFunctionProperties = new Set([

@@ -9,6 +9,7 @@ function testChanged(msg, source, expectedOutput) {
     test(msg, () => {
         const result = wrappedPlugin(source);
         expect(result).toBe(expectedOutput);
+        expect(consoleWarnings).toEqual([]);
     });
 }
 
@@ -56,17 +57,20 @@ testChanged('maps assertions and comments',
 `
 import test from 'tape';
 test((t) => {
-    // t.fail('msg');
-    // t.pass('msg');
+    t.fail('msg');
+    t.pass('msg');
     t.ok(1, 'msg');
     t.true(1, 'msg');
     t.assert(1, 2, 'msg');
     t.notOk(1, 'msg');
     t.false(1, 'msg');
     t.notok(1, 'msg');
-    // t.error(1, 'msg');
-    // t.ifErr(1, 'msg');
-    // t.iferror(1, 'msg');
+
+    t.error(1, 'msg');
+    t.ifErr(1, 'msg');
+    t.iferror(1, 'msg');
+    t.ifError(1, 'msg');
+
     t.equal(1, 2, 'msg');
     t.equals(1, 2, 'msg');
     t.isEqual(1, 2, 'msg');
@@ -99,18 +103,20 @@ test((t) => {
 });
 `,
 `
-it(() => {
-    // t.fail('msg');
-    // t.pass('msg');
+it(done => {
+    done.fail('msg');
     expect(1).toBeTruthy();
     expect(1).toBeTruthy();
     expect(1).toBeTruthy();
     expect(1).toBeFalsy();
     expect(1).toBeFalsy();
     expect(1).toBeFalsy();
-    // t.error(1, 'msg');
-    // t.ifErr(1, 'msg');
-    // t.iferror(1, 'msg');
+
+    expect(1).toBeFalsy();
+    expect(1).toBeFalsy();
+    expect(1).toBeFalsy();
+    expect(1).toBeFalsy();
+
     expect(1).toBe(2);
     expect(1).toBe(2);
     expect(1).toBe(2);

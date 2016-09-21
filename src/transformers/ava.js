@@ -30,6 +30,7 @@ const avaToJestExpect = {
     notThrows: SPECIAL_THROWS_CASE,
     regex: 'toMatch',
     notRegex: 'not.toMatch',
+    ifError: 'toBeFalsy',
 };
 
 const avaToJestMethods = {
@@ -45,9 +46,6 @@ const avaToJestMethods = {
 };
 
 const unsupportedTProperties = new Set([
-    'fail',
-    'pass',
-    'ifError',
     'skip',
     'plan',
 ]);
