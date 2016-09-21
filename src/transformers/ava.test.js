@@ -72,6 +72,101 @@ test('mapping', () => {
 })
 `);
 
+testChanged('handles test setup/teardown modifiers',
+`
+import test from 'ava'
+
+test.before(t => {});
+test.after(t => {});
+test.beforeEach(t => {});
+test.afterEach(t => {});
+`,
+`
+before(() => {});
+after(() => {});
+beforeEach(() => {});
+afterEach(() => {});
+`);
+
+testChanged('all tests are serial by default',
+`
+import test from 'ava'
+test.serial(t => {});
+`,
+`
+test(() => {});
+`);
+
+testChanged('handles skip/only modifiers and chaining',
+`
+import test from 'ava'
+
+test.only(t => {});
+test.skip(t => {});
+
+test.serial.skip(t => {});
+test.skip.serial(t => {});
+test.only.serial(t => {});
+test.serial.only(t => {});
+`,
+`
+test.only(() => {});
+test.skip(() => {});
+
+test.skip(() => {});
+test.skip(() => {});
+test.only(() => {});
+test.only(() => {});
+`);
+
+testChanged('removes t.pass, but keeps t.fail',
+`
+import test from 'ava'
+
+test('handles done.fail and done.pass', t => {
+    setTimeout(() => {
+        t.fail('no');
+        t.pass('yes');
+    }, 500);
+});
+`,
+`
+test('handles done.fail and done.pass', done => {
+    setTimeout(() => {
+        done.fail('no');
+    }, 500);
+});
+`);
+
+test('not supported warnings: skipping test setup/teardown hooks', () => {
+    wrappedPlugin(`
+        import test from 'ava'
+
+        test.before.skip(() => {
+            this.x = '';
+        });
+        test.after.skip(() => {});
+        test.afterEach.skip(() => {});
+        test.skip.beforeEach(() => {});
+
+        test.skip.before(() => {});
+        test.skip.after(() => {});
+        test.skip.afterEach(() => {});
+        test.beforeEach.skip(() => {});
+    `);
+
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 7) skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 8) skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 9) skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 10) skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 11) skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 12) skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 13) skipping setup/teardown hooks is currently not supported',
+    ]);
+});
+
 test('not supported warnings: t.fail', () => {
     wrappedPlugin(`
         import test from 'ava';
