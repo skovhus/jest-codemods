@@ -4,18 +4,19 @@ import plugin from './ava';
 
 const wrappedPlugin = wrapPlugin(plugin);
 
-function testChanged(msg, source, expectedOutput) {
-    test(msg, () => {
-        const result = wrappedPlugin(source);
-        expect(result).toBe(expectedOutput);
-    });
-}
-
 let consoleWarnings = [];
 beforeEach(() => {
     consoleWarnings = [];
     console.warn = v => consoleWarnings.push(v);
 });
+
+function testChanged(msg, source, expectedOutput) {
+    test(msg, () => {
+        const result = wrappedPlugin(source);
+        expect(result).toBe(expectedOutput);
+        expect(consoleWarnings).toEqual([]);
+    });
+}
 
 testChanged('does not touch code without ava require/import',
 `
@@ -196,6 +197,20 @@ test('not supported warnings: skipping test setup/teardown hooks', () => {
         'jest-codemods warning: (test.js line 14) Skipping setup/teardown hooks is currently not supported',
     ]);
 });
+
+
+test('not supported warnings: non standard argument for test', () => {
+    wrappedPlugin(`
+        import test from 'ava';
+        test(t => {
+            t.plan(1);
+        });
+    `);
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) "plan" is currently not supported',
+    ]);
+});
+
 
 test('not supported warnings: non standard argument for test', () => {
     wrappedPlugin(`

@@ -5,6 +5,12 @@ import plugin from './tape';
 
 const wrappedPlugin = wrapPlugin(plugin);
 
+let consoleWarnings = [];
+beforeEach(() => {
+    consoleWarnings = [];
+    console.warn = v => consoleWarnings.push(v);
+});
+
 function testChanged(msg, source, expectedOutput) {
     test(msg, () => {
         const result = wrappedPlugin(source);
@@ -12,12 +18,6 @@ function testChanged(msg, source, expectedOutput) {
         expect(consoleWarnings).toEqual([]);
     });
 }
-
-let consoleWarnings = [];
-beforeEach(() => {
-    consoleWarnings = [];
-    console.warn = v => consoleWarnings.push(v);
-});
 
 testChanged('does not touch code without tape require/import',
 `
