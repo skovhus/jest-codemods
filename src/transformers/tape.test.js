@@ -307,7 +307,6 @@ test('not supported warnings: createStream', () => {
     wrappedPlugin(`
         import test from 'tape';
         test.createStream(() => {});
-        test.createStream(() => {}); // only logs once
     `);
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) "createStream" is currently not supported',
