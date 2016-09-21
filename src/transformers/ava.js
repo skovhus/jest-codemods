@@ -6,6 +6,12 @@ import detectQuoteStyle from '../utils/quote-style';
 import { removeRequireAndImport } from '../utils/imports';
 import detectIncompatiblePackages from '../utils/incompatible-packages';
 import { PROP_WITH_SECONDS_ARGS } from '../utils/consts';
+import {
+    detectUnsupportedNaming, rewriteAssertionsAndTestArgument,
+} from '../utils/tape-ava-helpers';
+import {
+    getIdentifierFromExpression, getMemberExpressionElements,
+} from '../utils/recast-helpers';
 import logger from '../utils/logger';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
@@ -26,6 +32,18 @@ const avaToJestExpect = {
     notRegex: 'not.toMatch',
 };
 
+const avaToJestMethods = {
+    before: 'before',
+    after: 'after',
+    beforeEach: 'beforeEach',
+    afterEach: 'afterEach',
+
+    // TODO: test.skip not working in Jest
+    skip: 'xit',
+    // TODO: test.only not working in Jest
+    only: 'fit',
+};
+
 const unsupportedTProperties = new Set([
     'fail',
     'pass',
@@ -41,37 +59,14 @@ export default function avaToJest(fileInfo, api) {
     const testFunctionName = removeRequireAndImport(j, ast, 'ava');
 
     if (!testFunctionName) {
-        // No require/import were found
+        // No AVA require/import were found
         return fileInfo.source;
     }
 
     const logWarning = (msg, node) => logger(fileInfo, msg, node);
 
     const transforms = [
-        function detectUnsupportedNaming() {
-            // Currently we only support "t" as the test argument name
-            const validateTestArgument = p => {
-                const lastArg = p.value.arguments[p.value.arguments.length - 1];
-                if (lastArg && lastArg.params && lastArg.params[0]) {
-                    const lastArgName = lastArg.params[0].name;
-                    if (lastArgName !== 't') {
-                        logWarning(`argument to test function should be named "t" not "${lastArgName}"`, p);
-                    }
-                }
-            };
-
-            ast.find(j.CallExpression, {
-                callee: {
-                    object: { name: testFunctionName },
-                },
-            })
-            .forEach(validateTestArgument);
-
-            ast.find(j.CallExpression, {
-                callee: { name: testFunctionName },
-            })
-            .forEach(validateTestArgument);
-        },
+        () => detectUnsupportedNaming(fileInfo, j, ast, testFunctionName),
 
         function detectUnsupportedFeatures() {
             ast.find(j.CallExpression, {
@@ -139,24 +134,65 @@ export default function avaToJest(fileInfo, api) {
         },
 
         function rewriteTestCallExpression() {
+            // Can either be simple CallExpression like test()
+            // Or MemberExpression like test.after.skip()
+
             ast.find(j.CallExpression, {
                 callee: { name: testFunctionName },
             }).forEach(p => {
-                p.node.callee.name = 'test';  // FIXME: what name do people want?
-
-                // Removes t parameter: "t => {}" and "function(t)"
-                const lastArg = p.node.arguments[p.node.arguments.length - 1];
-                if (lastArg.type === 'ArrowFunctionExpression') {
-                    const arrowFunction = j.arrowFunctionExpression(
-                        [j.identifier('()')],
-                        lastArg.body,
-                        false
-                     );
-                    p.node.arguments[p.node.arguments.length - 1] = arrowFunction;
-                } else if (lastArg.type === 'FunctionExpression') {
-                    lastArg.params = [j.identifier('')];
-                }
+                p.node.callee.name = 'it';
+                rewriteAssertionsAndTestArgument(j, p);
             });
+
+            function mapPathToJestMethod(p) {
+                let jestMethod = 'it';
+
+                // List like ['test', 'serial', 'cb']
+                const avaMethods = getMemberExpressionElements(
+                    p.node.callee
+                )
+                .filter(
+                    e => e !== 'serial' &&
+                    e !== testFunctionName &&
+                    e !== 'cb'
+                );
+
+                if (avaMethods.length === 1) {
+                    const avaMethod = avaMethods[0];
+                    if (avaMethod in avaToJestMethods) {
+                        jestMethod = avaToJestMethods[avaMethod];
+                    } else {
+                        jestMethod = avaMethod;
+                        logWarning(`Unknown AVA method "${avaMethod}"`, p);
+                    }
+                } else if (avaMethods.length > 0) {
+                    logWarning('Skipping setup/teardown hooks is currently not supported', p);
+                }
+
+                return jestMethod;
+            }
+
+            ast.find(j.CallExpression, {
+                callee: {
+                    type: 'MemberExpression',
+                },
+            })
+            .filter(p => {
+                const identifier = getIdentifierFromExpression(p.node.callee);
+                if (identifier.name === testFunctionName) {
+                    return p;
+                }
+                return null;
+            })
+            .forEach(p => {
+                rewriteAssertionsAndTestArgument(j, p);
+            })
+            .replaceWith(p =>
+                j.callExpression(
+                    j.identifier(mapPathToJestMethod(p)),
+                    p.node.arguments
+                )
+            );
         },
 
         () => detectIncompatiblePackages(fileInfo, j, ast),

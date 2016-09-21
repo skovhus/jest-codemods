@@ -99,7 +99,7 @@ test((t) => {
 });
 `,
 `
-test(() => {
+it(() => {
     // t.fail('msg');
     // t.pass('msg');
     expect(1).toBeTruthy();
@@ -151,7 +151,7 @@ test("mytest", t => {
 });
 `,
 `
-test("mytest", () => {
+it("mytest", () => {
     expect("msg").toBeTruthy();
 });
 `
@@ -177,19 +177,19 @@ myTapeTest(function(t) {
 });
 `,
 `
-test("mytest", () => {
+it("mytest", () => {
     expect("msg").toBeTruthy();
 });
 
-test(() => {
+it(() => {
     expect("msg").toBeTruthy();
 });
 
-test("mytest", function() {
+it("mytest", function() {
     expect("msg").toBeTruthy();
 });
 
-test(function() {
+it(function() {
     expect("msg").toBeTruthy();
 });
 `
@@ -203,7 +203,7 @@ test('mytest', {objectPrintDepth: 4, skip: false}, t => {
 });
 `,
 `
-test('mytest', () => {
+it('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
@@ -217,7 +217,7 @@ test('mytest', {objectPrintDepth: 4, skip: true}, t => {
 });
 `,
 `
-test.skip('mytest', () => {
+xit('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
@@ -232,7 +232,7 @@ test('mytest', t => {
 });
 `,
 `
-test('mytest', () => {
+it('mytest', () => {
     expect(1).toBe(1);
 });
 `
@@ -249,7 +249,7 @@ test(t => {
 });
 `,
 `
-test(done => {
+it(done => {
     setTimeout(() => {
         done();
     }, 500);
@@ -272,11 +272,11 @@ test('handles done.fail and done.pass', t => {
 });
 `,
 `
-test(function(done) {
+it(function(done) {
     done.fail();
 });
 
-test('handles done.fail and done.pass', done => {
+it('handles done.fail and done.pass', done => {
     setTimeout(() => {
         done.fail('no');
     }, 500);
@@ -294,7 +294,7 @@ test(t => {
 });
 `,
 `
-test(() => {
+it(() => {
     expect(myfunc).toThrow();
     expect(myfunc).toThrowError('xxx');
     expect(myfunc).toThrowError(/err_reg_exp/i);
@@ -367,7 +367,7 @@ test('not supported warnings: non standard argument for test', () => {
         });
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "x"',
+        'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "x"',
     ]);
 });
 
@@ -379,7 +379,7 @@ test('not supported warnings: non standard argument for test.skip', () => {
         });
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "y"',
+        'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "y"',
     ]);
 });
 

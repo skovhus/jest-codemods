@@ -5,6 +5,9 @@ import detectQuoteStyle from '../utils/quote-style';
 import { removeRequireAndImport } from '../utils/imports';
 import detectIncompatiblePackages from '../utils/incompatible-packages';
 import { PROP_WITH_SECONDS_ARGS } from '../utils/consts';
+import {
+    detectUnsupportedNaming, rewriteAssertionsAndTestArgument,
+} from '../utils/tape-ava-helpers';
 import logger from '../utils/logger';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
@@ -88,30 +91,7 @@ export default function tapeToJest(fileInfo, api) {
     const logWarning = (msg, node) => logger(fileInfo, msg, node);
 
     const transforms = [
-        function detectUnsupportedNaming() {
-            // Currently we only support "t" as the test argument name
-            const validateTestArgument = p => {
-                const lastArg = p.value.arguments[p.value.arguments.length - 1];
-                if (lastArg && lastArg.params && lastArg.params[0]) {
-                    const lastArgName = lastArg.params[0].name;
-                    if (lastArgName !== 't') {
-                        logWarning(`argument to test function should be named "t" not "${lastArgName}"`, p);
-                    }
-                }
-            };
-
-            ast.find(j.CallExpression, {
-                callee: {
-                    object: { name: testFunctionName },
-                },
-            })
-            .forEach(validateTestArgument);
-
-            ast.find(j.CallExpression, {
-                callee: { name: testFunctionName },
-            })
-            .forEach(validateTestArgument);
-        },
+        () => detectUnsupportedNaming(fileInfo, j, ast, testFunctionName),
 
         function detectUnsupportedFeatures() {
             ast.find(j.CallExpression, {
@@ -208,48 +188,6 @@ export default function tapeToJest(fileInfo, api) {
             ast.find(j.CallExpression, {
                 callee: { name: testFunctionName },
             }).forEach(p => {
-                const containsEndCalls = j(p).find(j.CallExpression, {
-                    callee: {
-                        object: { name: 't' },
-                        property: { name: 'end' },
-                    },
-                })
-                .filter(pEnd => {
-                    // if t.end is in the scope of the test function we remove it
-                    const outerParent = pEnd.parent.parent.parent.node;
-                    const inTestScope = outerParent.params && outerParent.params[0] && outerParent.params[0].name === 't';
-                    if (inTestScope) {
-                        pEnd.prune();
-                        return null;
-                    }
-
-                    // else it might be used for async testing. We rename it to
-                    // familiar Jasmine 'done()'
-                    pEnd.node.callee = j.identifier('done');
-                    return true;
-                })
-                .size() > 0;
-
-                const containsFailCalls = j(p).find(j.CallExpression, {
-                    callee: {
-                        object: { name: 't' },
-                        property: { name: 'fail' },
-                    },
-                })
-                .forEach(pFail => {
-                    pFail.node.callee = j.identifier('done.fail');
-                })
-                .size() > 0;
-
-                // t.pass is a no op
-                j(p).find(j.CallExpression, {
-                    callee: {
-                        object: { name: 't' },
-                        property: { name: 'pass' },
-                    },
-                })
-                .remove();
-
                 // Convert Tape option parameters, test([name], [opts], cb)
                 p.value.arguments.forEach(a => {
                     if (a.type === 'ObjectExpression') {
@@ -257,7 +195,7 @@ export default function tapeToJest(fileInfo, api) {
                             const tapeOptionKey = tapeOption.key.name;
                             const tapeOptionValue = tapeOption.value.value;
                             if (tapeOptionKey === 'skip' && tapeOptionValue === true) {
-                                p.value.callee.name = 'test.skip';
+                                p.value.callee.name = 'xit';
                             }
 
                             if (tapeOptionKey === 'timeout') {
@@ -269,24 +207,11 @@ export default function tapeToJest(fileInfo, api) {
                     }
                 });
 
-                if (p.node.callee.name !== 'test.skip') {
-                    p.node.callee.name = 'test';  // FIXME: what name do people want?
+                if (p.node.callee.name !== 'xit') {
+                    p.node.callee.name = 'it';
                 }
 
-                // Removes t parameter: "t => {}" and "function(t)" or
-                // renames it to "done" if needed
-                const callbackName = (containsEndCalls || containsFailCalls) ? 'done' : '';
-                const lastArg = p.node.arguments[p.node.arguments.length - 1];
-                if (lastArg.type === 'ArrowFunctionExpression') {
-                    const arrowFunction = j.arrowFunctionExpression(
-                        [j.identifier(callbackName === '' ? '()' : callbackName)],
-                        lastArg.body,
-                        false
-                     );
-                    p.node.arguments[p.node.arguments.length - 1] = arrowFunction;
-                } else if (lastArg.type === 'FunctionExpression') {
-                    lastArg.params = [j.identifier(callbackName)];
-                }
+                rewriteAssertionsAndTestArgument(j, p);
             });
         },
 

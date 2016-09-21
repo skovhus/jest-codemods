@@ -53,7 +53,7 @@ test('mapping', (t) => {
 })
 `,
 `
-test('mapping', () => {
+it('mapping', () => {
   const abc = { a: 'a', b: 'b', c: 'c' }
   expect(abc).toBeTruthy()
   expect(abc).toBeFalsy()
@@ -94,7 +94,7 @@ import test from 'ava'
 test.serial(t => {});
 `,
 `
-test(() => {});
+it(() => {});
 `);
 
 testChanged('handles skip/only modifiers and chaining',
@@ -110,13 +110,13 @@ test.only.serial(t => {});
 test.serial.only(t => {});
 `,
 `
-test.only(() => {});
-test.skip(() => {});
+fit(() => {});
+xit(() => {});
 
-test.skip(() => {});
-test.skip(() => {});
-test.only(() => {});
-test.only(() => {});
+xit(() => {});
+xit(() => {});
+fit(() => {});
+fit(() => {});
 `);
 
 testChanged('removes t.pass, but keeps t.fail',
@@ -129,12 +129,40 @@ test('handles done.fail and done.pass', t => {
         t.pass('yes');
     }, 500);
 });
+
+test.serial.only('handles done.fail and done.pass', t => {
+    setTimeout(() => {
+        t.fail('no');
+        t.pass('yes');
+    }, 500);
+});
 `,
 `
-test('handles done.fail and done.pass', done => {
+it('handles done.fail and done.pass', done => {
     setTimeout(() => {
         done.fail('no');
     }, 500);
+});
+
+fit('handles done.fail and done.pass', done => {
+    setTimeout(() => {
+        done.fail('no');
+    }, 500);
+});
+`);
+
+// TODO: semantics is not the same for t.end and done
+// t.end automatically checks for error as first argument (jasmine doesn't)
+testChanged('callback tests',
+`
+import test from 'ava';
+test.cb(t => {
+    fs.readFile('data.txt', t.end);
+});
+`,
+`
+it(done => {
+    fs.readFile('data.txt', done);
 });
 `);
 
@@ -156,26 +184,14 @@ test('not supported warnings: skipping test setup/teardown hooks', () => {
     `);
 
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) skipping setup/teardown hooks is currently not supported',
-        'jest-codemods warning: (test.js line 7) skipping setup/teardown hooks is currently not supported',
-        'jest-codemods warning: (test.js line 8) skipping setup/teardown hooks is currently not supported',
-        'jest-codemods warning: (test.js line 9) skipping setup/teardown hooks is currently not supported',
-        'jest-codemods warning: (test.js line 10) skipping setup/teardown hooks is currently not supported',
-        'jest-codemods warning: (test.js line 11) skipping setup/teardown hooks is currently not supported',
-        'jest-codemods warning: (test.js line 12) skipping setup/teardown hooks is currently not supported',
-        'jest-codemods warning: (test.js line 13) skipping setup/teardown hooks is currently not supported',
-    ]);
-});
-
-test('not supported warnings: t.fail', () => {
-    wrappedPlugin(`
-        import test from 'ava';
-        test.skip(function(t) {
-            t.fail();
-        });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "fail" is currently not supported',
+        'jest-codemods warning: (test.js line 4) Skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 7) Skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 8) Skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 9) Skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 11) Skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 12) Skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 13) Skipping setup/teardown hooks is currently not supported',
+        'jest-codemods warning: (test.js line 14) Skipping setup/teardown hooks is currently not supported',
     ]);
 });
 
@@ -187,7 +203,7 @@ test('not supported warnings: non standard argument for test', () => {
         });
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "x"',
+        'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "x"',
     ]);
 });
 
@@ -201,5 +217,18 @@ test('warns about some conflicting packages', () => {
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js) Usage of package "proxyquire" might be incompatible with Jest',
         'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
+    ]);
+});
+
+
+test('warns about unknown AVA functions', () => {
+    wrappedPlugin(`
+        import test from 'ava';
+        test.todo(t => {});
+        test.failing(t => {});
+    `);
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 3) Unknown AVA method "todo"',
+        'jest-codemods warning: (test.js line 4) Unknown AVA method "failing"',
     ]);
 });
