@@ -206,7 +206,7 @@ export default function tapeToJest(fileInfo, api) {
             ast.find(j.CallExpression, {
                 callee: { name: testFunctionName },
             }).forEach(p => {
-                const containsDeepEndFunction = j(p).find(j.CallExpression, {
+                const containsEndCalls = j(p).find(j.CallExpression, {
                     callee: {
                         object: { name: 't' },
                         property: { name: 'end' },
@@ -221,13 +221,32 @@ export default function tapeToJest(fileInfo, api) {
                         return null;
                     }
 
-                    return pEnd;
+                    // else it might be used for async testing. We rename it to
+                    // familiar Jasmine 'done()'
+                    pEnd.node.callee = j.identifier('done');
+                    return true;
                 })
                 .size() > 0;
 
-                if (containsDeepEndFunction) {
-                    logWarning('t.end is currently not supported in callbacks (maybe return a promise)', p);
-                }
+                const containsFailCalls = j(p).find(j.CallExpression, {
+                    callee: {
+                        object: { name: 't' },
+                        property: { name: 'fail' },
+                    },
+                })
+                .forEach(pFail => {
+                    pFail.node.callee = j.identifier('done.fail');
+                })
+                .size() > 0;
+
+                // t.pass is a no op
+                j(p).find(j.CallExpression, {
+                    callee: {
+                        object: { name: 't' },
+                        property: { name: 'pass' },
+                    },
+                })
+                .remove();
 
                 // Convert Tape option parameters, test([name], [opts], cb)
                 p.value.arguments.forEach(a => {
@@ -248,21 +267,23 @@ export default function tapeToJest(fileInfo, api) {
                     }
                 });
 
-                if (p.node.callee.name !== 'xit') {
-                    p.node.callee.name = 'test';  // FIXME? what name do people want?
+                if (p.node.callee.name !== 'test.skip') {
+                    p.node.callee.name = 'test';  // FIXME: what name do people want?
                 }
 
-                // Removes t parameter: "t => {}" and "function(t)"
+                // Removes t parameter: "t => {}" and "function(t)" or
+                // renames it to "done" if needed
+                const callbackName = (containsEndCalls || containsFailCalls) ? 'done' : '';
                 const lastArg = p.node.arguments[p.node.arguments.length - 1];
                 if (lastArg.type === 'ArrowFunctionExpression') {
                     const arrowFunction = j.arrowFunctionExpression(
-                        [j.identifier('()')],
+                        [j.identifier(callbackName === '' ? '()' : callbackName)],
                         lastArg.body,
                         false
                      );
                     p.node.arguments[p.node.arguments.length - 1] = arrowFunction;
                 } else if (lastArg.type === 'FunctionExpression') {
-                    lastArg.params = [j.identifier('')];
+                    lastArg.params = [j.identifier(callbackName)];
                 }
             });
         },

@@ -238,6 +238,51 @@ test('mytest', () => {
 `
 );
 
+testChanged('keeps t.end in nested functions',
+`
+import test from 'tape';
+
+test(t => {
+    setTimeout(() => {
+        t.end();
+    }, 500);
+});
+`,
+`
+test(done => {
+    setTimeout(() => {
+        done();
+    }, 500);
+});
+`);
+
+testChanged('removes t.pass but keeps t.fail',
+`
+import test from 'tape'
+
+test(function(t) {
+    t.fail();
+});
+
+test('handles done.fail and done.pass', t => {
+    setTimeout(() => {
+        t.fail('no');
+        t.pass('yes');
+    }, 500);
+});
+`,
+`
+test(function(done) {
+    done.fail();
+});
+
+test('handles done.fail and done.pass', done => {
+    setTimeout(() => {
+        done.fail('no');
+    }, 500);
+});
+`);
+
 testChanged('t.throws',
 `
 import test from 'tape';
@@ -303,18 +348,6 @@ test('not supported warnings: looseEquals', () => {
     ]);
 });
 
-test('not supported warnings: t.fail', () => {
-    wrappedPlugin(`
-        import test from 'tape';
-        test.skip(function(t) {
-            t.fail();
-        });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "fail" is currently not supported',
-    ]);
-});
-
 test('not supported warnings: timeout option', () => {
     wrappedPlugin(`
         import test from 'tape';
@@ -348,20 +381,6 @@ test('not supported warnings: non standard argument for test.skip', () => {
     `);
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "y"',
-    ]);
-});
-
-test('not supported warnings: t.end in callbacks', () => {
-    wrappedPlugin(`
-        import test from 'tape';
-        test('store: save exising', function(t) {
-            setTimeout(() => {
-                t.end();
-            }, 0);
-        });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) t.end is currently not supported in callbacks (maybe return a promise)',
     ]);
 });
 
