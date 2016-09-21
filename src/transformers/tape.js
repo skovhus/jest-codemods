@@ -29,6 +29,7 @@ const tapeToJestExpect = {
     equal: 'toBe',
     equals: 'toBe',
     isEqual: 'toBe',
+    is: 'toBe',
     strictEqual: 'toBe',
     strictEquals: 'toBe',
 
@@ -36,6 +37,8 @@ const tapeToJestExpect = {
     notStrictEqual: 'not.toBe',
     notStrictEquals: 'not.toBe',
     isNotEqual: 'not.toBe',
+    isNot: 'not.toBe',
+    not: 'not.toBe',
     doesNotEqual: 'not.toBe',
     isInequal: 'not.toBe',
 
@@ -50,8 +53,6 @@ const tapeToJestExpect = {
     isNotDeepEqual: 'not.toEqual',
     isNotEquivalent: 'not.toEqual',
     isInequivalent: 'not.toEqual',
-
-    // skip: 'skip',
 
     throws: SPECIAL_THROWS_CASE,
     doesNotThrow: SPECIAL_THROWS_CASE,
