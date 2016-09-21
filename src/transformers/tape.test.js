@@ -217,7 +217,7 @@ test('mytest', {objectPrintDepth: 4, skip: true}, t => {
 });
 `,
 `
-xit('mytest', () => {
+test.skip('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
