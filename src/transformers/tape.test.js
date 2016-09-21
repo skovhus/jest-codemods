@@ -5,18 +5,19 @@ import plugin from './tape';
 
 const wrappedPlugin = wrapPlugin(plugin);
 
-function testChanged(msg, source, expectedOutput) {
-    test(msg, () => {
-        const result = wrappedPlugin(source);
-        expect(result).toBe(expectedOutput);
-    });
-}
-
 let consoleWarnings = [];
 beforeEach(() => {
     consoleWarnings = [];
     console.warn = v => consoleWarnings.push(v);
 });
+
+function testChanged(msg, source, expectedOutput) {
+    test(msg, () => {
+        const result = wrappedPlugin(source);
+        expect(result).toBe(expectedOutput);
+        expect(consoleWarnings).toEqual([]);
+    });
+}
 
 testChanged('does not touch code without tape require/import',
 `
@@ -56,20 +57,24 @@ testChanged('maps assertions and comments',
 `
 import test from 'tape';
 test((t) => {
-    // t.fail('msg');
-    // t.pass('msg');
+    t.fail('msg');
+    t.pass('msg');
     t.ok(1, 'msg');
     t.true(1, 'msg');
     t.assert(1, 2, 'msg');
     t.notOk(1, 'msg');
     t.false(1, 'msg');
     t.notok(1, 'msg');
-    // t.error(1, 'msg');
-    // t.ifErr(1, 'msg');
-    // t.iferror(1, 'msg');
+
+    t.error(1, 'msg');
+    t.ifErr(1, 'msg');
+    t.iferror(1, 'msg');
+    t.ifError(1, 'msg');
+
     t.equal(1, 2, 'msg');
     t.equals(1, 2, 'msg');
     t.isEqual(1, 2, 'msg');
+    t.is(1, 2, 'msg');
     t.strictEqual(1, 2, 'msg');
     t.strictEquals(1, 2, 'msg');
 
@@ -77,6 +82,9 @@ test((t) => {
     t.notStrictEqual(1, 2, 'msg');
     t.notStrictEquals(1, 2, 'msg');
     t.isNotEqual(1, 2, 'msg');
+    t.isNot(1, 2, 'msg');
+    t.not(1, 2, 'msg');
+
     t.doesNotEqual(1, 2, 'msg');
     t.isInequal(1, 2, 'msg');
 
@@ -99,18 +107,21 @@ test((t) => {
 });
 `,
 `
-test(() => {
-    // t.fail('msg');
-    // t.pass('msg');
+it(done => {
+    done.fail('msg');
     expect(1).toBeTruthy();
     expect(1).toBeTruthy();
     expect(1).toBeTruthy();
     expect(1).toBeFalsy();
     expect(1).toBeFalsy();
     expect(1).toBeFalsy();
-    // t.error(1, 'msg');
-    // t.ifErr(1, 'msg');
-    // t.iferror(1, 'msg');
+
+    expect(1).toBeFalsy();
+    expect(1).toBeFalsy();
+    expect(1).toBeFalsy();
+    expect(1).toBeFalsy();
+
+    expect(1).toBe(2);
     expect(1).toBe(2);
     expect(1).toBe(2);
     expect(1).toBe(2);
@@ -121,6 +132,9 @@ test(() => {
     expect(1).not.toBe(2);
     expect(1).not.toBe(2);
     expect(1).not.toBe(2);
+    expect(1).not.toBe(2);
+    expect(1).not.toBe(2);
+
     expect(1).not.toBe(2);
     expect(1).not.toBe(2);
 
@@ -151,7 +165,7 @@ test("mytest", t => {
 });
 `,
 `
-test("mytest", () => {
+it("mytest", () => {
     expect("msg").toBeTruthy();
 });
 `
@@ -177,19 +191,19 @@ myTapeTest(function(t) {
 });
 `,
 `
-test("mytest", () => {
+it("mytest", () => {
     expect("msg").toBeTruthy();
 });
 
-test(() => {
+it(() => {
     expect("msg").toBeTruthy();
 });
 
-test("mytest", function() {
+it("mytest", function() {
     expect("msg").toBeTruthy();
 });
 
-test(function() {
+it(function() {
     expect("msg").toBeTruthy();
 });
 `
@@ -203,7 +217,7 @@ test('mytest', {objectPrintDepth: 4, skip: false}, t => {
 });
 `,
 `
-test('mytest', () => {
+it('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
@@ -217,7 +231,7 @@ test('mytest', {objectPrintDepth: 4, skip: true}, t => {
 });
 `,
 `
-test.skip('mytest', () => {
+xit('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
@@ -232,7 +246,7 @@ test('mytest', t => {
 });
 `,
 `
-test('mytest', () => {
+it('mytest', () => {
     expect(1).toBe(1);
 });
 `
@@ -249,7 +263,7 @@ test(t => {
 });
 `,
 `
-test(done => {
+it(done => {
     setTimeout(() => {
         done();
     }, 500);
@@ -272,11 +286,11 @@ test('handles done.fail and done.pass', t => {
 });
 `,
 `
-test(function(done) {
+it(function(done) {
     done.fail();
 });
 
-test('handles done.fail and done.pass', done => {
+it('handles done.fail and done.pass', done => {
     setTimeout(() => {
         done.fail('no');
     }, 500);
@@ -294,7 +308,7 @@ test(t => {
 });
 `,
 `
-test(() => {
+it(() => {
     expect(myfunc).toThrow();
     expect(myfunc).toThrowError('xxx');
     expect(myfunc).toThrowError(/err_reg_exp/i);
@@ -307,7 +321,6 @@ test('not supported warnings: createStream', () => {
     wrappedPlugin(`
         import test from 'tape';
         test.createStream(() => {});
-        test.createStream(() => {}); // only logs once
     `);
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) "createStream" is currently not supported',
@@ -368,7 +381,7 @@ test('not supported warnings: non standard argument for test', () => {
         });
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "x"',
+        'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "x"',
     ]);
 });
 
@@ -380,7 +393,7 @@ test('not supported warnings: non standard argument for test.skip', () => {
         });
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) argument to test function should be named "t" not "y"',
+        'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "y"',
     ]);
 });
 
