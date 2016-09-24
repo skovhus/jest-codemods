@@ -1,12 +1,12 @@
 # jest-codemods
 
+<img src="screenshot.gif" width="440" align="right">
+
 Codemods that simplify migrating JavaScript test files from [Tape](https://github.com/substack/tape) and [AVA](https://github.com/avajs/ava) to [Jest](https://facebook.github.io/jest/). We expect to support migrating from other test frameworks in the future.
 
 [![Build Status](https://travis-ci.org/skovhus/jest-codemods.svg?branch=master)](https://travis-ci.org/skovhus/jest-codemods)
 [![version][version-badge]][package]
 [![Tweet][twitter-badge]][twitter]
-
-<img src="screenshot.gif" width="440" align="right">
 
 Codemods are small programs that help you automate changes to your codebase. Think of them as search and replace on steroids. They are executed by the [Facebook jscodeshift](https://github.com/facebook/jscodeshift) tool.
 
