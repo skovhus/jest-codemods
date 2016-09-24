@@ -1,14 +1,16 @@
 # jest-codemods
 
-Codemods that simplify migrating JavaScript test files to  [Jest](https://facebook.github.io/jest/). Currently we support migrating from [Tape](https://github.com/substack/tape) to Jest. But we plan to support [AVA](https://github.com/avajs/ava) and other test runners in the future.
+Codemods that simplify migrating JavaScript test files from [Tape](https://github.com/substack/tape) and [AVA](https://github.com/avajs/ava) to [Jest](https://facebook.github.io/jest/). We expect to support migrating from other test frameworks in the future.
 
 [![Build Status](https://travis-ci.org/skovhus/jest-codemods.svg?branch=master)](https://travis-ci.org/skovhus/jest-codemods)
 [![version][version-badge]][package]
 [![Tweet][twitter-badge]][twitter]
 
+<img src="screenshot.gif" width="440" align="right">
+
 Codemods are small programs that help you automate changes to your codebase. Think of them as search and replace on steroids. They are executed by the [Facebook jscodeshift](https://github.com/facebook/jscodeshift) tool.
 
-This tool is made for trying out Jest on your existing test files. We strive to make the migration as smooth as possible, but some manual intervention and tweaks are to be expected.
+This tool is made for trying out Jest on your existing test files. We strive to make the migration as smooth as possible, but some manual intervention and tweaks to your tests are to be expected.
 
 
 ## Install
@@ -22,19 +24,17 @@ This installs the runner as `jest-codemods`.
 
 ## Usage (CLI)
 
-Currently we support migrating from [Tape](https://github.com/substack/tape) to Jest.
-
 ```
 $ jest-codemods --help
 
-	Codemod that simplify migrating to Jest.
+	Codemods for migrating test files to Jest.
 
 	Usage
 	  $ jest-codemods <path> [options]
 
 	path		Files or directory to transform. Can be a glob like src/**.test.js
 
-	Only files with Tape will be converted.
+	Only files using Tape or AVA will be converted.
 
 	Options
 	  --force, -f	Bypass Git safety checks and forcibly run codemods
@@ -42,9 +42,9 @@ $ jest-codemods --help
 	  --parser		The parser to use for parsing your source files (babel | babylon | flow)  [babel]
 ```
 
-To transform all test files in a directory run `jest-codemods mySrcFolder` in your terminal.
+To transform all test files in a directory run `jest-codemods test-folder` in your terminal.
 
-Only files requiring or importing Tape will be transformed. Notice the console output for errors, manual intervention and tweaks are to be expected.
+Only files requiring or importing AVA or Tape will be transformed. Notice the console output for errors, manual intervention and tweaks are to be expected.
 
 
 ## Usage (jscodeshift)
@@ -54,7 +54,8 @@ To make the process as simple as possible, we recommend the `jest-codemods` CLI 
 ```
 $ npm install -g jscodeshift
 $ npm install jest-codemods
-$ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js mySrcFolder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/ava.js test-folder
 ```
 
 
