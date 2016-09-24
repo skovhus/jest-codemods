@@ -1,8 +1,9 @@
 /* eslint-env jest */
-
+import chalk from 'chalk';
 import { wrapPlugin } from '../utils/test-helpers';
 import plugin from './tape';
 
+chalk.enabled = false;
 const wrappedPlugin = wrapPlugin(plugin);
 
 let consoleWarnings = [];

@@ -2,20 +2,21 @@
 import path from 'path';
 
 import execa from 'execa';
+import inquirer from 'inquirer';
 import isGitClean from 'is-git-clean';
 import meow from 'meow';
 import updateNotifier from 'update-notifier';
-
-const PATH_TRANSFORMER = path.join(__dirname, 'transformers', 'tape.js');
 
 function checkGitStatus(force) {
     let clean = false;
     let errorMessage = 'Unable to determine if git directory is clean';
     try {
-        clean = isGitClean.sync();
+        clean = isGitClean.sync(process.cwd(), { files: ['!package.json'] });
         errorMessage = 'Git directory is not clean';
     } catch (err) {
-        // Ignoring error
+        if (err && err.stderr && err.stderr.indexOf('Not a git repository') >= 0) {
+            clean = true;
+        }
     }
 
     const ENSURE_BACKUP_MESSAGE = 'Ensure you have a backup of your tests or commit the latest changes before continuing.';
@@ -34,13 +35,10 @@ function checkGitStatus(force) {
     }
 }
 
-function executeTransformation(files, flags) {
-    const spawnOptions = {
-        stdio: 'inherit',
-        stripEof: false,
-    };
+function executeTransformation(files, flags, transformer) {
+    const transformerPath = path.join(__dirname, 'transformers', `${transformer}.js`);
 
-    const args = ['-t', PATH_TRANSFORMER].concat(files);
+    const args = ['-t', transformerPath].concat(files);
     if (flags.dry) {
         args.push('--dry');
     }
@@ -50,22 +48,32 @@ function executeTransformation(files, flags) {
 
     console.log(`Executing command: jscodeshift ${args.join(' ')}`);
 
-    const result = execa.sync('jscodeshift', args, spawnOptions);
+    const result = execa.sync('jscodeshift', args, {
+        stdio: 'inherit',
+        stripEof: false,
+    });
+
     if (result.error) {
         throw result.error;
     }
 }
 
+function executeTransformations(files, flags, transformers) {
+    transformers.forEach(t => {
+        executeTransformation(files, flags, t);
+    });
+}
+
 const cli = meow(
     {
-        description: 'Codemod that simplify migrating to Jest.',
+        description: 'Codemods for migrating test files to Jest.',
         help: `
     Usage
       $ jest-codemods <path> [options]
 
     path    Files or directory to transform. Can be a glob like src/**.test.js
 
-    Only files with Tape will be converted.
+    Only files using Tape or AVA will be converted.
 
     Options
       --force, -f   Bypass Git safety checks and forcibly run codemods
@@ -86,12 +94,57 @@ const cli = meow(
 
 updateNotifier({ pkg: cli.pkg }).notify();
 
-const files = cli.input;
-if (files.length === 0) {
-    cli.showHelp();
-} else {
+if (cli.input.length) {
+    // Apply all transformers if input is given using CLI.
     if (!cli.flags.dry) {
         checkGitStatus(cli.flags.force);
     }
-    executeTransformation(files, cli.flags);
+    executeTransformations(cli.input, cli.flags, ['tape', 'ava']);
+} else {
+    // Else show the fancy inquirer prompt.
+    inquirer.prompt([{
+        type: 'list',
+        name: 'transformer',
+        message: 'Which test library would you like to migrate from?',
+        choices: [{
+            name: 'Tape',
+            value: 'tape',
+        }, {
+            name: 'AVA',
+            value: 'ava',
+        }, {
+            name: 'All of the above!',
+            value: 'all',
+        }, {
+            name: 'Other',
+            value: 'other',
+        }],
+    }, {
+        type: 'input',
+        name: 'files',
+        message: 'On which files or directory should the codemods be applied?',
+        default: 'test.js test-*.js test/**/*.js **/__tests__/**/*.js **/*.test.js',
+        filter: files => files.trim().split(/\s+/).filter(v => v),
+    }]).then(answers => {
+        const { files, transformer } = answers;
+
+        if (transformer === 'other') {
+            console.log('\nCurrently jest-codemods only have support for AVA and Tape.');
+            console.log('Feel free to create an issue on https://github.com/skovhus/jest-codemods or help contribute!\n');
+            return;
+        }
+
+        if (!files.length) {
+            return;
+        }
+
+        if (!cli.flags.dry) {
+            checkGitStatus(cli.flags.force);
+        }
+
+        const transformers = transformer === 'all' ? ['tape', 'ava'] : [transformer];
+        transformers.forEach(t => {
+            executeTransformation(files, cli.flags, t);
+        });
+    });
 }
