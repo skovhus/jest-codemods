@@ -48,7 +48,7 @@ function executeTransformation(files, flags, transformer) {
 
     console.log(`Executing command: jscodeshift ${args.join(' ')}`);
 
-    const result = execa.sync('jscodeshift', args, {
+    const result = execa.sync(require.resolve('.bin/jscodeshift'), args, {
         stdio: 'inherit',
         stripEof: false,
     });
