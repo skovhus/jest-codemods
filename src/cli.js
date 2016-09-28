@@ -11,7 +11,7 @@ function checkGitStatus(force) {
     let clean = false;
     let errorMessage = 'Unable to determine if git directory is clean';
     try {
-        clean = isGitClean.sync(process.cwd(), { files: ['!package.json'] });
+        clean = isGitClean.sync(process.cwd());
         errorMessage = 'Git directory is not clean';
     } catch (err) {
         if (err && err.stderr && err.stderr.indexOf('Not a git repository') >= 0) {
