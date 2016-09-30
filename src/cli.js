@@ -2,6 +2,7 @@
 import path from 'path';
 
 import execa from 'execa';
+import globby from 'globby';
 import inquirer from 'inquirer';
 import isGitClean from 'is-git-clean';
 import meow from 'meow';
@@ -123,7 +124,7 @@ if (cli.input.length) {
         type: 'input',
         name: 'files',
         message: 'On which files or directory should the codemods be applied?',
-        default: 'test.js test-*.js test/**/*.js **/__tests__/**/*.js **/*.test.js',
+        default: 'src test/**/*.js',
         filter: files => files.trim().split(/\s+/).filter(v => v),
     }]).then(answers => {
         const { files, transformer } = answers;
@@ -138,13 +139,19 @@ if (cli.input.length) {
             return;
         }
 
+        const filesExpanded = globby.sync(files);
+        if (!filesExpanded.length) {
+            console.log(`No files found matching ${files.join(' ')}`);
+            return;
+        }
+
         if (!cli.flags.dry) {
             checkGitStatus(cli.flags.force);
         }
 
         const transformers = transformer === 'all' ? ['tape', 'ava'] : [transformer];
         transformers.forEach(t => {
-            executeTransformation(files, cli.flags, t);
+            executeTransformation(filesExpanded, cli.flags, t);
         });
     });
 }
