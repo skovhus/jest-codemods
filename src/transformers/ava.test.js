@@ -39,40 +39,50 @@ import test from 'ava'
 
 test('mapping', (t) => {
   const abc = { a: 'a', b: 'b', c: 'c' }
+  t.ok(abc)
   t.truthy(abc)
+  t.notOk(abc)
   t.falsy(abc)
   t.true(abc)
   t.false(abc)
   t.is(abc, 'abc')
   t.not(abc, 'xyz')
+  t.same(abc, {a: 'a', b: 'b', c: 'c'})
   t.deepEqual(abc, {a: 'a', b: 'b', c: 'c'})
   t.throws(() => {}, 'foo');
   t.throws(afunc, 'foo');
   t.throws(afunc);
   t.notThrows(() => {});
+  t.notSame(abc, {a: 'x', b: 'y', c: 'z'})
   t.notDeepEqual(abc, {a: 'x', b: 'y', c: 'z'})
   t.notRegex(abc, /xyz/)
   t.regex(abc, /abc/)
   t.ifError(abc)
+  t.error(abc)
 })
 `,
 `
 it('mapping', () => {
   const abc = { a: 'a', b: 'b', c: 'c' }
   expect(abc).toBeTruthy()
+  expect(abc).toBeTruthy()
+  expect(abc).toBeFalsy()
   expect(abc).toBeFalsy()
   expect(abc).toBe(true)
   expect(abc).toBe(false)
   expect(abc).toBe('abc')
   expect(abc).not.toBe('xyz')
   expect(abc).toEqual({a: 'a', b: 'b', c: 'c'})
+  expect(abc).toEqual({a: 'a', b: 'b', c: 'c'})
   expect(() => {}).toThrowError('foo');
   expect(afunc).toThrowError('foo');
   expect(afunc).toThrow();
   expect(() => {}).not.toThrow();
   expect(abc).not.toEqual({a: 'x', b: 'y', c: 'z'})
+  expect(abc).not.toEqual({a: 'x', b: 'y', c: 'z'})
   expect(abc).not.toMatch(/xyz/)
   expect(abc).toMatch(/abc/)
+  expect(abc).toBeFalsy()
   expect(abc).toBeFalsy()
 })
 `);
@@ -200,8 +210,7 @@ test('not supported warnings: skipping test setup/teardown hooks', () => {
     ]);
 });
 
-
-test('not supported warnings: non standard argument for test', () => {
+test('not supported warnings: t.plan', () => {
     wrappedPlugin(`
         import test from 'ava';
         test(t => {
@@ -209,10 +218,21 @@ test('not supported warnings: non standard argument for test', () => {
         });
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "plan" is currently not supported',
+        'jest-codemods warning: (test.js line 4) "t.plan" is currently not supported',
     ]);
 });
 
+test('not supported warnings: unmapped t property', () => {
+    wrappedPlugin(`
+        import test from 'ava';
+        test(t => {
+            t.unknownAssert(100);
+        });
+    `);
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) "t.unknownAssert" is currently not supported',
+    ]);
+});
 
 test('not supported warnings: non standard argument for test', () => {
     wrappedPlugin(`
@@ -238,7 +258,6 @@ test('warns about some conflicting packages', () => {
         'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
     ]);
 });
-
 
 test('warns about unknown AVA functions', () => {
     wrappedPlugin(`

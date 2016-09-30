@@ -12,7 +12,7 @@ import logger from '../utils/logger';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
 
-const tapeToJestExpect = {
+const tPropertiesMap = {
     ok: 'toBeTruthy',
     true: 'toBeTruthy',
     assert: 'toBeTruthy',
@@ -58,7 +58,14 @@ const tapeToJestExpect = {
     doesNotThrow: SPECIAL_THROWS_CASE,
 };
 
-const unsupportedTProperties = new Set([
+const tPropertiesNotMapped = new Set([
+    'pass',
+    'fail',
+    'end',
+    'comment',
+]);
+
+const tPropertiesUnsupported = new Set([
     'timeoutAfter',
 
     // toEqual is more strict but might be used in some cases:
@@ -98,15 +105,15 @@ export default function tapeToJest(fileInfo, api) {
             ast.find(j.CallExpression, {
                 callee: {
                     object: { name: 't' },
-                    property: ({ name }) => unsupportedTProperties.has(name),
+                    property: ({ name }) => tPropertiesUnsupported.has(name),
                 },
             })
             .forEach(p => {
                 const propertyName = p.value.callee.property.name;
                 if (propertyName.toLowerCase().indexOf('looseequal') >= 0) {
-                    logWarning(`"${propertyName}" is currently not supported. Try the stricter "toEqual" or "not.toEqual"`, p);
+                    logWarning(`"t.${propertyName}" is currently not supported. Try the stricter "toEqual" or "not.toEqual"`, p);
                 } else {
-                    logWarning(`"${propertyName}" is currently not supported`, p);
+                    logWarning(`"t.${propertyName}" is currently not supported`, p);
                 }
             });
 
@@ -126,16 +133,20 @@ export default function tapeToJest(fileInfo, api) {
             ast.find(j.CallExpression, {
                 callee: {
                     object: { name: 't' },
-                    property: ({ name }) => Object.keys(tapeToJestExpect).indexOf(name) >= 0,
+                    property: ({ name }) => !tPropertiesUnsupported.has(name) && !tPropertiesNotMapped.has(name),
                 },
             })
             .forEach(p => {
                 const args = p.node.arguments;
                 const oldPropertyName = p.value.callee.property.name;
-                const newPropertyName = tapeToJestExpect[p.node.callee.property.name];
+                const newPropertyName = tPropertiesMap[oldPropertyName];
+
+                if (typeof newPropertyName === 'undefined') {
+                    logWarning(`"t.${oldPropertyName}" is currently not supported`, p);
+                    return null;
+                }
 
                 let newCondition;
-
                 if (newPropertyName === SPECIAL_THROWS_CASE) {
                     // The semantics of t.throws(fn, expected, msg) in Tape:
                     // If `expected` is a string, it is set to msg, else exception reg exp
@@ -169,7 +180,7 @@ export default function tapeToJest(fileInfo, api) {
                     newCondition
                 );
 
-                j(p).replaceWith(newExpression);
+                return j(p).replaceWith(newExpression);
             });
         },
 

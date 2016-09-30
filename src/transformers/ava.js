@@ -17,21 +17,32 @@ import logger from '../utils/logger';
 const SPECIAL_THROWS_CASE = '(special throws case)';
 const SPECIAL_BOOL = '(special bool case)';
 
-const avaToJestExpect = {
+const tPropertiesMap = {
+    ok: 'toBeTruthy',
     truthy: 'toBeTruthy',
     falsy: 'toBeFalsy',
+    notOk: 'toBeFalsy',
     true: SPECIAL_BOOL,
     false: SPECIAL_BOOL,
     is: 'toBe',
     not: 'not.toBe',
+    same: 'toEqual',
     deepEqual: 'toEqual',
+    notSame: 'not.toEqual',
     notDeepEqual: 'not.toEqual',
     throws: SPECIAL_THROWS_CASE,
     notThrows: SPECIAL_THROWS_CASE,
     regex: 'toMatch',
     notRegex: 'not.toMatch',
     ifError: 'toBeFalsy',
+    error: 'toBeFalsy',
 };
+
+const tPropertiesNotMapped = new Set([
+    'end',
+    'fail',
+    'pass',
+]);
 
 const avaToJestMethods = {
     before: 'before',
@@ -39,16 +50,9 @@ const avaToJestMethods = {
     beforeEach: 'beforeEach',
     afterEach: 'afterEach',
 
-    // TODO: test.skip not working in Jest
     skip: 'xit',
-    // TODO: test.only not working in Jest
     only: 'fit',
 };
-
-const unsupportedTProperties = new Set([
-    'skip',
-    'plan',
-]);
 
 export default function avaToJest(fileInfo, api) {
     const j = api.jscodeshift;
@@ -66,33 +70,24 @@ export default function avaToJest(fileInfo, api) {
     const transforms = [
         () => detectUnsupportedNaming(fileInfo, j, ast, testFunctionName),
 
-        function detectUnsupportedFeatures() {
-            ast.find(j.CallExpression, {
-                callee: {
-                    object: { name: 't' },
-                    property: ({ name }) => unsupportedTProperties.has(name),
-                },
-            })
-            .forEach(p => {
-                const propertyName = p.value.callee.property.name;
-                logWarning(`"${propertyName}" is currently not supported`, p);
-            });
-        },
-
         function updateAssertions() {
             ast.find(j.CallExpression, {
                 callee: {
                     object: { name: 't' },
-                    property: ({ name }) => Object.keys(avaToJestExpect).indexOf(name) >= 0,
+                    property: ({ name }) => !tPropertiesNotMapped.has(name),
                 },
             })
             .forEach(p => {
                 const args = p.node.arguments;
                 const oldPropertyName = p.value.callee.property.name;
-                const newPropertyName = avaToJestExpect[p.node.callee.property.name];
+                const newPropertyName = tPropertiesMap[oldPropertyName];
+
+                if (typeof newPropertyName === 'undefined') {
+                    logWarning(`"t.${oldPropertyName}" is currently not supported`, p);
+                    return null;
+                }
 
                 let newCondition;
-
                 if (newPropertyName === SPECIAL_BOOL) {
                     newCondition = j.callExpression(
                         j.identifier('toBe'),
@@ -127,7 +122,7 @@ export default function avaToJest(fileInfo, api) {
                     newCondition
                 );
 
-                j(p).replaceWith(newExpression);
+                return j(p).replaceWith(newExpression);
             });
         },
 

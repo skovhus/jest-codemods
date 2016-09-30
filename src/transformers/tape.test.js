@@ -346,7 +346,19 @@ test('not supported warnings: timeoutAfter', () => {
         });
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "timeoutAfter" is currently not supported',
+        'jest-codemods warning: (test.js line 4) "t.timeoutAfter" is currently not supported',
+    ]);
+});
+
+test('not supported warnings: unmapped t property', () => {
+    wrappedPlugin(`
+        import test from 'tape';
+        test(t => {
+            t.unknownAssert(100);
+        });
+    `);
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) "t.unknownAssert" is currently not supported',
     ]);
 });
 
@@ -358,7 +370,7 @@ test('not supported warnings: looseEquals', () => {
         });
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "looseEquals" is currently not supported. Try the stricter "toEqual" or "not.toEqual"',
+        'jest-codemods warning: (test.js line 4) "t.looseEquals" is currently not supported. Try the stricter "toEqual" or "not.toEqual"',
     ]);
 });
 
