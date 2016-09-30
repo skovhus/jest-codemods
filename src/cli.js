@@ -93,7 +93,7 @@ const cli = meow(
     }
 );
 
-updateNotifier({ pkg: cli.pkg }).notify();
+updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 
 if (cli.input.length) {
     // Apply all transformers if input is given using CLI.
