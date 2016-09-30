@@ -172,6 +172,9 @@ export default function avaToJest(fileInfo, api) {
             })
             .filter(p => {
                 const identifier = getIdentifierFromExpression(p.node.callee);
+                if (identifier === null) {
+                    return null;
+                }
                 if (identifier.name === testFunctionName) {
                     return p;
                 }

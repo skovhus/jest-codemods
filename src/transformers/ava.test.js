@@ -181,6 +181,43 @@ it(done => {
 });
 `);
 
+// FIXME: these hanging t variables should be removed or be renamed
+testChanged('passing around t',
+`
+import test from 'ava'
+
+test('should pass', t => {
+    shouldFail(t, 'hi')
+    return shouldFail2(t, 'hi')
+})
+
+function shouldFail(t, message) {
+    t.same('error', message)
+}
+
+function shouldFail2(t, message) {
+    return Promise.reject().catch(err => {
+        t.same(err.message, message)
+    })
+}
+`,
+`
+it('should pass', () => {
+    shouldFail(t, 'hi')
+    return shouldFail2(t, 'hi')
+})
+
+function shouldFail(t, message) {
+    expect('error').toEqual(message)
+}
+
+function shouldFail2(t, message) {
+    return Promise.reject().catch(err => {
+        expect(err.message).toEqual(message)
+    })
+}
+`);
+
 test('not supported warnings: skipping test setup/teardown hooks', () => {
     wrappedPlugin(`
         import test from 'ava'

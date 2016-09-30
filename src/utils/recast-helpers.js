@@ -4,9 +4,12 @@
  * Example: return `foo` for a node of `foo.bar.baz()`
  *
  * @param  {MemberExpression} node
- * @return {string}
+ * @return {string|null}
  */
 export function getIdentifierFromExpression(node) {
+    if (!node) {
+        return null;
+    }
     if (node.type === 'Identifier') {
         return node;
     }
