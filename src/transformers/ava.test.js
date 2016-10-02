@@ -22,19 +22,25 @@ function testChanged(msg, source, expectedOutput) {
 
 testChanged('does not touch code without ava require/import',
 `
+// @flow
 const test = require("testlib");
 test(t => {
     t.notOk(1);
-});`,
+})
+`,
 `
+// @flow
 const test = require("testlib");
 test(t => {
     t.notOk(1);
-});`
+})
+`
 );
 
+// TODO: jscodeshift adds semi colon when preserving first line comments :/
 testChanged('maps assertions',
 `
+// @flow
 import test from 'ava'
 
 test('mapping', (t) => {
@@ -62,6 +68,7 @@ test('mapping', (t) => {
 })
 `,
 `
+// @flow
 it('mapping', () => {
   const abc = { a: 'a', b: 'b', c: 'c' }
   expect(abc).toBeTruthy()
@@ -84,8 +91,9 @@ it('mapping', () => {
   expect(abc).toMatch(/abc/)
   expect(abc).toBeFalsy()
   expect(abc).toBeFalsy()
-})
+});
 `);
+
 
 testChanged('handles test setup/teardown modifiers',
 `

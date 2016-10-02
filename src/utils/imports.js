@@ -29,6 +29,9 @@ export function hasRequireOrImport(j, ast, pkg) {
  * @return the import variable name or null if no import were found.
  */
 export function removeRequireAndImport(j, ast, pkg) {
+    const getBodyNode = () => ast.find(j.Program).get('body', 0).node;
+    const { comments } = getBodyNode(j, ast);
+
     let testFunctionName = null;
     findRequires(j, ast, pkg)
     .forEach(p => {
@@ -41,6 +44,8 @@ export function removeRequireAndImport(j, ast, pkg) {
         testFunctionName = p.value.specifiers[0].local.name;
         p.prune();
     });
+
+    getBodyNode(j, ast).comments = comments;
 
     return testFunctionName;
 }
