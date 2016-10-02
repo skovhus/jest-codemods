@@ -73,7 +73,7 @@ if (cli.input.length) {
 
         if (transformer === 'other') {
             console.log('\nCurrently jest-codemods only have support for AVA and Tape.');
-            console.log('Feel free to create an issue on https://github.com/skovhus/jest-codemods or help contribute!\n');
+            console.log('Feel free to create an issue on https://github.com/skovhus/jest-codemods to contribute!\n');
             return;
         }
 

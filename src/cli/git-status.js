@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import isGitClean from 'is-git-clean';
 
 export default function checkGitStatus(force) {
@@ -16,11 +17,9 @@ export default function checkGitStatus(force) {
         if (force) {
             console.log(`WARNING: ${errorMessage}. Forcibly continuing.`);
         } else {
-            console.log(
-                `ERROR: ${errorMessage}. Refusing to continue.`,
-                'Ensure you have a backup of your tests or commit the latest changes before continuing.',
-                'You may use the --force flag to override this safety check.'
-            );
+            console.log(chalk.red(`\nERROR: ${errorMessage}. Refusing to continue.`));
+            console.log('Ensure you have a backup of your tests or commit the latest changes before continuing.');
+            console.log('You may use the --force flag to override this safety check.');
             process.exit(1);
         }
     }
