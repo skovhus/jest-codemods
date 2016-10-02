@@ -1,69 +1,11 @@
 #!/usr/bin/env node
-import path from 'path';
-
-import execa from 'execa';
 import globby from 'globby';
 import inquirer from 'inquirer';
-import isGitClean from 'is-git-clean';
 import meow from 'meow';
 import updateNotifier from 'update-notifier';
 
-function checkGitStatus(force) {
-    let clean = false;
-    let errorMessage = 'Unable to determine if git directory is clean';
-    try {
-        clean = isGitClean.sync(process.cwd());
-        errorMessage = 'Git directory is not clean';
-    } catch (err) {
-        if (err && err.stderr && err.stderr.indexOf('Not a git repository') >= 0) {
-            clean = true;
-        }
-    }
-
-    const ENSURE_BACKUP_MESSAGE = 'Ensure you have a backup of your tests or commit the latest changes before continuing.';
-
-    if (!clean) {
-        if (force) {
-            console.log(`WARNING: ${errorMessage}. Forcibly continuing.`, ENSURE_BACKUP_MESSAGE);
-        } else {
-            console.log(
-                `ERROR: ${errorMessage}. Refusing to continue.`,
-                ENSURE_BACKUP_MESSAGE,
-                'You may use the --force flag to override this safety check.'
-            );
-            process.exit(1);
-        }
-    }
-}
-
-function executeTransformation(files, flags, transformer) {
-    const transformerPath = path.join(__dirname, 'transformers', `${transformer}.js`);
-
-    const args = ['-t', transformerPath].concat(files);
-    if (flags.dry) {
-        args.push('--dry');
-    }
-    if (['babel', 'babylon', 'flow'].indexOf(flags.parser) >= 0) {
-        args.push('--parser', flags.parser);
-    }
-
-    console.log(`Executing command: jscodeshift ${args.join(' ')}`);
-
-    const result = execa.sync(require.resolve('.bin/jscodeshift'), args, {
-        stdio: 'inherit',
-        stripEof: false,
-    });
-
-    if (result.error) {
-        throw result.error;
-    }
-}
-
-function executeTransformations(files, flags, transformers) {
-    transformers.forEach(t => {
-        executeTransformation(files, flags, t);
-    });
-}
+import checkGitStatus from './git-status';
+import { executeTransformations } from './transformers';
 
 const cli = meow(
     {
@@ -150,8 +92,6 @@ if (cli.input.length) {
         }
 
         const transformers = transformer === 'all' ? ['tape', 'ava'] : [transformer];
-        transformers.forEach(t => {
-            executeTransformation(filesExpanded, cli.flags, t);
-        });
+        executeTransformations(filesExpanded, cli.flags, transformers);
     });
 }
