@@ -226,6 +226,31 @@ function shouldFail2(t, message) {
 }
 `);
 
+testChanged('keeps async and await', `
+import test from 'ava';
+
+test(async (t) => {
+    const value = await promiseFn();
+    t.true(value);
+});
+
+test(async function (t) {
+    const value = await promiseFn();
+    t.true(value);
+});
+`,
+`
+it(async () => {
+    const value = await promiseFn();
+    expect(value).toBe(true);
+});
+
+it(async function () {
+    const value = await promiseFn();
+    expect(value).toBe(true);
+});
+`);
+
 test('not supported warnings: skipping test setup/teardown hooks', () => {
     wrappedPlugin(`
         import test from 'ava'

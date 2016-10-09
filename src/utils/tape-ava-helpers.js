@@ -13,7 +13,8 @@ function renameTestFunctionArgument(j, path, newArgument) {
             [j.identifier(newArgument === '' ? '()' : newArgument)],
             lastArg.body,
             false
-         );
+        );
+        arrowFunction.async = lastArg.async;
         path.node.arguments[path.node.arguments.length - 1] = arrowFunction;
     } else if (lastArg.type === 'FunctionExpression') {
         lastArg.params = [j.identifier(newArgument)];
