@@ -3,7 +3,10 @@ import jscodeshift from 'jscodeshift';
 
 import proxyquireTransformer from './proxyquire';
 
+const mockedLogger = jest.fn();
+jest.mock('./logger', () => () => mockedLogger(...arguments));
 const j = jscodeshift;
+const fileInfo = { path: 'a.test.js' };
 
 it('rewrites proxyquire without noCallThru', () => {
     const ast = j(`
@@ -13,12 +16,13 @@ it('rewrites proxyquire without noCallThru', () => {
             'common/Foo': () => <div />,
         });
     `);
-    proxyquireTransformer(j, ast);
+    proxyquireTransformer(fileInfo, j, ast);
     expect(ast.toSource({ quote: 'single' })).toEqual(`
         jest.mock('./features/baz', () => () => <div />);
         jest.mock('common/Foo', () => () => <div />);
         const { mapStateToProps, default: Page } = require('./PageContainer');
     `);
+    expect(mockedLogger).not.toBeCalled();
 });
 
 it('rewrites proxyquire with noCallThru', () => {
@@ -28,11 +32,12 @@ it('rewrites proxyquire with noCallThru', () => {
             'common/Foo': () => <div />,
         });
     `);
-    proxyquireTransformer(j, ast);
+    proxyquireTransformer(fileInfo, j, ast);
     expect(ast.toSource({ quote: 'single' })).toEqual(`
         jest.mock('common/Foo', () => () => <div />);
         const Page = require('./PageContainer');
     `);
+    expect(mockedLogger).not.toBeCalled();
 });
 
 it('rewrites proxyquire with require statement noCallThru', () => {
@@ -42,11 +47,12 @@ it('rewrites proxyquire with require statement noCallThru', () => {
             'lib': () => {},
         });
     `);
-    proxyquireTransformer(j, ast);
+    proxyquireTransformer(fileInfo, j, ast);
     expect(ast.toSource({ quote: 'single' })).toEqual(`
         jest.mock('lib', () => () => {});
         const tracking = require('./tracking');
     `);
+    expect(mockedLogger).not.toBeCalled();
 });
 
 it('logs error with multiple proxyquire to same file', () => {
@@ -59,14 +65,13 @@ it('logs error with multiple proxyquire to same file', () => {
             '../page': mockedFailingRender,
         });
     `);
-    proxyquireTransformer(j, ast);
+    proxyquireTransformer(fileInfo, j, ast);
     expect(ast.toSource({ quote: 'single' })).toEqual(`
-        import proxyquire from 'proxyquire';
-        const routeHandler = proxyquire.noCallThru()('./handler', {
-            '../page': mockedRender,
-        });
+        jest.mock('../page', () => mockedRender);
+        const routeHandler = require('./handler');
         const failingRouteHandler = proxyquire.noCallThru()('./handler', {
             '../page': mockedFailingRender,
         });
     `);
+    expect(mockedLogger).toBeCalled();
 });

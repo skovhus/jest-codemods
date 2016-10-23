@@ -1,8 +1,11 @@
 import { removeRequireAndImport } from './imports';
+import logger from './logger';
 
-export default function proxyquireTransformer(j, ast) {
+export default function proxyquireTransformer(fileInfo, j, ast) {
     const variableName = removeRequireAndImport(j, ast, 'proxyquire');
     if (variableName) {
+        const mocks = new Set();
+
         ast.find(j.Identifier, {
             name: variableName,
         }).forEach(p => {
@@ -11,8 +14,7 @@ export default function proxyquireTransformer(j, ast) {
             if (node.type !== 'CallExpression' && node.type !== 'MemberExpression') {
                 // proxyquire(...)
                 // proxyquire.noCallThru(...)
-                // TODO: log
-                throw new Error('wut!');
+                return;
             }
 
             const argumentPath = node.type === 'CallExpression' ? p.parentPath : p.parent.parent.parent;
@@ -22,6 +24,12 @@ export default function proxyquireTransformer(j, ast) {
             const newCallExpressionNode = j.callExpression(
                 j.identifier('require'), [j.literal(requireFile)]
             );
+
+            if (mocks.has(requireFile)) {
+                logger(fileInfo, 'Multiple mocks of same file is not supported', p);
+                return;
+            }
+            mocks.add(requireFile);
 
             j(argumentPath).replaceWith(newCallExpressionNode);
             mocksObjectExpression.properties.forEach(o => {
