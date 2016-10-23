@@ -24,6 +24,13 @@ export function hasRequireOrImport(j, ast, pkg) {
     return requires + imports > 0;
 }
 
+function findParentVariableDeclaration(path) {
+    if (path.value.type === 'VariableDeclarator') {
+        return path;
+    }
+    return findParentVariableDeclaration(path.parentPath);
+}
+
 /**
  * Detects and removes CommonJS and import statements for given package.
  * @return the import variable name or null if no import were found.
@@ -32,20 +39,21 @@ export function removeRequireAndImport(j, ast, pkg) {
     const getBodyNode = () => ast.find(j.Program).get('body', 0).node;
     const { comments } = getBodyNode(j, ast);
 
-    let testFunctionName = null;
+    let variableName = null;
     findRequires(j, ast, pkg)
     .forEach(p => {
-        testFunctionName = p.parentPath.value.id.name;
-        p.parentPath.prune();
+        const variableDeclarationPath = findParentVariableDeclaration(p);
+        variableName = variableDeclarationPath.value.id.name;
+        variableDeclarationPath.prune();
     });
 
     findImports(j, ast, pkg)
     .forEach(p => {
-        testFunctionName = p.value.specifiers[0].local.name;
+        variableName = p.value.specifiers[0].local.name;
         p.prune();
     });
 
     getBodyNode(j, ast).comments = comments;
 
-    return testFunctionName;
+    return variableName;
 }
