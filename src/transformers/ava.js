@@ -13,6 +13,7 @@ import {
     getIdentifierFromExpression, getMemberExpressionElements,
 } from '../utils/recast-helpers';
 import logger from '../utils/logger';
+import proxyquireTransformer from '../utils/proxyquire';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
 const SPECIAL_BOOL = '(special bool case)';
@@ -192,6 +193,7 @@ export default function avaToJest(fileInfo, api) {
         },
 
         () => detectIncompatiblePackages(fileInfo, j, ast),
+        () => proxyquireTransformer(fileInfo, j, ast),
     ];
 
     transforms.forEach(t => t());

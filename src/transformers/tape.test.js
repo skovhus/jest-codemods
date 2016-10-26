@@ -35,7 +35,7 @@ test(t => {
 
 testChanged('CommonJs requires',
 `
-const test = require(\'tape\');
+const test = require('tape');
 const x = 1;
 `,
 `
@@ -46,7 +46,7 @@ const x = 1;
 
 testChanged('ES2015 imports',
 `
-import test from \'tape\';
+import test from 'tape';
 const x = 1;
 `,
 `
@@ -418,7 +418,6 @@ test('warns about some conflicting packages', () => {
         test(t => {});
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js) Usage of package "proxyquire" might be incompatible with Jest',
         'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
     ]);
 });

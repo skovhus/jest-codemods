@@ -189,7 +189,7 @@ it(done => {
 });
 `);
 
-// FIXME: these hanging t variables should be removed or be renamed
+// TODO: these hanging t variables should be removed or be renamed
 testChanged('passing around t',
 `
 import test from 'ava'
@@ -324,7 +324,6 @@ test('warns about some conflicting packages', () => {
         test(t => {});
     `);
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js) Usage of package "proxyquire" might be incompatible with Jest',
         'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
     ]);
 });
