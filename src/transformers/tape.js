@@ -9,6 +9,7 @@ import {
     detectUnsupportedNaming, rewriteAssertionsAndTestArgument,
 } from '../utils/tape-ava-helpers';
 import logger from '../utils/logger';
+import proxyquireTransformer from '../utils/proxyquire';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
 
@@ -228,6 +229,7 @@ export default function tapeToJest(fileInfo, api) {
         },
 
         () => detectIncompatiblePackages(fileInfo, j, ast),
+        () => proxyquireTransformer(fileInfo, j, ast),
     ];
 
     transforms.forEach(t => t());

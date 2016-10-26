@@ -1,6 +1,6 @@
 # jest-codemods
 
-Codemods that simplify migrating JavaScript test files from [Tape](https://github.com/substack/tape) and [AVA](https://github.com/avajs/ava) to [Jest](https://facebook.github.io/jest/). We expect to support migrating from other test frameworks in the future.
+Codemods that simplify migrating JavaScript test files from [Tape](https://github.com/substack/tape) and [AVA](https://github.com/avajs/ava) to [Jest](https://facebook.github.io/jest/).
 
 <img src="screenshot.gif" width="440" align="right" style="margin-bottom: 1em;">
 
@@ -61,86 +61,16 @@ $ jscodeshift -t node_modules/jest-codemods/dist/transformers/ava.js test-folder
 
 ## Transformations
 
-In general `import` / `require` statements determine if any transformation are carried out. The original code quoting style is preserved. Warnings are made if packages like Proxyquire or Testdouble are used as they can be incompatible with Jest.
+In general `import` / `require` statements determine if any transformation are carried out. The original code quoting style is preserved. Warnings are made if packages are used that are incompatible with Jest.
 
-#### AVA transformations
+Usage of `proxyquire` is replaced with Jest mocks.
 
-AVA features fully supported:
 
-- `t.truthy`
-- `t.falsy`
-- `t.true`
-- `t.false`
-- `t.is`
-- `t.not`
-- `t.deepEqual`
-- `t.notDeepEqual`
-- `t.throws`
-- `t.notThrows`
-- `t.regex`
-- `t.notRegex`
-- `t.ifError`
-- `t.fail`
-- `t.end`
-- `test.before`
-- `test.after`
-- `test.beforeEach`
-- `test.afterEach`
-- `test.skip`
-- `test.only`
-- `test.serial`
-- `test.cb`
-- currying `test` e.g. `test.cb.serial.only`
+#### Warnings for unsupported features
 
 Warnings for unsupported AVA features:
  - `t.skip`
  - `t.plan`
-
-#### Tape transformations
-
-Tape features fully supported:
-
- - `t.ok`
- - `t.true`
- - `t.assert`
- - `t.notOk`
- - `t.false`
- - `t.notok`
- - `t.error`
- - `t.ifError`
- - `t.ifErr`
- - `t.iferror`
- - `t.equal`
- - `t.equals`
- - `t.isEqual`
- - `t.is`
- - `t.strictEqual`
- - `t.strictEquals`
- - `t.notEqual`
- - `t.notStrictEqual`
- - `t.notStrictEquals`
- - `t.isNotEqual`
- - `t.isNot`
- - `t.not`
- - `t.doesNotEqual`
- - `t.isInequal`
- - `t.deepEqual`
- - `t.isEquivalent`
- - `t.same`
- - `t.notDeepEqual`
- - `t.notEquivalent`
- - `t.notDeeply`
- - `t.notSame`
- - `t.isNotDeepEqual`
- - `t.isNotEquivalent`
- - `t.isInequivalent`
- - `t.throws`
- - `t.doesNotThrow`
- - `t.comment`
- - `t.fail`
- - `t.end`
- - `test.skip`
- - test options like `test({skip: true}, t => {})`
 
 Warnings for unsupported Tape features:
  - `t.timeoutAfter`

@@ -18,6 +18,18 @@ describe('removeRequireAndImport', () => {
         `);
     });
 
+    it('removes require statements with calls', () => {
+        const ast = j(`
+            const x = require('foo').bar();
+            x();
+        `);
+        const removedVariableName = removeRequireAndImport(j, ast, 'foo');
+        expect(removedVariableName).toBe('x');
+        expect(ast.toSource()).toEqual(`
+            x();
+        `);
+    });
+
     it('removes import statements', () => {
         const ast = j(`
             import xx from 'baz';
