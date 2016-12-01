@@ -58,6 +58,7 @@ test('mapping', (t) => {
   t.throws(() => {}, 'foo');
   t.throws(afunc, 'foo');
   t.throws(afunc);
+  t.notThrows(() => {}, 'foo');
   t.notThrows(() => {});
   t.notSame(abc, {a: 'x', b: 'y', c: 'z'})
   t.notDeepEqual(abc, {a: 'x', b: 'y', c: 'z'})
@@ -84,6 +85,7 @@ it('mapping', () => {
   expect(() => {}).toThrowError('foo');
   expect(afunc).toThrowError('foo');
   expect(afunc).toThrow();
+  expect(() => {}).not.toThrowError('foo');
   expect(() => {}).not.toThrow();
   expect(abc).not.toEqual({a: 'x', b: 'y', c: 'z'})
   expect(abc).not.toEqual({a: 'x', b: 'y', c: 'z'})
