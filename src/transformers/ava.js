@@ -102,7 +102,7 @@ export default function avaToJest(fileInfo, api) {
                         );
                     } else {
                         newCondition = j.callExpression(
-                            j.identifier('toThrowError'),
+                            j.identifier(oldPropertyName === 'throws' ? 'toThrowError' : 'not.toThrowError'),
                             [args[1]]
                         );
                     }
