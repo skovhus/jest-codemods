@@ -37,12 +37,14 @@ const cli = meow(
 
 updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 
+const allTransformers = ['tape', 'ava', 'mocha'];
+
 if (cli.input.length) {
     // Apply all transformers if input is given using CLI.
     if (!cli.flags.dry) {
         checkGitStatus(cli.flags.force);
     }
-    executeTransformations(cli.input, cli.flags, ['tape', 'ava']);
+    executeTransformations(cli.input, cli.flags, allTransformers);
 } else {
     // Else show the fancy inquirer prompt.
     inquirer.prompt([{
@@ -55,6 +57,9 @@ if (cli.input.length) {
         }, {
             name: 'AVA',
             value: 'ava',
+        }, {
+            name: 'Mocha',
+            value: 'mocha',
         }, {
             name: 'All of the above!',
             value: 'all',
@@ -72,7 +77,7 @@ if (cli.input.length) {
         const { files, transformer } = answers;
 
         if (transformer === 'other') {
-            console.log('\nCurrently jest-codemods only have support for AVA and Tape.');
+            console.log('\nCurrently jest-codemods only have support for AVA, Tape, and Mocha.');
             console.log('Feel free to create an issue on https://github.com/skovhus/jest-codemods to contribute!\n');
             return;
         }
@@ -91,7 +96,7 @@ if (cli.input.length) {
             checkGitStatus(cli.flags.force);
         }
 
-        const transformers = transformer === 'all' ? ['tape', 'ava'] : [transformer];
+        const transformers = transformer === 'all' ? allTransformers : [transformer];
         executeTransformations(filesExpanded, cli.flags, transformers);
     });
 }
