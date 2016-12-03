@@ -39,12 +39,17 @@ updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 
 const allTransformers = ['tape', 'ava', 'mocha'];
 
+function supportFailure(supportedItems) {
+    console.log(`\nCurrently, jest-codemods only has support for ${supportedItems}.`);
+    console.log('Feel free to create an issue on https://github.com/skovhus/jest-codemods to contribute!\n');
+}
+
 if (cli.input.length) {
     // Apply all transformers if input is given using CLI.
     if (!cli.flags.dry) {
         checkGitStatus(cli.flags.force);
     }
-    executeTransformations(cli.input, cli.flags, allTransformers);
+    executeTransformations(cli.input, cli.flags, [...allTransformers, 'chai-assert']);
 } else {
     // Else show the fancy inquirer prompt.
     inquirer.prompt([{
@@ -68,35 +73,56 @@ if (cli.input.length) {
             value: 'other',
         }],
     }, {
+        type: 'list',
+        name: 'chai',
+        message: 'Whould you like to include Chai transformations with Mocha?',
+        when: ({ transformer }) => ['mocha', 'all'].indexOf(transformer) > -1,
+        choices: [{
+            name: 'Assert Syntax',
+            value: 'chai-assert',
+        }, {
+            name: 'Other',
+            value: 'other',
+        }, {
+            name: 'None',
+            value: null,
+        }],
+    }, {
         type: 'input',
         name: 'files',
         message: 'On which files or directory should the codemods be applied?',
         default: 'src test/**/*.js',
         filter: files => files.trim().split(/\s+/).filter(v => v),
     }]).then(answers => {
-        const { files, transformer } = answers;
+        const { files, transformer, chai } = answers;
 
         if (transformer === 'other') {
-            console.log('\nCurrently jest-codemods only have support for AVA, Tape, and Mocha.');
-            console.log('Feel free to create an issue on https://github.com/skovhus/jest-codemods to contribute!\n');
-            return;
+            return supportFailure('Ava, Tape, and Mocha');
+        }
+
+        const transformers = transformer === 'all' ? allTransformers : [transformer];
+
+        if (chai) {
+            if (chai !== 'assert') {
+                return supportFailure('Chai Assert syntax');
+            }
+            transformers.push(chai);
         }
 
         if (!files.length) {
-            return;
+            return undefined;
         }
 
         const filesExpanded = globby.sync(files);
         if (!filesExpanded.length) {
             console.log(`No files found matching ${files.join(' ')}`);
-            return;
+            return undefined;
         }
 
         if (!cli.flags.dry) {
             checkGitStatus(cli.flags.force);
         }
 
-        const transformers = transformer === 'all' ? allTransformers : [transformer];
-        executeTransformations(filesExpanded, cli.flags, transformers);
+        return executeTransformations(filesExpanded, cli.flags, transformers);
     });
 }
