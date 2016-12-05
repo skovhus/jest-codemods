@@ -30,7 +30,7 @@ describe('removeRequireAndImport', () => {
         `);
     });
 
-    it('removes require statments with given specifier', () => {
+    it('removes require statements with given specifier', () => {
         const ast = j(`
             const x = require('foo').bar;
             x();
