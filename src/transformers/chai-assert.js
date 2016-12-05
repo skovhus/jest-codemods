@@ -185,7 +185,7 @@ export default function transformer(fileInfo, api) {
         return fileInfo.source;
     }
 
-    const logWarning = (msg, node) => logger(fileInfo, msg, node);
+    const logWarning = (msg, path) => logger(fileInfo, msg, path);
 
     const makeExpectation = (identifier, actual, expectation = []) => j.callExpression(j.memberExpression(
             j.callExpression(j.identifier('expect'), [actual]),
@@ -217,7 +217,7 @@ export default function transformer(fileInfo, api) {
 
     unsupportedAssertions.forEach(assertion => {
         ast.find(j.CallExpression, getAssertionExpression(assertion)).forEach(path => {
-            logWarning(`Unsupported Chai Assertion "${assertion}" found at line ${path.value.loc.start.line}`);
+            logWarning(`Unsupported Chai Assertion "${assertion}".`, path);
         });
     });
 
