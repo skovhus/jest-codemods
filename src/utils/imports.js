@@ -31,29 +31,43 @@ function findParentVariableDeclaration(path) {
     return findParentVariableDeclaration(path.parentPath);
 }
 
+function findParentPathMemberRequire(path) {
+    if (path.parentPath && path.parentPath.value.type === 'MemberExpression') {
+        return path.parentPath.value.property;
+    }
+    return null;
+}
+
 /**
  * Detects and removes CommonJS and import statements for given package.
  * @return the import variable name or null if no import were found.
  */
-export function removeRequireAndImport(j, ast, pkg) {
+export function removeRequireAndImport(j, ast, pkg, specifier) {
     const getBodyNode = () => ast.find(j.Program).get('body', 0).node;
     const { comments } = getBodyNode(j, ast);
 
-    let variableName = null;
+    let localName = null;
+    let importName = null;
     findRequires(j, ast, pkg)
     .forEach(p => {
         const variableDeclarationPath = findParentVariableDeclaration(p);
-        variableName = variableDeclarationPath.value.id.name;
-        variableDeclarationPath.prune();
+        const parentMember = findParentPathMemberRequire(p);
+        if (!specifier || (parentMember && parentMember.name === specifier)) {
+            localName = variableDeclarationPath.value.id.name;
+            variableDeclarationPath.prune();
+        }
     });
 
     findImports(j, ast, pkg)
     .forEach(p => {
-        variableName = p.value.specifiers[0].local.name;
-        p.prune();
+        importName = p.value.specifiers[0].imported && p.value.specifiers[0].imported.name;
+        if (!specifier || importName === specifier) {
+            localName = p.value.specifiers[0].local.name;
+            p.prune();
+        }
     });
 
     getBodyNode(j, ast).comments = comments;
 
-    return variableName;
+    return localName;
 }

@@ -30,6 +30,31 @@ describe('removeRequireAndImport', () => {
         `);
     });
 
+    it('removes require statements with given specifier', () => {
+        const ast = j(`
+            const x = require('foo').bar;
+            x();
+        `);
+        const removedVariableName = removeRequireAndImport(j, ast, 'foo', 'bar');
+        expect(removedVariableName).toBe('x');
+        expect(ast.toSource()).toEqual(`
+            x();
+        `);
+    });
+
+    it('retains require statements without given specifier', () => {
+        const ast = j(`
+            const x = require('foo').bar;
+            x();
+        `);
+        const removedVariableName = removeRequireAndImport(j, ast, 'foo', 'bop');
+        expect(removedVariableName).toBeNull();
+        expect(ast.toSource()).toEqual(`
+            const x = require('foo').bar;
+            x();
+        `);
+    });
+
     it('removes import statements', () => {
         const ast = j(`
             import xx from 'baz';
@@ -38,6 +63,43 @@ describe('removeRequireAndImport', () => {
         const removedVariableName = removeRequireAndImport(j, ast, 'baz');
         expect(removedVariableName).toBe('xx');
         expect(ast.toSource()).toEqual(`
+            xx();
+        `);
+    });
+
+    it('removes import statements with specifiers', () => {
+        const ast = j(`
+            import { xx } from 'baz';
+            xx();
+        `);
+        const removedVariableName = removeRequireAndImport(j, ast, 'baz', 'xx');
+        expect(removedVariableName).toBe('xx');
+        expect(ast.toSource()).toEqual(`
+            xx();
+        `);
+    });
+
+    it('removes import statements with specifiers', () => {
+        const ast = j(`
+            import { xx as foo } from 'baz';
+            xx();
+        `);
+        const removedVariableName = removeRequireAndImport(j, ast, 'baz', 'xx');
+        expect(removedVariableName).toBe('foo');
+        expect(ast.toSource()).toEqual(`
+            xx();
+        `);
+    });
+
+    it('retains import statements without specifiers', () => {
+        const ast = j(`
+            import { xx } from 'baz';
+            xx();
+        `);
+        const removedVariableName = removeRequireAndImport(j, ast, 'baz', 'yy');
+        expect(removedVariableName).toBeNull();
+        expect(ast.toSource()).toEqual(`
+            import { xx } from 'baz';
             xx();
         `);
     });
