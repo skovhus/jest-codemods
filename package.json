@@ -32,6 +32,8 @@
     "jest",
     "ava",
     "tape",
+    "mocha",
+    "chai",
     "proxyquire",
     "migrate",
     "migrations",

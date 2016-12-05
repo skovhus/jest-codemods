@@ -1,16 +1,24 @@
 # jest-codemods
 
-Codemods that simplify migrating JavaScript test files from [Tape](https://github.com/substack/tape) and [AVA](https://github.com/avajs/ava) to [Jest](https://facebook.github.io/jest/).
+Codemods that simplify migrating JavaScript test files from
+[Mocha](https://github.com/mochajs/mocha),
+[Tape](https://github.com/substack/tape)
+and [AVA](https://github.com/avajs/ava)
+to [Jest](https://facebook.github.io/jest/).
 
-<img src="screenshot.gif" width="440" align="right" style="margin-bottom: 1em;">
+<img src="screenshot.gif" width="300" align="right" style="margin-bottom: 1em; margin-left: 1em">
 
 [![Build Status](https://travis-ci.org/skovhus/jest-codemods.svg?branch=master)](https://travis-ci.org/skovhus/jest-codemods)
 [![version][version-badge]][package]
 [![Tweet][twitter-badge]][twitter]
 
-Codemods are small programs that help you automate changes to your codebase. Think of them as search and replace on steroids. They are executed by the [Facebook jscodeshift](https://github.com/facebook/jscodeshift) tool.
+Codemods are small programs that help you automate changes to your codebase.
+Think of them as search and replace on steroids.
+They are executed by the [Facebook jscodeshift](https://github.com/facebook/jscodeshift) tool.
 
-This tool is made for trying out Jest on your existing test files. We strive to make the migration as smooth as possible, but some manual intervention and tweaks to your tests are to be expected.
+This tool is made for trying out Jest on your existing test files.
+We strive to make the migration as smooth as possible, but some manual intervention
+and tweaks to your tests are to be expected.
 
 
 ## Install
@@ -24,6 +32,18 @@ This installs the runner as `jest-codemods`.
 
 ## Usage (CLI)
 
+
+To use the interactive CLI run
+
+	$ jest-codemods
+
+
+If you are using Flow types
+
+	$ jest-codemods --parser flow
+
+
+For more options
 ```
 $ jest-codemods --help
 
@@ -34,8 +54,6 @@ $ jest-codemods --help
 
 	path		Files or directory to transform. Can be a glob like src/**.test.js
 
-	Only files using Tape or AVA will be converted.
-
 	Options
 	  --force, -f	Bypass Git safety checks and forcibly run codemods
 	  --dry, -d		Dry run (no changes are made to files)
@@ -44,24 +62,30 @@ $ jest-codemods --help
 
 To transform all test files in a directory run `jest-codemods test-folder` in your terminal.
 
-Only files requiring or importing AVA or Tape will be transformed. Notice the console output for errors, manual intervention and tweaks are to be expected.
+Notice the console output for errors, manual intervention and tweaks are to be expected.
 
 
 ## Usage (jscodeshift)
 
-To make the process as simple as possible, we recommend the `jest-codemods` CLI that wraps the `jscodeshift` executable. But you can also run the transformations directly using `jscodeshift`.
+To make the process as simple as possible, we recommend the `jest-codemods` CLI
+that wraps the `jscodeshift` executable.
+But you can also run the transformations directly using `jscodeshift`.
 
 ```
 $ npm install -g jscodeshift
 $ npm install jest-codemods
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/ava.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-assert.js test-folder
 ```
 
 
 ## Transformations
 
-In general `import` / `require` statements determine if any transformation are carried out. The original code quoting style is preserved. Warnings are made if packages are used that are incompatible with Jest.
+If possible `import` / `require` statements determine if any transformation are carried out.
+The original code quoting style is preserved.
+Warnings are made if packages are used that are incompatible with Jest.
 
 Usage of `proxyquire` is replaced with Jest mocks.
 
@@ -88,7 +112,9 @@ Warnings for unsupported Tape features:
 
 ## Inspiration
 
-Thanks to [ava-codemods](https://github.com/avajs/ava-codemods) for inspiration.
+Thanks to [avajs/ava-codemods](https://github.com/avajs/ava-codemods) for inspiration and CLI setup.
+
+The Mocha and Chai support began its life at [paularmstrong/mocha-to-jest-codemod](https://github.com/paularmstrong/mocha-to-jest-codemod)
 
 
 ## Contributing

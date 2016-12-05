@@ -16,8 +16,6 @@ const cli = meow(
 
     path    Files or directory to transform. Can be a glob like src/**.test.js
 
-    Only files using Tape or AVA will be converted.
-
     Options
       --force, -f   Bypass Git safety checks and forcibly run codemods
       --dry, -d     Dry run (no changes are made to files)
