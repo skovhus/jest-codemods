@@ -54,7 +54,7 @@ const should = require('chai').should;
 );
 
 const mappings = [
-  ['assert.fail(foo, bar, baz);', 'expect(false).toBe(true);'], // TODO: ?
+  ['assert.fail(foo, bar, baz);', 'expect(false).toBe(true);'],
   ['assert.equal(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
   ['assert.notEqual(foo, bar, baz);', 'expect(foo).not.toEqual(bar);'],
   ['assert.strictEqual(foo, bar, baz);', 'expect(foo).toBe(bar);'],
