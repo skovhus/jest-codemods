@@ -18,6 +18,18 @@ describe('removeRequireAndImport', () => {
         `);
     });
 
+    it('removes require statements without local name', () => {
+        const ast = j(`
+            require('foo');
+            console.log('yes');
+        `);
+        const removedVariableName = removeRequireAndImport(j, ast, 'foo');
+        expect(removedVariableName).toBeNull();
+        expect(ast.toSource()).toEqual(`
+            console.log('yes');
+        `);
+    });
+
     it('removes require statements with calls', () => {
         const ast = j(`
             const x = require('foo').bar();
@@ -45,12 +57,14 @@ describe('removeRequireAndImport', () => {
     it('retains require statements without given specifier', () => {
         const ast = j(`
             const x = require('foo').bar;
+            require('foo').baz();
             x();
         `);
         const removedVariableName = removeRequireAndImport(j, ast, 'foo', 'bop');
         expect(removedVariableName).toBeNull();
         expect(ast.toSource()).toEqual(`
             const x = require('foo').bar;
+            require('foo').baz();
             x();
         `);
     });
@@ -64,6 +78,18 @@ describe('removeRequireAndImport', () => {
         expect(removedVariableName).toBe('xx');
         expect(ast.toSource()).toEqual(`
             xx();
+        `);
+    });
+
+    it('removes import statements without local name', () => {
+        const ast = j(`
+            import 'baz';
+            console.log('yes');
+        `);
+        const removedVariableName = removeRequireAndImport(j, ast, 'baz');
+        expect(removedVariableName).toBeNull();
+        expect(ast.toSource()).toEqual(`
+            console.log('yes');
         `);
     });
 
