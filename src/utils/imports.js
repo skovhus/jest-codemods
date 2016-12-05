@@ -25,6 +25,9 @@ export function hasRequireOrImport(j, ast, pkg) {
 }
 
 function findParentVariableDeclaration(path) {
+    if (!path) {
+        return null;
+    }
     if (path.value.type === 'VariableDeclarator') {
         return path;
     }
@@ -53,16 +56,24 @@ export function removeRequireAndImport(j, ast, pkg, specifier) {
         const variableDeclarationPath = findParentVariableDeclaration(p);
         const parentMember = findParentPathMemberRequire(p);
         if (!specifier || (parentMember && parentMember.name === specifier)) {
-            localName = variableDeclarationPath.value.id.name;
-            variableDeclarationPath.prune();
+            if (variableDeclarationPath) {
+                localName = variableDeclarationPath.value.id.name;
+                variableDeclarationPath.prune();
+            } else {
+                p.prune();
+            }
         }
     });
 
     findImports(j, ast, pkg)
     .forEach(p => {
-        importName = p.value.specifiers[0].imported && p.value.specifiers[0].imported.name;
+        const pathSpecifier = p.value.specifiers[0];
+        importName = pathSpecifier && pathSpecifier.imported && pathSpecifier.imported.name;
+
         if (!specifier || importName === specifier) {
-            localName = p.value.specifiers[0].local.name;
+            if (pathSpecifier) {
+                localName = pathSpecifier.local.name;
+            }
             p.prune();
         }
     });
