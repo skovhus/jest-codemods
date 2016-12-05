@@ -315,7 +315,7 @@ export default function transformer(fileInfo, api) {
     // Object-specific boolean checks
     objectChecks.forEach(check => {
         const isNegative = check.indexOf('isNot') === 0;
-        const expectation = isNegative ? `is${check.substring(5)}` : check;
+        const expectation = check.replace('isNot', 'is');
         ast.find(j.CallExpression, getAssertionExpression(check))
             .replaceWith(path => (isNegative ? makeNegativeExpectation : makeExpectation)('toBe',
                 j.callExpression(
