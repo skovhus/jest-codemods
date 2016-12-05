@@ -37,7 +37,11 @@ const cli = meow(
 
 updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 
-const allTransformers = ['tape', 'ava', 'mocha'];
+const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
+const TRANSFORMER_TAPE = 'tape';
+const TRANSFORMER_AVA = 'ava';
+const TRANSFORMER_MOCHA = 'mocha';
+const allTransformers = [TRANSFORMER_TAPE, TRANSFORMER_AVA, TRANSFORMER_MOCHA];
 
 function supportFailure(supportedItems) {
     console.log(`\nCurrently, jest-codemods only has support for ${supportedItems}.`);
@@ -46,10 +50,11 @@ function supportFailure(supportedItems) {
 
 if (cli.input.length) {
     // Apply all transformers if input is given using CLI.
+    // TODO: consider removing this option...
     if (!cli.flags.dry) {
         checkGitStatus(cli.flags.force);
     }
-    executeTransformations(cli.input, cli.flags, [...allTransformers, 'chai-assert']);
+    executeTransformations(cli.input, cli.flags, [...allTransformers, TRANSFORMER_CHAI_ASSERT]);
 } else {
     // Else show the fancy inquirer prompt.
     inquirer.prompt([{
@@ -58,13 +63,13 @@ if (cli.input.length) {
         message: 'Which test library would you like to migrate from?',
         choices: [{
             name: 'Tape',
-            value: 'tape',
+            value: TRANSFORMER_TAPE,
         }, {
             name: 'AVA',
-            value: 'ava',
+            value: TRANSFORMER_AVA,
         }, {
             name: 'Mocha',
-            value: 'mocha',
+            value: TRANSFORMER_MOCHA,
         }, {
             name: 'All of the above!',
             value: 'all',
@@ -76,10 +81,10 @@ if (cli.input.length) {
         type: 'list',
         name: 'chai',
         message: 'Whould you like to include Chai transformations with Mocha?',
-        when: ({ transformer }) => ['mocha', 'all'].indexOf(transformer) > -1,
+        when: ({ transformer }) => [TRANSFORMER_MOCHA, 'all'].indexOf(transformer) > -1,
         choices: [{
             name: 'Assert Syntax',
-            value: 'chai-assert',
+            value: TRANSFORMER_CHAI_ASSERT,
         }, {
             name: 'Other',
             value: 'other',
@@ -97,13 +102,13 @@ if (cli.input.length) {
         const { files, transformer, chai } = answers;
 
         if (transformer === 'other') {
-            return supportFailure('Ava, Tape, and Mocha');
+            return supportFailure('AVA, Tape, and Mocha');
         }
 
         const transformers = transformer === 'all' ? allTransformers : [transformer];
 
         if (chai) {
-            if (chai !== 'assert') {
+            if (chai !== TRANSFORMER_CHAI_ASSERT) {
                 return supportFailure('Chai Assert syntax');
             }
             transformers.push(chai);
