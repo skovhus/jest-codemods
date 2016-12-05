@@ -207,11 +207,15 @@ export default function transformer(fileInfo, api) {
         }
 
         ast.find(j.CallExpression, getAssertionExpression(assert))
-            .replaceWith(path => makeExpectation(expect, ...getArguments(path, ignoreExpectedValue, override)));
+            .replaceWith(path =>
+                makeExpectation(expect, ...getArguments(path, ignoreExpectedValue, override))
+            );
 
         if (includeNegative) {
             ast.find(j.CallExpression, getAssertionExpression(includeNegative))
-                .replaceWith(path => makeNegativeExpectation(expect, ...getArguments(path, ignoreExpectedValue, override)));
+                .replaceWith(path =>
+                    makeNegativeExpectation(expect, ...getArguments(path, ignoreExpectedValue, override))
+                );
         }
     });
 
@@ -223,7 +227,10 @@ export default function transformer(fileInfo, api) {
 
     ['approximately', 'closeTo'].forEach(assertion => {
         ast.find(j.CallExpression, getAssertionExpression(assertion))
-            .replaceWith(path => makeExpectation('toBeCloseTo', path.value.arguments[0], path.value.arguments.slice(1, 3)));
+            .replaceWith(path => makeExpectation('toBeCloseTo',
+                path.value.arguments[0],
+                path.value.arguments.slice(1, 3))
+            );
     });
 
     // assert.fail -> expect(false).toBeTruthy()
@@ -244,40 +251,58 @@ export default function transformer(fileInfo, api) {
 
     // assert.property -> expect(prop in obj).toBeTruthy()
     ast.find(j.CallExpression, getAssertionExpression('property'))
-        .replaceWith(path => makeExpectation('toBeTruthy', j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0])));
+        .replaceWith(path => makeExpectation('toBeTruthy',
+            j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0]))
+        );
 
     // assert.notProperty -> expect(prop in obj).toBeFalsy()
     ast.find(j.CallExpression, getAssertionExpression('notProperty'))
-        .replaceWith(path => makeExpectation('toBeFalsy', j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0])));
+        .replaceWith(path => makeExpectation('toBeFalsy',
+            j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0]))
+        );
 
     // assert.isArray -> expect(Array.isArray).toBe(true)
     ast.find(j.CallExpression, getAssertionExpression('isArray'))
         .replaceWith(path => makeExpectation('toBe',
-            j.callExpression(j.memberExpression(j.identifier('Array'), j.identifier('isArray')), [path.value.arguments[0]]),
+            j.callExpression(
+                j.memberExpression(j.identifier('Array'), j.identifier('isArray')),
+                [path.value.arguments[0]]
+            ),
             j.literal(true)
         ));
 
     // assert.isArray -> expect(Array.isArray).toBe(false)
     ast.find(j.CallExpression, getAssertionExpression('isNotArray'))
         .replaceWith(path => makeNegativeExpectation('toBe',
-            j.callExpression(j.memberExpression(j.identifier('Array'), j.identifier('isArray')), [path.value.arguments[0]]),
+            j.callExpression(
+                j.memberExpression(j.identifier('Array'), j.identifier('isArray')),
+                [path.value.arguments[0]]
+            ),
             j.literal(true)
         ));
 
     // assert.typeOf(foo, Bar) -> expect(typeof foo).toBe(Bar)
     ast.find(j.CallExpression, getAssertionExpression('typeOf'))
-        .replaceWith(path => makeExpectation('toBe', j.unaryExpression('typeof', path.value.arguments[0]), path.value.arguments[1]));
+        .replaceWith(path => makeExpectation('toBe',
+            j.unaryExpression('typeof', path.value.arguments[0]), path.value.arguments[1])
+        );
 
     // assert.notTypeOf(foo, Bar) -> expect(typeof foo).not.toBe(Bar)
     ast.find(j.CallExpression, getAssertionExpression('notTypeOf'))
-        .replaceWith(path => makeNegativeExpectation('toBe', j.unaryExpression('typeof', path.value.arguments[0]), path.value.arguments[1]));
+        .replaceWith(path => makeNegativeExpectation('toBe',
+            j.unaryExpression('typeof', path.value.arguments[0]), path.value.arguments[1])
+        );
 
     chaiAssertTypeofs.forEach(({ assert, type }) => {
         ast.find(j.CallExpression, getAssertionExpression(assert))
-            .replaceWith(path => makeExpectation('toBe', j.unaryExpression('typeof', path.value.arguments[0]), j.literal(type)));
+            .replaceWith(path => makeExpectation('toBe',
+                j.unaryExpression('typeof', path.value.arguments[0]), j.literal(type))
+            );
 
         ast.find(j.CallExpression, getAssertionExpression(assert.replace(/^is/, 'isNot')))
-            .replaceWith(path => makeNegativeExpectation('toBe', j.unaryExpression('typeof', path.value.arguments[0]), j.literal(type)));
+            .replaceWith(path => makeNegativeExpectation('toBe',
+                j.unaryExpression('typeof', path.value.arguments[0]), j.literal(type))
+            );
     });
 
     // assert.lengthOf -> expect(*.length).toBe()
@@ -293,7 +318,10 @@ export default function transformer(fileInfo, api) {
         const expectation = isNegative ? `is${check.substring(5)}` : check;
         ast.find(j.CallExpression, getAssertionExpression(check))
             .replaceWith(path => (isNegative ? makeNegativeExpectation : makeExpectation)('toBe',
-                j.callExpression(j.memberExpression(j.identifier('Object'), j.identifier(expectation)), [path.value.arguments[0]]),
+                j.callExpression(
+                    j.memberExpression(j.identifier('Object'), j.identifier(expectation)),
+                    [path.value.arguments[0]]
+                ),
                 j.literal(true)
             ));
     });
