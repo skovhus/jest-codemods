@@ -202,7 +202,7 @@ export default function transformer(fileInfo, api) {
 
     assertToExpectMapping.forEach(({ assert, expect, ignoreExpectedValue, includeNegative, expectedOverride }) => {
         let override;
-        if (expectedOverride) {
+        if (typeof expectedOverride !== 'undefined') {
             override = typeof expectedOverride === 'boolean' ? j.literal(expectedOverride) : j.identifier(expectedOverride);
         }
 
