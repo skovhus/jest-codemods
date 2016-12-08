@@ -54,7 +54,12 @@ const should = require('chai').should;
 );
 
 const mappings = [
+  // follow the ordering here: http://chaijs.com/api/assert/
+  ['assert(foo === bar, baz);', 'expect(foo === bar).toBeTruthy();'],
+  ['assert(Array.isArray([]));', 'expect(Array.isArray([])).toBeTruthy();'],
   ['assert.fail(foo, bar, baz);', 'expect(false).toBe(true);'],
+  ['assert.isOk(foo, msg);', 'expect(foo).toBeTruthy();'],
+  ['assert.isNotOk(foo);', 'expect(foo).toBeFalsy();'],
   ['assert.equal(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
   ['assert.notEqual(foo, bar, baz);', 'expect(foo).not.toEqual(bar);'],
   ['assert.strictEqual(foo, bar, baz);', 'expect(foo).toBe(bar);'],
