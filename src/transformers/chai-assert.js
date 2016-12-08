@@ -78,7 +78,7 @@ const assertToExpectMapping = [
     {
         assert: 'isFalse',
         expect: 'toBe',
-        expectedOverride: false,
+        expectedOverride: 'false',
         includeNegative: 'isNotFalse',
     },
     {
