@@ -115,6 +115,49 @@ export function rewriteAssertionsAndTestArgument(j, path) {
 }
 
 /**
+ * Rewrite test callback to be able to destructure its argument
+ *
+ * test(({ok}) => {ok()}) to test(t => {ok()})
+ */
+export function rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName) {
+    const rewriteOneArgument = p => {
+        // The last arg is the test callback
+        const lastArg = p.value.arguments[p.value.arguments.length - 1];
+        if (lastArg && lastArg.params && lastArg.params[0]
+                && lastArg.params[0].type === 'ObjectPattern') {
+            const objectPattern = lastArg.params[0];
+            const keys = objectPattern.properties.map(prop => prop.key.name);
+            lastArg.params[0] = j.identifier('t');
+
+            keys.forEach(key => {
+                j(lastArg).find(j.CallExpression, {
+                    callee: { name: key },
+                }).forEach(assertion => {
+                    j(assertion).replaceWith(j.callExpression(
+                        j.memberExpression(
+                            j.identifier('t'),
+                            j.identifier(key),
+                        ),
+                        assertion.node.arguments,
+                    ));
+                });
+            });
+        }
+    };
+    ast.find(j.CallExpression, {
+        callee: {
+            object: { name: testFunctionName },
+        },
+    })
+    .forEach(rewriteOneArgument);
+
+    ast.find(j.CallExpression, {
+        callee: { name: testFunctionName },
+    })
+    .forEach(rewriteOneArgument);
+}
+
+/**
  * Validated that "t" is the test argument name.
  *
  * Example: 'test(x => {})' gives a warning.

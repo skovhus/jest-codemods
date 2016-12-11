@@ -318,6 +318,20 @@ it(() => {
 `
 );
 
+testChanged('destructured test argument',
+`
+import test from 'tape';
+test(({ok}) => {
+    ok('msg');
+});
+`,
+`
+it(() => {
+    expect('msg').toBeTruthy();
+});
+`
+);
+
 test('not supported warnings: createStream', () => {
     wrappedPlugin(`
         import test from 'tape';
