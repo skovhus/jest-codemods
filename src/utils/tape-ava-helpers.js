@@ -120,11 +120,16 @@ export function rewriteAssertionsAndTestArgument(j, path) {
  * test(({ok}) => {ok()}) to test(t => {ok()})
  */
 export function rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName) {
-    const rewriteOneArgument = p => {
+    ast.find(j.CallExpression, {
+        callee: callee =>
+            callee.name === testFunctionName
+            || (callee.object && callee.object.name === testFunctionName),
+    })
+    .forEach(p => {
         // The last arg is the test callback
         const lastArg = p.value.arguments[p.value.arguments.length - 1];
-        if (lastArg && lastArg.params && lastArg.params[0]
-                && lastArg.params[0].type === 'ObjectPattern') {
+        const lastArgParam = lastArg && lastArg.params && lastArg.params[0];
+        if (lastArgParam && lastArgParam.type === 'ObjectPattern') {
             const objectPattern = lastArg.params[0];
             const keys = objectPattern.properties.map(prop => prop.key.name);
             lastArg.params[0] = j.identifier('t');
@@ -143,18 +148,7 @@ export function rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName)
                 });
             });
         }
-    };
-    ast.find(j.CallExpression, {
-        callee: {
-            object: { name: testFunctionName },
-        },
-    })
-    .forEach(rewriteOneArgument);
-
-    ast.find(j.CallExpression, {
-        callee: { name: testFunctionName },
-    })
-    .forEach(rewriteOneArgument);
+    });
 }
 
 /**
@@ -163,26 +157,20 @@ export function rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName)
  * Example: 'test(x => {})' gives a warning.
  */
 export function detectUnsupportedNaming(fileInfo, j, ast, testFunctionName) {
-    // Currently we only support "t" as the test argument name
-    const validateTestArgument = p => {
+    ast.find(j.CallExpression, {
+        callee: callee =>
+            callee.name === testFunctionName
+            || (callee.object && callee.object.name === testFunctionName),
+    })
+    .forEach(p => {
         const lastArg = p.value.arguments[p.value.arguments.length - 1];
         if (lastArg && lastArg.params && lastArg.params[0]) {
             const lastArgName = lastArg.params[0].name;
+
+            // Currently we only support "t" as the test argument name
             if (lastArgName !== 't') {
                 logger(fileInfo, `Argument to test function should be named "t" not "${lastArgName}"`, p);
             }
         }
-    };
-
-    ast.find(j.CallExpression, {
-        callee: {
-            object: { name: testFunctionName },
-        },
-    })
-    .forEach(validateTestArgument);
-
-    ast.find(j.CallExpression, {
-        callee: { name: testFunctionName },
-    })
-    .forEach(validateTestArgument);
+    });
 }

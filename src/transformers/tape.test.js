@@ -324,10 +324,16 @@ import test from 'tape';
 test(({ok}) => {
     ok('msg');
 });
+test('my test', ({equal}) => {
+    equal('msg', 'other msg');
+});
 `,
 `
 it(() => {
     expect('msg').toBeTruthy();
+});
+it('my test', () => {
+    expect('msg').toBe('other msg');
 });
 `
 );
