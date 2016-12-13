@@ -253,6 +253,26 @@ it(async function () {
 });
 `);
 
+testChanged('destructured test argument',
+`
+import test from 'ava';
+test(({ok}) => {
+    ok('msg');
+});
+test('my test', ({is}) => {
+    is('msg', 'other msg');
+});
+`,
+`
+it(() => {
+    expect('msg').toBeTruthy();
+});
+it('my test', () => {
+    expect('msg').toBe('other msg');
+});
+`
+);
+
 test('not supported warnings: skipping test setup/teardown hooks', () => {
     wrappedPlugin(`
         import test from 'ava'

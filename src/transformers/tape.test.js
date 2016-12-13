@@ -441,3 +441,15 @@ test('warns about some conflicting packages', () => {
         'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
     ]);
 });
+
+test('graciously warns about unknown destructured assertions', () => {
+    wrappedPlugin(`
+        import test from 'tape';
+        test(({plan}) => {
+            plan('msg');
+        });
+    `);
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js) "t.plan" is currently not supported',
+    ]);
+});
