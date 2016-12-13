@@ -318,6 +318,26 @@ it(() => {
 `
 );
 
+testChanged('destructured test argument',
+`
+import test from 'tape';
+test(({ok}) => {
+    ok('msg');
+});
+test('my test', ({equal}) => {
+    equal('msg', 'other msg');
+});
+`,
+`
+it(() => {
+    expect('msg').toBeTruthy();
+});
+it('my test', () => {
+    expect('msg').toBe('other msg');
+});
+`
+);
+
 test('not supported warnings: createStream', () => {
     wrappedPlugin(`
         import test from 'tape';
@@ -419,5 +439,17 @@ test('warns about some conflicting packages', () => {
     `);
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
+    ]);
+});
+
+test('graciously warns about unknown destructured assertions', () => {
+    wrappedPlugin(`
+        import test from 'tape';
+        test(({plan}) => {
+            plan('msg');
+        });
+    `);
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js) "t.plan" is currently not supported',
     ]);
 });

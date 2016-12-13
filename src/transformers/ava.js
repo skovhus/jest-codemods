@@ -7,7 +7,7 @@ import { removeRequireAndImport } from '../utils/imports';
 import detectIncompatiblePackages from '../utils/incompatible-packages';
 import { PROP_WITH_SECONDS_ARGS } from '../utils/consts';
 import {
-    detectUnsupportedNaming, rewriteAssertionsAndTestArgument,
+    detectUnsupportedNaming, rewriteAssertionsAndTestArgument, rewriteDestructuredTArgument,
 } from '../utils/tape-ava-helpers';
 import {
     getIdentifierFromExpression, getMemberExpressionElements,
@@ -69,6 +69,8 @@ export default function avaToJest(fileInfo, api) {
     const logWarning = (msg, node) => logger(fileInfo, msg, node);
 
     const transforms = [
+        () => rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName),
+
         () => detectUnsupportedNaming(fileInfo, j, ast, testFunctionName),
 
         function updateAssertions() {
