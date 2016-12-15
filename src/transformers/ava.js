@@ -17,6 +17,7 @@ import proxyquireTransformer from '../utils/proxyquire';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
 const SPECIAL_BOOL = '(special bool case)';
+const SPECIAL_ASSERTION_CASE = '(special assertion case)';
 
 const tPropertiesMap = {
     ok: 'toBeTruthy',
@@ -37,6 +38,7 @@ const tPropertiesMap = {
     notRegex: 'not.toMatch',
     ifError: 'toBeFalsy',
     error: 'toBeFalsy',
+    plan: SPECIAL_ASSERTION_CASE,
 };
 
 const tPropertiesNotMapped = new Set([
@@ -84,7 +86,6 @@ export default function avaToJest(fileInfo, api) {
                 const args = p.node.arguments;
                 const oldPropertyName = p.value.callee.property.name;
                 const newPropertyName = tPropertiesMap[oldPropertyName];
-
                 if (typeof newPropertyName === 'undefined') {
                     logWarning(`"t.${oldPropertyName}" is currently not supported`, p);
                     return null;
@@ -96,6 +97,14 @@ export default function avaToJest(fileInfo, api) {
                         j.identifier('toBe'),
                         [j.identifier(oldPropertyName)]
                     );
+                } else if (newPropertyName === SPECIAL_ASSERTION_CASE) {
+                    const condition = (
+                        j.memberExpression(
+                            j.identifier('expect'),
+                            j.callExpression(j.identifier('assertions'), [args[0]])
+                        )
+                    );
+                    return j(p).replaceWith(condition);
                 } else if (newPropertyName === SPECIAL_THROWS_CASE) {
                     if (args.length === 1) {
                         newCondition = j.callExpression(

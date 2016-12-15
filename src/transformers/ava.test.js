@@ -66,6 +66,7 @@ test('mapping', (t) => {
   t.regex(abc, /abc/)
   t.ifError(abc)
   t.error(abc)
+  t.plan(3)
 })
 `,
 `
@@ -93,6 +94,7 @@ it('mapping', () => {
   expect(abc).toMatch(/abc/)
   expect(abc).toBeFalsy()
   expect(abc).toBeFalsy()
+  expect.assertions(3)
 });
 `);
 
@@ -299,18 +301,6 @@ test('not supported warnings: skipping test setup/teardown hooks', () => {
         'jest-codemods warning: (test.js line 12) Skipping setup/teardown hooks is currently not supported',
         'jest-codemods warning: (test.js line 13) Skipping setup/teardown hooks is currently not supported',
         'jest-codemods warning: (test.js line 14) Skipping setup/teardown hooks is currently not supported',
-    ]);
-});
-
-test('not supported warnings: t.plan', () => {
-    wrappedPlugin(`
-        import test from 'ava';
-        test(t => {
-            t.plan(1);
-        });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "t.plan" is currently not supported',
     ]);
 });
 
