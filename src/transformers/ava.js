@@ -17,7 +17,7 @@ import proxyquireTransformer from '../utils/proxyquire';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
 const SPECIAL_BOOL = '(special bool case)';
-const SPECIAL_ASSERTION_CASE = '(special assertion case)';
+const SPECIAL_PLAN_CASE = '(special plan case)';
 
 const tPropertiesMap = {
     ok: 'toBeTruthy',
@@ -38,7 +38,7 @@ const tPropertiesMap = {
     notRegex: 'not.toMatch',
     ifError: 'toBeFalsy',
     error: 'toBeFalsy',
-    plan: SPECIAL_ASSERTION_CASE,
+    plan: SPECIAL_PLAN_CASE,
 };
 
 const tPropertiesNotMapped = new Set([
@@ -97,7 +97,7 @@ export default function avaToJest(fileInfo, api) {
                         j.identifier('toBe'),
                         [j.identifier(oldPropertyName)]
                     );
-                } else if (newPropertyName === SPECIAL_ASSERTION_CASE) {
+                } else if (newPropertyName === SPECIAL_PLAN_CASE) {
                     const condition = (
                         j.memberExpression(
                             j.identifier('expect'),

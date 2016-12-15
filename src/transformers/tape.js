@@ -12,7 +12,7 @@ import logger from '../utils/logger';
 import proxyquireTransformer from '../utils/proxyquire';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
-const SPECIAL_ASSERTION_CASE = '(special assertion case)';
+const SPECIAL_PLAN_CASE = '(special plan case)';
 
 const tPropertiesMap = {
     ok: 'toBeTruthy',
@@ -58,7 +58,7 @@ const tPropertiesMap = {
 
     throws: SPECIAL_THROWS_CASE,
     doesNotThrow: SPECIAL_THROWS_CASE,
-    plan: SPECIAL_ASSERTION_CASE,
+    plan: SPECIAL_PLAN_CASE,
 };
 
 const tPropertiesNotMapped = new Set([
@@ -167,7 +167,7 @@ export default function tapeToJest(fileInfo, api) {
                             [args[1]]
                         );
                     }
-                } else if (newPropertyName === SPECIAL_ASSERTION_CASE) {
+                } else if (newPropertyName === SPECIAL_PLAN_CASE) {
                     const condition = (
                         j.memberExpression(
                             j.identifier('expect'),
