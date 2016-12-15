@@ -94,7 +94,6 @@ Usage of `proxyquire` is replaced with Jest mocks.
 
 Warnings for unsupported AVA features:
  - `t.skip`
- - `t.plan`
 
 Warnings for unsupported Tape features:
  - `t.timeoutAfter`
@@ -105,7 +104,6 @@ Warnings for unsupported Tape features:
  - `t.notLooseEqual`
  - `t.notLooseEquals`
  - `t.skip`
- - `t.plan`
  - `test.createStream`
  - `test.onFinish`
 

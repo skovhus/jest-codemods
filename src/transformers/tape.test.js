@@ -102,6 +102,7 @@ test((t) => {
     t.isInequivalent(1, 2, 'msg');
 
     // t.skip('msg');
+    t.plan(3);
     t.throws(1, 'msg');
     t.doesNotThrow(1, 'msg');
     t.comment('this is a comment...');
@@ -152,6 +153,7 @@ it(done => {
     expect(1).not.toEqual(2);
 
     // t.skip('msg');
+    expect.assertions(3);
     expect(1).toThrow();
     expect(1).not.toThrow();
     console.log('this is a comment...');
@@ -449,7 +451,4 @@ test('graciously warns about unknown destructured assertions', () => {
             plan('msg');
         });
     `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js) "t.plan" is currently not supported',
-    ]);
 });
