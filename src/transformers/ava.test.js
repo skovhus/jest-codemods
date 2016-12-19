@@ -109,8 +109,8 @@ test.beforeEach(t => {});
 test.afterEach(t => {});
 `,
 `
-before(() => {});
-after(() => {});
+beforeAll(() => {});
+afterAll(() => {});
 beforeEach(() => {});
 afterEach(() => {});
 `);

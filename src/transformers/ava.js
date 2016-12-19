@@ -48,8 +48,8 @@ const tPropertiesNotMapped = new Set([
 ]);
 
 const avaToJestMethods = {
-    before: 'before',
-    after: 'after',
+    before: 'beforeAll',
+    after: 'afterAll',
     beforeEach: 'beforeEach',
     afterEach: 'afterEach',
 
