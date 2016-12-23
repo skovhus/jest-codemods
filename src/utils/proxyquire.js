@@ -34,6 +34,13 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
 
             const argumentPath = node.type === 'CallExpression' ? p.parentPath : p.parent.parent.parent;
             const args = argumentPath.node.arguments;
+
+            if (!args) {
+                // proxyquire is called with no arguments
+                j(argumentPath).remove();
+                return;
+            }
+
             const requireFile = args[0].value;
             const mocksNode = args[1];
 

@@ -95,6 +95,20 @@ it('supports variable reference object', () => {
     expect(mockedLogger).not.toBeCalled();
 });
 
+it('supports empty noCallThru', () => {
+    const ast = j(`
+        import proxyquire from 'proxyquire';
+        proxyquire.noCallThru();
+        const a = proxyquire('a', {'b': 'c'});
+    `);
+    proxyquireTransformer(fileInfo, j, ast);
+    expect(ast.toSource({ quote: 'single' })).toEqual(`
+        jest.mock('b', () => 'c');
+        const a = require('a');
+    `);
+    expect(mockedLogger).not.toBeCalled();
+});
+
 it('logs error when proxyquire mocks are not defined in the file', () => {
     // TODO: this is kind of a bad state, but also a funny usage of proxyquire
     const ast = j(`
