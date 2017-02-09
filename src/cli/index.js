@@ -78,7 +78,7 @@ if (cli.input.length) {
     }, {
         type: 'list',
         name: 'chai',
-        message: 'Whould you like to include Chai transformations with Mocha?',
+        message: 'Would you like to include Chai transformations with Mocha?',
         when: ({ transformer }) => [TRANSFORMER_MOCHA, 'all'].indexOf(transformer) > -1,
         choices: [{
             name: 'Assert Syntax',
