@@ -3,9 +3,5 @@ node_js:
   - '6'
   - '4'
 script:
-  - npm prune
-  - npm update
-  - npm run prepublish
-cache:
-  directories:
-    - node_modules
+  - yarn
+cache: yarn
