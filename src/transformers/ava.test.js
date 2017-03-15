@@ -226,7 +226,7 @@ function shouldFail(t, message) {
 function shouldFail2(t, message) {
     return Promise.reject().catch(err => {
         expect(err.message).toEqual(message)
-    })
+    });
 }
 `);
 

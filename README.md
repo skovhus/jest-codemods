@@ -119,15 +119,15 @@ The Mocha and Chai support began its life at [paularmstrong/mocha-to-jest-codemo
 
 To get started, run:
 
-	npm install
+	yarn
 
 When developing:
 
-	npm run check  # (runs lint and unit test)
-	npm run lint
-	npm run test
-	npm run test:cov
-	npm run test:watch
+	yarn run check  # (runs lint and unit test)
+	yarn run lint
+	yarn run test
+	yarn run test:cov
+	yarn run test:watch
 
 
 ## License
