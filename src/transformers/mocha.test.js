@@ -26,6 +26,12 @@ describe('describe', () => {
   after(() => {});
   beforeEach(() => {});
   afterEach(() => {});
+
+  before('some text', () => {});
+  after('some text', () => {});
+  beforeEach('some text', () => {});
+  afterEach('some text', () => {});
+
   context('context', () => {
     it('it', () => {});
     specify('specify', () => {})
@@ -39,6 +45,12 @@ describe('describe', () => {
   afterAll(() => {});
   beforeEach(() => {});
   afterEach(() => {});
+
+  beforeAll(() => {});
+  afterAll(() => {});
+  beforeEach(() => {});
+  afterEach(() => {});
+
   describe('context', () => {
     it('it', () => {});
     it('specify', () => {})
@@ -55,6 +67,12 @@ suite('suite', () => {
   setup(() => {});
   teardown(() => {});
   test(() => {});
+
+  suiteSetup('description', () => {});
+  suiteTeardown('description', () => {});
+  setup('description', () => {});
+  teardown('description', () => {});
+  test('description', () => {});
 })
 `,
 `
@@ -65,6 +83,12 @@ describe('suite', () => {
   beforeEach(() => {});
   afterEach(() => {});
   it(() => {});
+
+  beforeAll(() => {});
+  afterAll(() => {});
+  beforeEach(() => {});
+  afterEach(() => {});
+  it('description', () => {});
 })
 `
 );

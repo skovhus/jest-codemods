@@ -6,12 +6,16 @@ const methodMap = {
     specify: 'it',
     test: 'it',
     before: 'beforeAll',
+    beforeEach: 'beforeEach',
     setup: 'beforeEach',
     after: 'afterAll',
+    afterEach: 'afterEach',
     teardown: 'afterEach',
     suiteSetup: 'beforeAll',
     suiteTeardown: 'afterAll',
 };
+
+const jestMethodsWithDescriptionsAllowed = new Set(['it', 'describe']);
 
 const methodModifiers = ['only', 'skip'];
 
@@ -25,7 +29,13 @@ export default function mochaToJest(file, api) {
         ast.find(j.CallExpression, {
             type: 'CallExpression',
             callee: { type: 'Identifier', name: mochaMethod },
-        }).replaceWith(path => j.callExpression(j.identifier(jestMethod), path.value.arguments));
+        }).replaceWith(path => {
+            let args = path.value.arguments;
+            if (!jestMethodsWithDescriptionsAllowed.has(jestMethod)) {
+                args = args.filter(a => a.type !== 'Literal');
+            }
+            return j.callExpression(j.identifier(jestMethod), args);
+        });
 
 
         methodModifiers.forEach(modifier => {
