@@ -1,12 +1,22 @@
 import { removeRequireAndImport } from './imports';
 import logger from './logger';
 
-const findChildOfProgram = (path, childPath) => {
+function findChildOfProgram(path, childPath) {
     if (path.value.type === 'Program') {
         return childPath;
     }
     return findChildOfProgram(path.parent, path);
-};
+}
+
+function findFirstParentCallExpression(path) {
+    if (!path) {
+        return null;
+    }
+    if (path.node.type === 'CallExpression') {
+        return findFirstParentCallExpression(path.parentPath) || path;
+    }
+    return findFirstParentCallExpression(path.parentPath);
+}
 
 const getJestMockStatement = ({ j, mockName, mockBody }) =>
     j.expressionStatement(
@@ -20,24 +30,22 @@ const getJestMockStatement = ({ j, mockName, mockBody }) =>
     );
 
 export default function proxyquireTransformer(fileInfo, j, ast) {
-    const variableName = removeRequireAndImport(j, ast, 'proxyquire');
-    if (variableName) {
+    const importVariableName = removeRequireAndImport(j, ast, 'proxyquire');
+    if (importVariableName) {
         const mocks = new Set();
 
         ast.find(j.Identifier, {
-            name: variableName,
+            name: importVariableName,
         }).forEach(p => {
-            const { node } = p.parentPath;
-            if (node.type !== 'CallExpression' && node.type !== 'MemberExpression') {
+            const outerCallExpression = findFirstParentCallExpression(p);
+            if (!outerCallExpression) {
                 return;
             }
 
-            const argumentPath = node.type === 'CallExpression' ? p.parentPath : p.parent.parent.parent;
-            const args = argumentPath.node.arguments;
-
-            if (!args) {
+            const args = outerCallExpression.node.arguments;
+            if (args.length === 0) {
                 // proxyquire is called with no arguments
-                j(argumentPath).remove();
+                j(outerCallExpression).remove();
                 return;
             }
 
@@ -57,7 +65,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
                         mockName: o.key,
                         mockBody: o.value,
                     });
-                    findChildOfProgram(argumentPath).insertBefore(jestMockStatement);
+                    findChildOfProgram(outerCallExpression).insertBefore(jestMockStatement);
                 });
             } else if (mocksNode.type === 'Identifier') {
                 // Look for an ObjectExpression that defines the mocks
@@ -84,7 +92,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
                             j.identifier(mocksNode.name), mockName
                         ),
                     });
-                    findChildOfProgram(argumentPath).insertBefore(jestMockStatement);
+                    findChildOfProgram(outerCallExpression).insertBefore(jestMockStatement);
                 });
             } else {
                 return;
@@ -93,7 +101,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
             const newCallExpressionNode = j.callExpression(
                 j.identifier('require'), [j.literal(requireFile)]
             );
-            j(argumentPath).replaceWith(newCallExpressionNode);
+            j(outerCallExpression).replaceWith(newCallExpressionNode);
         });
     }
 }

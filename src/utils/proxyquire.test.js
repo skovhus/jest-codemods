@@ -109,6 +109,32 @@ it('supports empty noCallThru', () => {
     expect(mockedLogger).not.toBeCalled();
 });
 
+it('supports the `load` method', () => {
+    const ast = j(`
+        import proxyquire from 'proxyquire';
+        const a = proxyquire.load('a', {'b': 'c'});
+    `);
+    proxyquireTransformer(fileInfo, j, ast);
+    expect(ast.toSource({ quote: 'single' })).toEqual(`
+        jest.mock('b', () => 'c');
+        const a = require('a');
+    `);
+    expect(mockedLogger).not.toBeCalled();
+});
+
+it('supports a chained `noCallThru().load()` call', () => {
+    const ast = j(`
+        import proxyquire from 'proxyquire';
+        const a = proxyquire.noCallThru().load('a', {'b': 'c'});
+    `);
+    proxyquireTransformer(fileInfo, j, ast);
+    expect(ast.toSource({ quote: 'single' })).toEqual(`
+        jest.mock('b', () => 'c');
+        const a = require('a');
+    `);
+    expect(mockedLogger).not.toBeCalled();
+});
+
 it('logs error when proxyquire mocks are not defined in the file', () => {
     // TODO: this is kind of a bad state, but also a funny usage of proxyquire
     const ast = j(`
