@@ -111,8 +111,8 @@ it('supports empty noCallThru', () => {
 
 it('supports the `load` method', () => {
     const ast = j(`
-      import proxyquire from 'proxyquire';
-      const a = proxyquire.load('a', {'b': 'c'});
+        import proxyquire from 'proxyquire';
+        const a = proxyquire.load('a', {'b': 'c'});
     `);
     proxyquireTransformer(fileInfo, j, ast);
     expect(ast.toSource({ quote: 'single' })).toEqual(`
@@ -124,8 +124,8 @@ it('supports the `load` method', () => {
 
 it('supports a chained `noCallThru().load()` call', () => {
     const ast = j(`
-      import proxyquire from 'proxyquire';
-      const a = proxyquire.noCallThru().load('a', {'b': 'c'});
+        import proxyquire from 'proxyquire';
+        const a = proxyquire.noCallThru().load('a', {'b': 'c'});
     `);
     proxyquireTransformer(fileInfo, j, ast);
     expect(ast.toSource({ quote: 'single' })).toEqual(`
