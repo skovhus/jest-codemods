@@ -176,6 +176,12 @@ test(() => {
   expect(stuff).toExclude('world');
   expect(stuff).toNotContain({b: 2});
   expect(stuff).toNotInclude('world');
+
+  expect({ a: 1 }).toIncludeKey('a');
+  expect({ a: 1 }).toExcludeKey('b');
+
+  expect({ a: 1, b: 2 }).toIncludeKeys([ 'a', 'b' ]);
+  expect({ a: 1, b: 2 }).toExcludeKeys([ 'c', 'd' ]);
 });
 `,
 `
@@ -184,6 +190,16 @@ test(() => {
   expect(stuff).not.toContain('world');
   expect(stuff).not.toContain({b: 2});
   expect(stuff).not.toContain('world');
+
+  expect(Object.keys({ a: 1 })).toContain('a');
+  expect(Object.keys({ a: 1 })).not.toContain('b');
+
+  [ 'a', 'b' ].forEach(e => {
+    expect({ a: 1, b: 2 }).toContain(e);
+  });
+  [ 'c', 'd' ].forEach(e => {
+    expect({ a: 1, b: 2 }).not.toContain(e);
+  });
 });
 `);
 

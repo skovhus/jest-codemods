@@ -105,10 +105,11 @@ export default function expectTransformer(fileInfo, api) {
         }
 
         if (matchersWithKeys.has(matcherName)) {
+            const keys = matcherArgs[0];
             matcherArgs[0] = j.identifier('e');
             matcher.name = isNot ? 'not.toContain' : 'toContain';
             j(path.parentPath).replaceWith(j.template.expression`\
-${matcherArgs[0]}.forEach(${matcherArgs[0]} => {
+${keys}.forEach(e => {
   ${matcherNode}
 })`);
         }
