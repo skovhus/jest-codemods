@@ -109,7 +109,7 @@ test((t) => {
 });
 `,
 `
-it(done => {
+test(done => {
     done.fail('msg');
     expect(1).toBeTruthy();
     expect(1).toBeTruthy();
@@ -168,7 +168,7 @@ test("mytest", t => {
 });
 `,
 `
-it("mytest", () => {
+test("mytest", () => {
     expect("msg").toBeTruthy();
 });
 `
@@ -194,19 +194,19 @@ myTapeTest(function(t) {
 });
 `,
 `
-it("mytest", () => {
+test("mytest", () => {
     expect("msg").toBeTruthy();
 });
 
-it(() => {
+test(() => {
     expect("msg").toBeTruthy();
 });
 
-it("mytest", function() {
+test("mytest", function() {
     expect("msg").toBeTruthy();
 });
 
-it(function() {
+test(function() {
     expect("msg").toBeTruthy();
 });
 `
@@ -220,7 +220,7 @@ test('mytest', {objectPrintDepth: 4, skip: false}, t => {
 });
 `,
 `
-it('mytest', () => {
+test('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
@@ -234,7 +234,7 @@ test('mytest', {objectPrintDepth: 4, skip: true}, t => {
 });
 `,
 `
-xit('mytest', () => {
+test.skip('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
@@ -249,7 +249,7 @@ test('mytest', t => {
 });
 `,
 `
-it('mytest', () => {
+test('mytest', () => {
     expect(1).toBe(1);
 });
 `
@@ -266,7 +266,7 @@ test(t => {
 });
 `,
 `
-it(done => {
+test(done => {
     setTimeout(() => {
         done();
     }, 500);
@@ -289,11 +289,11 @@ test('handles done.fail and done.pass', t => {
 });
 `,
 `
-it(function(done) {
+test(function(done) {
     done.fail();
 });
 
-it('handles done.fail and done.pass', done => {
+test('handles done.fail and done.pass', done => {
     setTimeout(() => {
         done.fail('no');
     }, 500);
@@ -311,7 +311,7 @@ test(t => {
 });
 `,
 `
-it(() => {
+test(() => {
     expect(myfunc).toThrow();
     expect(myfunc).toThrowError('xxx');
     expect(myfunc).toThrowError(/err_reg_exp/i);
@@ -331,10 +331,10 @@ test('my test', ({equal}) => {
 });
 `,
 `
-it(() => {
+test(() => {
     expect('msg').toBeTruthy();
 });
-it('my test', () => {
+test('my test', () => {
     expect('msg').toBe('other msg');
 });
 `
@@ -447,8 +447,8 @@ test('not supported warnings: non standard argument for test.skip', () => {
 test('warns about some conflicting packages', () => {
     wrappedPlugin(`
         import test from 'tape';
-        import test from 'proxyquire';
-        import test from 'testdouble';
+        import proxyquire from 'proxyquire';
+        import testdouble from 'testdouble';
         test(t => {});
     `);
     expect(consoleWarnings).toEqual([
@@ -464,3 +464,13 @@ test('graciously warns about unknown destructured assertions', () => {
         });
     `);
 });
+
+testChanged('supports renaming non standard import name',
+`
+import foo from 'tape';
+foo(() => {});
+`,
+`
+test(() => {});
+`
+);

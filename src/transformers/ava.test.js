@@ -71,7 +71,7 @@ test('mapping', (t) => {
 `,
 `
 // @flow
-it('mapping', () => {
+test('mapping', () => {
   const abc = { a: 'a', b: 'b', c: 'c' }
   expect(abc).toBeTruthy()
   expect(abc).toBeTruthy()
@@ -121,7 +121,7 @@ import test from 'ava'
 test.serial(t => {});
 `,
 `
-it(() => {});
+test(() => {});
 `);
 
 testChanged('handles skip/only modifiers and chaining',
@@ -137,13 +137,13 @@ test.only.serial(t => {});
 test.serial.only(t => {});
 `,
 `
-fit(() => {});
-xit(() => {});
+test.only(() => {});
+test.skip(() => {});
 
-xit(() => {});
-xit(() => {});
-fit(() => {});
-fit(() => {});
+test.skip(() => {});
+test.skip(() => {});
+test.only(() => {});
+test.only(() => {});
 `);
 
 testChanged('removes t.pass, but keeps t.fail',
@@ -165,13 +165,13 @@ test.serial.only('handles done.fail and done.pass', t => {
 });
 `,
 `
-it('handles done.fail and done.pass', done => {
+test('handles done.fail and done.pass', done => {
     setTimeout(() => {
         done.fail('no');
     }, 500);
 });
 
-fit('handles done.fail and done.pass', done => {
+test.only('handles done.fail and done.pass', done => {
     setTimeout(() => {
         done.fail('no');
     }, 500);
@@ -188,7 +188,7 @@ test.cb(t => {
 });
 `,
 `
-it(done => {
+test(done => {
     fs.readFile('data.txt', done);
 });
 `);
@@ -214,7 +214,7 @@ function shouldFail2(t, message) {
 }
 `,
 `
-it('should pass', () => {
+test('should pass', () => {
     shouldFail(t, 'hi')
     return shouldFail2(t, 'hi')
 })
@@ -244,12 +244,12 @@ test(async function (t) {
 });
 `,
 `
-it(async () => {
+test(async () => {
     const value = await promiseFn();
     expect(value).toBe(true);
 });
 
-it(async function () {
+test(async function () {
     const value = await promiseFn();
     expect(value).toBe(true);
 });
@@ -266,10 +266,10 @@ test('my test', ({is}) => {
 });
 `,
 `
-it(() => {
+test(() => {
     expect('msg').toBeTruthy();
 });
-it('my test', () => {
+test('my test', () => {
     expect('msg').toBe('other msg');
 });
 `
@@ -330,9 +330,9 @@ test('not supported warnings: non standard argument for test', () => {
 
 test('warns about some conflicting packages', () => {
     wrappedPlugin(`
-        import test from 'ava';
-        import test from 'proxyquire';
-        import test from 'testdouble';
+        import ava from 'ava';
+        import proxyquire from 'proxyquire';
+        import testdouble from 'testdouble';
         test(t => {});
     `);
     expect(consoleWarnings).toEqual([
@@ -351,3 +351,13 @@ test('warns about unknown AVA functions', () => {
         'jest-codemods warning: (test.js line 4) Unknown AVA method "failing"',
     ]);
 });
+
+testChanged('supports renaming non standard import name',
+`
+import foo from 'ava';
+foo(() => {});
+`,
+`
+test(() => {});
+`
+);

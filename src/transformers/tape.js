@@ -78,7 +78,6 @@ const tPropertiesUnsupported = new Set([
     'notDeepLooseEqual',
     'notLooseEqual',
     'notLooseEquals',
-
     'skip',
 ]);
 
@@ -219,7 +218,7 @@ export default function tapeToJest(fileInfo, api) {
                             const tapeOptionKey = tapeOption.key.name;
                             const tapeOptionValue = tapeOption.value.value;
                             if (tapeOptionKey === 'skip' && tapeOptionValue === true) {
-                                p.value.callee.name = 'xit';
+                                p.value.callee.name = 'test.skip';
                             }
 
                             if (tapeOptionKey === 'timeout') {
@@ -231,8 +230,8 @@ export default function tapeToJest(fileInfo, api) {
                     }
                 });
 
-                if (p.node.callee.name !== 'xit') {
-                    p.node.callee.name = 'it';
+                if (p.node.callee.name !== 'test.skip') {
+                    p.node.callee.name = 'test';
                 }
 
                 rewriteAssertionsAndTestArgument(j, p);
