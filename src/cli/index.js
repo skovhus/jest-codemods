@@ -38,6 +38,7 @@ updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
 const TRANSFORMER_CHAI_SHOULD = 'chai-should';
+const TRANSFORMER_EXPECT = 'expect';
 const TRANSFORMER_MOCHA = 'mocha';
 const TRANSFORMER_SHOULD = 'should';
 const TRANSFORMER_TAPE = 'tape';
@@ -46,6 +47,7 @@ const ALL_TRANSFORMERS = [
     TRANSFORMER_AVA,
     TRANSFORMER_CHAI_ASSERT,
     // TRANSFORMER_CHAI_SHOULD & TRANSFORMER_SHOULD doesn't have import detection
+    TRANSFORMER_EXPECT,
     TRANSFORMER_MOCHA,
     TRANSFORMER_TAPE,
 ];
@@ -77,6 +79,10 @@ inquirer
                     value: TRANSFORMER_CHAI_SHOULD,
                 },
                 {
+                    name: 'Expect@1',
+                    value: TRANSFORMER_EXPECT,
+                },
+                {
                     name: 'Mocha',
                     value: TRANSFORMER_MOCHA,
                 },
@@ -95,6 +101,21 @@ inquirer
                 {
                     name: 'Other',
                     value: 'other',
+                },
+            ],
+        },
+        {
+            name: 'standaloneMode',
+            message: 'Would you use Expect without Jest (e.g. in a browser)?',
+            when: ({ transformer }) => TRANSFORMER_EXPECT === transformer,
+            choices: [
+                {
+                    name: 'Yes, make it work in a browser without Jest',
+                    value: true,
+                },
+                {
+                    name: 'No, Jest is all I need',
+                    value: false,
                 },
             ],
         },
@@ -132,10 +153,10 @@ inquirer
         },
     ])
     .then(answers => {
-        const { files, transformer, mochaAssertion } = answers;
+        const { files, transformer, mochaAssertion, standaloneMode } = answers;
 
         if (transformer === 'other') {
-            return supportFailure('AVA, Tape, Chai and Mocha');
+            return supportFailure('AVA, Tape, Expect, Chai and Mocha');
         }
 
         const transformers = transformer === 'all' ? ALL_TRANSFORMERS : [transformer];
@@ -154,5 +175,16 @@ inquirer
             checkGitStatus(cli.flags.force);
         }
 
-        return executeTransformations(filesExpanded, cli.flags, transformers);
+        const transformerArgs = [];
+        if (standaloneMode) {
+            transformerArgs.push('--standaloneMode');
+            console.log('\nYou need to manually install jest-mock');
+        }
+
+        return executeTransformations(
+            filesExpanded,
+            cli.flags,
+            transformers,
+            transformerArgs
+        );
     });
