@@ -24,6 +24,29 @@ const renaming = {
     toNotHaveBeenCalled: 'not.toHaveBeenCalled',
 };
 
+const matchersToBe = new Set([
+    'toBeA',
+    'toBeAn',
+    'toNotBeA',
+    'toNotBeAn',
+]);
+
+const matchersWithKey = new Set([
+    'toContainKey',
+    'toExcludeKey',
+    'toIncludeKey',
+    'toNotContainKey',
+    'toNotIncludeKey',
+]);
+
+const matchersWithKeys = new Set([
+    'toContainKeys',
+    'toExcludeKeys',
+    'toIncludeKeys',
+    'toNotContainKeys',
+    'toNotIncludeKeys',
+]);
+
 export default function expectTransformer(fileInfo, api) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
@@ -50,21 +73,20 @@ export default function expectTransformer(fileInfo, api) {
         if (renaming[name]) {
             path.node.property.name = renaming[name];
         }
-        if (name === 'toBeA' || name === 'toBeAn' ||
-          name === 'toNotBeA' || name === 'toNotBeAn') {
+
+        if (matchersToBe.has(name)) {
             if (toBeArgs[0].type === 'Literal') {
                 expectArgs[0] = j.unaryExpression('typeof', expectArgs[0]);
                 path.node.property.name = isNot ? 'not.toBe' : 'toBe';
             }
         }
 
-        if (name === 'toIncludeKey' || name === 'toContainKey' ||
-          name === 'toExcludeKey' || name === 'toNotContainKey' || name === 'toNotIncludeKey') {
+        if (matchersWithKey.has(name)) {
             expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`;
             path.node.property.name = isNot ? 'not.toContain' : 'toContain';
         }
-        if (name === 'toIncludeKeys' || name === 'toContainKeys' ||
-          name === 'toExcludeKeys' || name === 'toNotContainKeys' || name === 'toNotIncludeKeys') {
+
+        if (matchersWithKeys.has(name)) {
             toBeArgs[0] = j.identifier('e');
             path.node.property.name = isNot ? 'not.toContain' : 'toContain';
             j(path.parentPath).replaceWith(j.template.expression`\
@@ -72,6 +94,7 @@ ${toBeArgs[0]}.forEach(${toBeArgs[0]} => {
   ${path.parentPath.node}
 })`);
         }
+
         if (name === 'toMatch' || name === 'toNotMatch') {
             const arg = toBeArgs[0];
             if (arg.type === 'ObjectExpression') {
