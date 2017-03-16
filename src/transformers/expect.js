@@ -1,8 +1,9 @@
 import detectQuoteStyle from '../utils/quote-style';
 import { removeRequireAndImport } from '../utils/imports';
+import logger from '../utils/logger';
 import proxyquireTransformer from '../utils/proxyquire';
 
-const renaming = {
+const matcherRenaming = {
     toExist: 'toBeTruthy',
     toNotExist: 'toBeFalsy',
     toNotBe: 'not.toBe',
@@ -47,6 +48,12 @@ const matchersWithKeys = new Set([
     'toNotIncludeKeys',
 ]);
 
+const jestMatchersWithNoArgs = new Set([
+    'toBeTruthy',
+    'toBeFalsy',
+    'toHaveBeenCalled',
+]);
+
 export default function expectTransformer(fileInfo, api) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
@@ -61,44 +68,67 @@ export default function expectTransformer(fileInfo, api) {
     ast.find(j.MemberExpression, {
         object: {
             type: 'CallExpression',
-            callee: { type: 'Identifier', name: 'expect' },
+            callee: { type: 'Identifier', name: expectFunctionName },
         },
         property: { type: 'Identifier' },
     })
     .forEach(path => {
-        const toBeArgs = path.parentPath.node.arguments;
-        const expectArgs = path.node.object.arguments;
-        const name = path.node.property.name;
-        const isNot = name.indexOf('Not') !== -1 || name.indexOf('Exclude') !== -1;
-        if (renaming[name]) {
-            path.node.property.name = renaming[name];
+        if (path.parentPath.parentPath.node.type === 'MemberExpression') {
+            logger(fileInfo, 'Chaining except matchers is currently not supported', path);
+            return;
         }
 
-        if (matchersToBe.has(name)) {
-            if (toBeArgs[0].type === 'Literal') {
+        path.parentPath.node.callee.object.callee.name = 'expect';
+        const matcherNode = path.parentPath.node;
+        const matcher = path.node.property;
+        const matcherName = matcher.name;
+
+        const matcherArgs = matcherNode.arguments;
+        const expectArgs = path.node.object.arguments;
+
+        const isNot = matcherName.indexOf('Not') !== -1 || matcherName.indexOf('Exclude') !== -1;
+
+        if (matcherRenaming[matcherName]) {
+            matcher.name = matcherRenaming[matcherName];
+        }
+
+        if (matchersToBe.has(matcherName)) {
+            if (matcherArgs[0].type === 'Literal') {
                 expectArgs[0] = j.unaryExpression('typeof', expectArgs[0]);
-                path.node.property.name = isNot ? 'not.toBe' : 'toBe';
+                matcher.name = isNot ? 'not.toBe' : 'toBe';
             }
         }
 
-        if (matchersWithKey.has(name)) {
+        if (matchersWithKey.has(matcherName)) {
             expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`;
-            path.node.property.name = isNot ? 'not.toContain' : 'toContain';
+            matcher.name = isNot ? 'not.toContain' : 'toContain';
         }
 
-        if (matchersWithKeys.has(name)) {
-            toBeArgs[0] = j.identifier('e');
-            path.node.property.name = isNot ? 'not.toContain' : 'toContain';
+        if (matchersWithKeys.has(matcherName)) {
+            matcherArgs[0] = j.identifier('e');
+            matcher.name = isNot ? 'not.toContain' : 'toContain';
             j(path.parentPath).replaceWith(j.template.expression`\
-${toBeArgs[0]}.forEach(${toBeArgs[0]} => {
-  ${path.parentPath.node}
+${matcherArgs[0]}.forEach(${matcherArgs[0]} => {
+  ${matcherNode}
 })`);
         }
 
-        if (name === 'toMatch' || name === 'toNotMatch') {
-            const arg = toBeArgs[0];
+        if (matcherName === 'toMatch' || matcherName === 'toNotMatch') {
+            const arg = matcherArgs[0];
             if (arg.type === 'ObjectExpression') {
-                path.node.property.name = isNot ? 'not.toMatchObject' : 'toMatchObject';
+                matcher.name = isNot ? 'not.toMatchObject' : 'toMatchObject';
+            }
+        }
+
+        if (jestMatchersWithNoArgs.has(matcher.name)) {
+            matcherNode.arguments = [];
+        }
+
+        if (matcherNode.arguments.length > 1) {
+            const lastArg = matcherNode.arguments[matcherNode.arguments.length - 1];
+            if (lastArg.type === 'Literal') {
+                // Remove assertion message
+                matcherNode.arguments.pop();
             }
         }
     });
