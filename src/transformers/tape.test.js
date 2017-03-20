@@ -360,18 +360,6 @@ test('not supported warnings: onFinish', () => {
     ]);
 });
 
-test('not supported warnings: timeoutAfter', () => {
-    wrappedPlugin(`
-        import test from 'tape';
-        test(t => {
-            t.timeoutAfter(100);
-        });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "t.timeoutAfter" is currently not supported',
-    ]);
-});
-
 test('not supported warnings: unmapped t property', () => {
     wrappedPlugin(`
         import test from 'tape';
@@ -384,7 +372,19 @@ test('not supported warnings: unmapped t property', () => {
     ]);
 });
 
-test('not supported warnings: looseEquals', () => {
+test('not supported warnings: t.timeoutAfter', () => {
+    wrappedPlugin(`
+        import test from 'tape';
+        test(t => {
+            t.timeoutAfter(100);
+        });
+    `);
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) "t.timeoutAfter" is currently not supported',
+    ]);
+});
+
+test('not supported warnings: t.looseEquals', () => {
     wrappedPlugin(`
         import test from 'tape';
         test(t => {
@@ -393,6 +393,18 @@ test('not supported warnings: looseEquals', () => {
     `);
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 4) "t.looseEquals" is currently not supported. Try the stricter "toEqual" or "not.toEqual"',
+    ]);
+});
+
+test('not supported warnings: t.skip', () => {
+    wrappedPlugin(`
+        import test from 'tape';
+        test(t => {
+            t.skip();
+        });
+    `);
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) "t.skip" is currently not supported',
     ]);
 });
 
