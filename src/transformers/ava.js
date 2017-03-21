@@ -52,9 +52,8 @@ const avaToJestMethods = {
     after: 'afterAll',
     beforeEach: 'beforeEach',
     afterEach: 'afterEach',
-
-    skip: 'xit',
-    only: 'fit',
+    skip: 'test.skip',
+    only: 'test.only',
 };
 
 export default function avaToJest(fileInfo, api) {
@@ -145,12 +144,12 @@ export default function avaToJest(fileInfo, api) {
             ast.find(j.CallExpression, {
                 callee: { name: testFunctionName },
             }).forEach(p => {
-                p.node.callee.name = 'it';
+                p.node.callee.name = 'test';
                 rewriteAssertionsAndTestArgument(j, p);
             });
 
             function mapPathToJestMethod(p) {
-                let jestMethod = 'it';
+                let jestMethod = 'test';
 
                 // List like ['test', 'serial', 'cb']
                 const avaMethods = getMemberExpressionElements(
