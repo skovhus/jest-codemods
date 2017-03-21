@@ -8,10 +8,10 @@ export function api() {
     };
 }
 
-export function runPlugin(plugin, source) {
-    return plugin({ source, path: 'test.js' }, api());
+export function runPlugin(plugin, source, options = {}) {
+    return plugin({ source, path: 'test.js' }, api(), options);
 }
 
 export function wrapPlugin(plugin) {
-    return source => runPlugin(plugin, source);
+    return (source, options) => runPlugin(plugin, source, options);
 }

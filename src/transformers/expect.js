@@ -1,5 +1,5 @@
 import detectQuoteStyle from '../utils/quote-style';
-import { removeRequireAndImport } from '../utils/imports';
+import { getRequireOrImportName, addRequireOrImportOnceFactory, removeRequireAndImport } from '../utils/imports';
 import logger from '../utils/logger';
 import proxyquireTransformer from '../utils/proxyquire';
 
@@ -54,15 +54,24 @@ const jestMatchersWithNoArgs = new Set([
     'toHaveBeenCalled',
 ]);
 
-export default function expectTransformer(fileInfo, api) {
+const spyFunctions = new Set(['spyOn']);
+
+const expectPackageName = 'expect';
+
+export default function expectTransformer(fileInfo, api, options) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
+    const { standaloneMode } = options;
 
-    const expectFunctionName = removeRequireAndImport(j, ast, 'expect');
+    const expectFunctionName = getRequireOrImportName(j, ast, expectPackageName);
 
     if (!expectFunctionName) {
         // No expect require/import were found
         return fileInfo.source;
+    }
+
+    if (!standaloneMode) {
+        removeRequireAndImport(j, ast, expectPackageName);
     }
 
     ast.find(j.MemberExpression, {
@@ -78,7 +87,10 @@ export default function expectTransformer(fileInfo, api) {
             return;
         }
 
-        path.parentPath.node.callee.object.callee.name = 'expect';
+        if (!standaloneMode) {
+            path.parentPath.node.callee.object.callee.name = 'expect';
+        }
+
         const matcherNode = path.parentPath.node;
         const matcher = path.node.property;
         const matcherName = matcher.name;
@@ -131,6 +143,26 @@ ${keys}.forEach(e => {
                 // Remove assertion message
                 matcherNode.arguments.pop();
             }
+        }
+    });
+
+    const addRequireOrImportOnce = addRequireOrImportOnceFactory(j, ast);
+
+    ast.find(j.CallExpression, {
+        callee: {
+            type: 'MemberExpression',
+            object: { type: 'Identifier', name: expectFunctionName },
+            property: { name: p => spyFunctions.has(p) },
+        },
+    })
+    .forEach(path => {
+        const { callee } = path.node;
+        if (standaloneMode) {
+            const mockLocalName = 'mock';
+            addRequireOrImportOnce(mockLocalName, 'jest-mock');
+            callee.object = mockLocalName;
+        } else {
+            callee.object = 'jest';
         }
     });
 

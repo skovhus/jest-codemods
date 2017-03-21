@@ -12,9 +12,9 @@ beforeEach(() => {
     console.warn = v => consoleWarnings.push(v);
 });
 
-function testChanged(msg, source, expectedOutput) {
+function testChanged(msg, source, expectedOutput, options = {}) {
     test(msg, () => {
-        const result = wrappedPlugin(source);
+        const result = wrappedPlugin(source, options);
         expect(result).toBe(expectedOutput);
         expect(consoleWarnings).toEqual([]);
     });
@@ -221,6 +221,28 @@ test(() => {
 });
 `);
 
+testChanged('maps spy calls',
+`
+import expect from 'expect';
+
+test(() => {
+  var spy1 = expect.createSpy();
+  var spy2 = expect.spyOn(video, 'play');
+  expect.spyOn(video, 'play');
+  spy1.restore();
+  spy1.reset();
+});
+`,
+`
+test(() => {
+  var spy1 = expect.createSpy();
+  var spy2 = jest.spyOn(video, 'play');
+  jest.spyOn(video, 'play');
+  spy1.restore();
+  spy1.reset();
+});
+`);
+
 testChanged('renames non standard expect import name',
 `
 import exp from 'expect';
@@ -239,6 +261,88 @@ test(() => {
 });
 `);
 
+testChanged('standaloneMode: keeps expect import',
+`
+import exp from 'expect';
+
+test(() => {
+  exp(stuff).toHaveBeenCalled();
+});
+`,
+`
+import exp from 'expect';
+
+test(() => {
+  exp(stuff).toHaveBeenCalled();
+});
+`, {
+    standaloneMode: true,
+});
+
+testChanged('standaloneMode: rewrites expect.spyOn (import)',
+`
+// @flow
+import expect from 'expect';
+
+test(() => {
+    var spy1 = expect.createSpy();
+    var spy2 = expect.spyOn(video, 'play');
+    expect.spyOn(video, 'play');
+
+    expect.restoreSpies();
+    expect.isSpy(spy1);
+
+    spy1.restore();
+    spy1.reset();
+    expect(spy1.calls.length).toEqual(3);
+});
+`,
+`
+// @flow
+import expect from 'expect';
+
+import mock from 'jest-mock';
+
+test(() => {
+    var spy1 = expect.createSpy();
+    var spy2 = mock.spyOn(video, 'play');
+    mock.spyOn(video, 'play');
+
+    expect.restoreSpies();
+    expect.isSpy(spy1);
+
+    spy1.restore();
+    spy1.reset();
+    expect(spy1.calls.length).toEqual(3);
+});
+`, {
+    standaloneMode: true,
+});
+
+testChanged('standaloneMode: rewrites expect.spyOn (require)',
+`
+// @flow
+const expect = require('expect');
+
+test(() => {
+    var spy1 = expect.createSpy();
+    var spy2 = expect.spyOn(video, 'play');
+});
+`,
+`
+// @flow
+const expect = require('expect');
+
+const mock = require('jest-mock')
+
+test(() => {
+    var spy1 = expect.createSpy();
+    var spy2 = mock.spyOn(video, 'play');
+});
+`, {
+    standaloneMode: true,
+});
+
 test('warns about chaining', () => {
     wrappedPlugin(`
         import expect from 'expect';
@@ -254,5 +358,3 @@ test('warns about chaining', () => {
         'jest-codemods warning: (test.js line 5) Chaining except matchers is currently not supported',
     ]));
 });
-
-// FIXME: https://github.com/mjackson/expect#spies

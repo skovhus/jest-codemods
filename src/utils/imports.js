@@ -1,3 +1,34 @@
+export function addRequireOrImport(j, ast, localName, pkg) {
+    const { statement } = j.template;
+
+    const requires = ast.find(j.CallExpression, {
+        callee: { name: 'require' },
+    });
+
+    let requireStatement;
+    if (requires.size()) {
+        requireStatement = statement`const ${localName} = require(${j.literal(pkg)})`;
+    } else {
+        requireStatement = j.importDeclaration(
+            [j.importDefaultSpecifier(j.identifier(localName))],
+            j.literal(pkg)
+        );
+    }
+
+    ast.find(j.Program).get('body', 0)
+    .insertAfter(requireStatement);
+}
+
+export function addRequireOrImportOnceFactory(j, ast) {
+    const pkgs = new Set([]);
+    return (localName, pkg) => {
+        if (!pkgs.has(pkg)) {
+            addRequireOrImport(j, ast, localName, pkg);
+            pkgs.add(pkg);
+        }
+    };
+}
+
 export function findRequires(j, ast, pkg) {
     return ast
         .find(j.CallExpression, {
@@ -40,6 +71,31 @@ function findParentPathMemberRequire(path) {
         return path.parentPath.value.property;
     }
     return null;
+}
+
+/**
+ * Returns localName for any CommonJS or import statements for the given package.
+ * @return string if import were found, else undefined
+ */
+export function getRequireOrImportName(j, ast, pkg) {
+    let localName = null;
+    findRequires(j, ast, pkg)
+    .forEach(p => {
+        const variableDeclarationPath = findParentVariableDeclaration(p);
+        if (variableDeclarationPath) {
+            localName = variableDeclarationPath.value.id.name;
+        }
+    });
+
+    findImports(j, ast, pkg)
+    .forEach(p => {
+        const pathSpecifier = p.value.specifiers[0];
+        if (pathSpecifier) {
+            localName = pathSpecifier.local.name;
+        }
+    });
+
+    return localName;
 }
 
 /**
