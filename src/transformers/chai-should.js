@@ -5,7 +5,7 @@ export default function(file, api) {
     const j = api.jscodeshift; // alias the jscodeshift API
     const root = j(file.source); // parse JS code into an AST
 
-    function getInfoFromNode(node) {
+    function getNodeInfo(node) {
         switch (node.type) {
             case 'Literal':
                 return node.raw;
@@ -23,7 +23,7 @@ export default function(file, api) {
                 .concat(node.property ? traceProperties(node.property, list) : []);
         }
 
-        return getInfoFromNode(node);
+        return getNodeInfo(node);
     }
 
     function update(p) {
@@ -47,7 +47,7 @@ export default function(file, api) {
 
     function updateExist(p) {
         const node = p.node;
-        const content = traceProperties(node.arguments[0]).join('.');
+        const content = [].concat(traceProperties(node.arguments[0])).join('.');
         const isNotExistExpression = node.callee.object.type === 'MemberExpression';
 
         return j(p).replaceWith(j.memberExpression(
