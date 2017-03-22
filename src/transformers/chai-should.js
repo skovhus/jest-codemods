@@ -1,24 +1,45 @@
 
-function traceProperties(node, list = []) {
-    if (node.type === 'Identifier') {
-        return node.name;
-    }
 
-    return list
-        .concat(node.object ? traceProperties(node.object, list) : [])
-        .concat(node.property ? traceProperties(node.property, list) : []);
-}
 
 export default function(file, api) {
     const j = api.jscodeshift; // alias the jscodeshift API
     const root = j(file.source); // parse JS code into an AST
 
+    function getInfoFromNode(node) {
+        switch (node.type) {
+            case 'Literal':
+                return node.raw;
+            case 'Identifier':
+                return node.name;
+            default:
+                return node;
+        }
+    }
+
+    function traceProperties(node, list = []) {
+        if (node.type === 'MemberExpression') {
+            return list
+                .concat(node.object ? traceProperties(node.object, list) : [])
+                .concat(node.property ? traceProperties(node.property, list) : []);
+        }
+
+        return getInfoFromNode(node);
+    }
+
     function update(p) {
         const list = traceProperties(p.node);
-        const content = list.slice(0, list.length - 1).join('.');
+        list.splice(list.length - 1, 1);
+
+        let parameters;
+        if (list.length === 1 && typeof list[0] === 'object') {
+            parameters = list;
+        } else {
+            parameters = [j.identifier(list.join('.'))];
+        }
+
         return j(p).replaceWith(
           j.memberExpression(
-            j.callExpression(j.identifier('expect'), [j.identifier(content)]),
+            j.callExpression(j.identifier('expect'), parameters),
             j.identifier('to')
           )
         );
