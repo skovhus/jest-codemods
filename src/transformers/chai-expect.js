@@ -59,6 +59,42 @@ export default function(file, api) {
         callee.object = expectObj;
     }
 
+    function updateToBeFalse(p) {
+        p.node.expression.property = j.callExpression(
+            j.identifier('toBeFalsy'), []
+        );
+
+        let expectObj = p.node.expression.object;
+        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
+            expectObj = expectObj.object;
+        }
+        p.node.expression.object = expectObj;
+    }
+
+    function updateAbove(p) {
+        const callExpression = p.node.expression;
+        const callee = callExpression.callee;
+        callee.property = j.identifier('toBeGreaterThan');
+
+        let expectObj = callee.object;
+        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
+            expectObj = expectObj.object;
+        }
+        callee.object = expectObj;
+    }
+
+    function updateLeast(p) {
+        const callExpression = p.node.expression;
+        const callee = callExpression.callee;
+        callee.property = j.identifier('toBeGreaterThanOrEqual');
+
+        let expectObj = callee.object;
+        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
+            expectObj = expectObj.object;
+        }
+        callee.object = expectObj;
+    }
+
     // find and update all expect(...) statements:
     root.find(j.CallExpression, {
         callee: {
@@ -80,6 +116,21 @@ export default function(file, api) {
     root.find(j.ExpressionStatement, {
         expression: { callee: { property: { name: 'closeTo' } } },
     }).forEach(updateCloseTo);
+
+    // find and update all to.be.false statements:
+    root.find(j.ExpressionStatement, {
+        expression: { property: { name: 'false' } },
+    }).forEach(updateToBeFalse);
+
+    // find and update all ablove statements:
+    root.find(j.ExpressionStatement, {
+        expression: { callee: { property: { name: 'above' } } },
+    }).forEach(updateAbove);
+
+    // find and update all ablove statements:
+    root.find(j.ExpressionStatement, {
+        expression: { callee: { property: { name: 'least' } } },
+    }).forEach(updateLeast);
 
     // print
     return root.toSource();
