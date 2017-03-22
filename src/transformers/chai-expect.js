@@ -43,6 +43,22 @@ export default function(file, api) {
         callee.object = expectObj;
     }
 
+    function updateCloseTo(p) {
+        const callExpression = p.node.expression;
+        const callee = callExpression.callee;
+        callee.property = j.identifier('toBeCloseTo');
+
+        const args = callExpression.arguments;
+        const digits = (args[1].raw.toString().split('.')[1] || '').length.toString();
+        callExpression.arguments = [args[0], digits];
+
+        let expectObj = callee.object;
+        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
+            expectObj = expectObj.object;
+        }
+        callee.object = expectObj;
+    }
+
     // find and update all expect(...) statements:
     root.find(j.CallExpression, {
         callee: {
@@ -59,6 +75,11 @@ export default function(file, api) {
     root.find(j.ExpressionStatement, {
         expression: { callee: { property: { name: 'instanceof' } } },
     }).forEach(updateInstanceOf);
+
+    // find and update all closeTo statements:
+    root.find(j.ExpressionStatement, {
+        expression: { callee: { property: { name: 'closeTo' } } },
+    }).forEach(updateCloseTo);
 
     // print
     return root.toSource();
