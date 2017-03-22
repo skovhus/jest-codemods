@@ -27,6 +27,22 @@ export default function(file, api) {
           j.memberExpression(expObject.object.object, j.identifier('not')) : expObject.object;
     }
 
+    function updateInstanceOf(p) {
+        const callExpression = p.node.expression;
+        callExpression.arguments = [j.callExpression(
+          j.memberExpression(j.identifier('expect'), j.identifier('any')),
+          callExpression.arguments)];
+
+        const callee = callExpression.callee;
+        callee.property = j.identifier('toEqual');
+        let expectObj = callee.object;
+        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
+            expectObj = expectObj.object;
+        }
+
+        callee.object = expectObj;
+    }
+
     // find and update all expect(...) statements:
     root.find(j.CallExpression, {
         callee: {
@@ -38,6 +54,11 @@ export default function(file, api) {
     root.find(j.ExpressionStatement, {
         expression: { property: { name: 'exist' } },
     }).forEach(updateExist);
+
+    // find and update all instanceof statements:
+    root.find(j.ExpressionStatement, {
+        expression: { callee: { property: { name: 'instanceof' } } },
+    }).forEach(updateInstanceOf);
 
     // print
     return root.toSource();
