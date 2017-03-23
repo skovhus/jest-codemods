@@ -19,7 +19,7 @@ export default function(file, api) {
 
     function updateExist(p) {
         p.node.expression.property = j.callExpression(
-          j.identifier('toEqual'), [j.callExpression(j.identifier('anything'), [])]
+            j.identifier('toEqual'), [j.callExpression(j.identifier('anything'), [])]
         );
 
         const expObject = p.node.expression.object;
@@ -27,20 +27,14 @@ export default function(file, api) {
           j.memberExpression(expObject.object.object, j.identifier('not')) : expObject.object;
     }
 
-    function updateInstanceOf(p) {
-        const callExpression = p.node.expression;
-        callExpression.arguments = [j.callExpression(
-          j.memberExpression(j.identifier('expect'), j.identifier('any')),
-          callExpression.arguments)];
-
-        const callee = callExpression.callee;
-        callee.property = j.identifier('toEqual');
-        let expectObj = callee.object;
-        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
-            expectObj = expectObj.object;
+    function updateNull(p) {
+        const expression = p.node.expression;
+        expression.property = j.callExpression(j.identifier('toBeNull'), []);
+        let expObject = expression.object;
+        while (expObject.type !== 'CallExpression' && (expObject.property || {}).name !== 'not') {
+            expObject = expObject.object;
         }
-
-        callee.object = expectObj;
+        expression.object = expObject;
     }
 
     function updateCloseTo(p) {
@@ -95,6 +89,42 @@ export default function(file, api) {
         callee.object = expectObj;
     }
 
+    function updateBelow(p) {
+        const callExpression = p.node.expression;
+        const callee = callExpression.callee;
+        callee.property = j.identifier('toBeLessThan');
+
+        let expectObj = callee.object;
+        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
+            expectObj = expectObj.object;
+        }
+        callee.object = expectObj;
+    }
+
+    function updateMost(p) {
+        const callExpression = p.node.expression;
+        const callee = callExpression.callee;
+        callee.property = j.identifier('toBeLessThanOrEqual');
+
+        let expectObj = callee.object;
+        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
+            expectObj = expectObj.object;
+        }
+        callee.object = expectObj;
+    }
+
+    function updateInstanceOf(p) {
+        const callExpression = p.node.expression;
+        const callee = callExpression.callee;
+        callee.property = j.identifier('toBeInstanceOf');
+
+        let expectObj = callee.object;
+        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
+            expectObj = expectObj.object;
+        }
+        callee.object = expectObj;
+    }
+
     // find and update all expect(...) statements:
     root.find(j.CallExpression, {
         callee: {
@@ -107,10 +137,10 @@ export default function(file, api) {
         expression: { property: { name: 'exist' } },
     }).forEach(updateExist);
 
-    // find and update all instanceof statements:
+    // find and update all null statements:
     root.find(j.ExpressionStatement, {
-        expression: { callee: { property: { name: 'instanceof' } } },
-    }).forEach(updateInstanceOf);
+        expression: { property: { name: 'null' } },
+    }).forEach(updateNull);
 
     // find and update all closeTo statements:
     root.find(j.ExpressionStatement, {
@@ -131,6 +161,21 @@ export default function(file, api) {
     root.find(j.ExpressionStatement, {
         expression: { callee: { property: { name: 'least' } } },
     }).forEach(updateLeast);
+
+    // find and update all below statements:
+    root.find(j.ExpressionStatement, {
+        expression: { callee: { property: { name: 'below' } } },
+    }).forEach(updateBelow);
+
+    // find and update all most statements:
+    root.find(j.ExpressionStatement, {
+        expression: { callee: { property: { name: 'most' } } },
+    }).forEach(updateMost);
+
+    // find and update all instanceof statements:
+    root.find(j.ExpressionStatement, {
+        expression: { callee: { property: { name: 'instanceof' } } },
+    }).forEach(updateInstanceOf);
 
     // print
     return root.toSource();
