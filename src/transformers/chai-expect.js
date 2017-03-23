@@ -56,6 +56,12 @@ export default function(file, api) {
         cleanExpression(expression);
     }
 
+    function updateUndefined(p) {
+        const expression = p.node.expression;
+        expression.property = j.callExpression(j.identifier('toBeUndefined'), []);
+        cleanExpression(expression);
+    }
+
     function updateTrue(p) {
         const expression = p.node.expression;
         expression.property = j.callExpression(j.identifier('toBeTruthy'), []);
@@ -131,6 +137,11 @@ export default function(file, api) {
     root.find(j.ExpressionStatement, {
         expression: { property: { name: 'null' } },
     }).forEach(updateNull);
+
+    // find and update all undefined statements:
+    root.find(j.ExpressionStatement, {
+        expression: { property: { name: 'undefined' } },
+    }).forEach(updateUndefined);
 
     // find and update all true statements:
     root.find(j.ExpressionStatement, {
