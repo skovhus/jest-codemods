@@ -11,6 +11,33 @@ export default function(file, api) {
     const j = api.jscodeshift; // alias the jscodeshift API
     const root = j(file.source); // parse JS code into an AST
 
+    function getCallExpression(expression) {
+        let callExpression = expression.object;
+        while (callExpression.type !== 'CallExpression') {
+            callExpression = callExpression.object;
+        }
+        return callExpression;
+    }
+
+    function isNotExpression(expression) {
+        let containingNot = false;
+        let object = expression.object;
+        while (object.type === 'MemberExpression' && !containingNot) {
+            object = object.object;
+            containingNot = (object.property || {}).name === 'not';
+        }
+        return containingNot;
+    }
+
+    function cleanExpression(expression) {
+        const callExpression = getCallExpression(expression);
+        if (isNotExpression(expression)) {
+            expression.object = j.memberExpression(callExpression, j.identifier('not'));
+        } else {
+            expression.object = callExpression;
+        }
+    }
+
     function update(p) {
         console.log(p.node.callee.property.name);
         p.node.callee.property = j.identifier(mappings[p.node.callee.property.name]);
@@ -18,23 +45,21 @@ export default function(file, api) {
     }
 
     function updateExist(p) {
-        p.node.expression.property = j.callExpression(
-            j.identifier('toEqual'), [j.callExpression(j.identifier('anything'), [])]
-        );
-
-        const expObject = p.node.expression.object;
-        p.node.expression.object = expObject.property.name === 'not' ?
-          j.memberExpression(expObject.object.object, j.identifier('not')) : expObject.object;
+        const expression = p.node.expression;
+        p.node.expression.property = j.callExpression(j.identifier('toEqual'), [j.callExpression(j.identifier('anything'), [])]);
+        cleanExpression(expression);
     }
 
     function updateNull(p) {
         const expression = p.node.expression;
         expression.property = j.callExpression(j.identifier('toBeNull'), []);
-        let expObject = expression.object;
-        while (expObject.type !== 'CallExpression' && (expObject.property || {}).name !== 'not') {
-            expObject = expObject.object;
-        }
-        expression.object = expObject;
+        cleanExpression(expression);
+    }
+
+    function updateTrue(p) {
+        const expression = p.node.expression;
+        expression.property = j.callExpression(j.identifier('toBeTruthy'), []);
+        cleanExpression(expression);
     }
 
     function updateCloseTo(p) {
@@ -46,83 +71,48 @@ export default function(file, api) {
         const digits = (args[1].raw.toString().split('.')[1] || '').length.toString();
         callExpression.arguments = [args[0], digits];
 
-        let expectObj = callee.object;
-        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
-            expectObj = expectObj.object;
-        }
-        callee.object = expectObj;
+        cleanExpression(callee);
     }
 
     function updateToBeFalse(p) {
-        p.node.expression.property = j.callExpression(
-            j.identifier('toBeFalsy'), []
-        );
-
-        let expectObj = p.node.expression.object;
-        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
-            expectObj = expectObj.object;
-        }
-        p.node.expression.object = expectObj;
+        const expression = p.node.expression;
+        expression.property = j.callExpression(j.identifier('toBeFalsy'), []);
+        cleanExpression(expression);
     }
 
     function updateAbove(p) {
         const callExpression = p.node.expression;
         const callee = callExpression.callee;
         callee.property = j.identifier('toBeGreaterThan');
-
-        let expectObj = callee.object;
-        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
-            expectObj = expectObj.object;
-        }
-        callee.object = expectObj;
+        cleanExpression(callee);
     }
 
     function updateLeast(p) {
         const callExpression = p.node.expression;
         const callee = callExpression.callee;
         callee.property = j.identifier('toBeGreaterThanOrEqual');
-
-        let expectObj = callee.object;
-        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
-            expectObj = expectObj.object;
-        }
-        callee.object = expectObj;
+        cleanExpression(callee);
     }
 
     function updateBelow(p) {
         const callExpression = p.node.expression;
         const callee = callExpression.callee;
         callee.property = j.identifier('toBeLessThan');
-
-        let expectObj = callee.object;
-        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
-            expectObj = expectObj.object;
-        }
-        callee.object = expectObj;
+        cleanExpression(callee);
     }
 
     function updateMost(p) {
         const callExpression = p.node.expression;
         const callee = callExpression.callee;
         callee.property = j.identifier('toBeLessThanOrEqual');
-
-        let expectObj = callee.object;
-        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
-            expectObj = expectObj.object;
-        }
-        callee.object = expectObj;
+        cleanExpression(callee);
     }
 
     function updateInstanceOf(p) {
         const callExpression = p.node.expression;
         const callee = callExpression.callee;
         callee.property = j.identifier('toBeInstanceOf');
-
-        let expectObj = callee.object;
-        while (expectObj.type !== 'CallExpression' && (expectObj.property || {}).name !== 'not') {
-            expectObj = expectObj.object;
-        }
-        callee.object = expectObj;
+        cleanExpression(callee);
     }
 
     // find and update all expect(...) statements:
@@ -141,6 +131,11 @@ export default function(file, api) {
     root.find(j.ExpressionStatement, {
         expression: { property: { name: 'null' } },
     }).forEach(updateNull);
+
+    // find and update all true statements:
+    root.find(j.ExpressionStatement, {
+        expression: { property: { name: 'true' } },
+    }).forEach(updateTrue);
 
     // find and update all closeTo statements:
     root.find(j.ExpressionStatement, {
