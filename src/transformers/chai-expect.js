@@ -1,15 +1,90 @@
 
-const mappings = {
-    equals: 'toBe',
-    equal: 'toBe',
-    eql: 'toEqual',
-    exist: 'anything',
-    // TODO ...
-};
+const mappings = [
+    {
+        // exist to toEqual(expect.anything())
+        searchOptions: { expression: { property: { name: 'exist' } } },
+        identifier: 'toEqual',
+        updateArgs: (_, j) => [j.memberExpression(j.identifier('expect'), j.callExpression(j.identifier('anything'), []))],
+    },
+    {
+        // null tp toBeNull()
+        searchOptions: { expression: { property: { name: 'null' } } },
+        identifier: 'toBeNull',
+    },
+    {
+        // undefined to toBeUndefined()
+        searchOptions: { expression: { property: { name: 'undefined' } } },
+        identifier: 'toBeUndefined',
+    },
+    {
+        // true to toBeTruthy()
+        searchOptions: { expression: { property: { name: 'true' } } },
+        identifier: 'toBeTruthy',
+    },
+    {
+        // false to toBeFalsy()
+        searchOptions: { expression: { property: { name: 'false' } } },
+        identifier: 'toBeFalsy',
+    },
+    {
+        // eql to toEqual
+        searchOptions: { expression: { callee: { property: { name: 'eql' } } } },
+        identifier: 'toEqual',
+        updateArgs: (expression, _) => expression.arguments,
+    },
+    {
+        // equals,equal to toBe
+        searchOptions: { expression: { callee: { property: n => /equal/.test(n.name) } } },
+        identifier: 'toBe',
+        updateArgs: (expression, _) => expression.arguments,
+    },
+    {
+        // closeTo to toBeCloseTo()
+        searchOptions: { expression: { callee: { property: { name: 'closeTo' } } } },
+        identifier: 'toBeCloseTo',
+        updateArgs: (expression, j) => {
+            const args = expression.arguments;
+            const digits = (args[1].raw.toString().split('.')[1] || '').length.toString();
+            return [args[0], digits];
+        },
+    },
+    {
+        // above to toBeGreaterThan
+        searchOptions: { expression: { callee: { property: { name: 'above' } } } },
+        identifier: 'toBeGreaterThan',
+        updateArgs: (expression, j) => expression.arguments,
+    },
+    {
+        // least to toBeGreaterThanOrEqual
+        searchOptions: { expression: { callee: { property: { name: 'least' } } } },
+        identifier: 'toBeGreaterThanOrEqual',
+        updateArgs: (expression, _) => expression.arguments,
+    },
+    {
+        // below to toBeLessThan
+        searchOptions: { expression: { callee: { property: { name: 'below' } } } },
+        identifier: 'toBeLessThan',
+        updateArgs: (expression, _) => expression.arguments,
+    },
+    {
+        // most to toBeLessThanOrEqual
+        searchOptions: { expression: { callee: { property: { name: 'most' } } } },
+        identifier: 'toBeLessThanOrEqual',
+        updateArgs: (expression, _) => expression.arguments,
+    },
+    {
+        // instanceof to toBeInstanceOf
+        searchOptions: { expression: { callee: { property: { name: 'instanceof' } } } },
+        identifier: 'toBeInstanceOf',
+        updateArgs: (expression, _) => expression.arguments,
+    },
+];
 
 export default function(file, api) {
     const j = api.jscodeshift; // alias the jscodeshift API
     const root = j(file.source); // parse JS code into an AST
+
+    /** utilities */
 
     function getCallExpression(expression) {
         let callExpression = expression.object;
@@ -38,150 +113,32 @@ export default function(file, api) {
         }
     }
 
-    function update(p) {
-        console.log(p.node.callee.property.name);
-        p.node.callee.property = j.identifier(mappings[p.node.callee.property.name]);
-        p.node.callee.object = p.node.callee.object.object;
+    /** find-and-update related */
+
+    function update(options) {
+        return p => {
+            const expression = p.node.expression;
+            const args = options.updateArgs ? options.updateArgs(expression, j) : [];
+            if (expression.type === 'CallExpression') {
+                expression.callee.property = j.identifier(options.identifier);
+                expression.arguments = args;
+                cleanExpression(expression.callee);
+            } else {
+                expression.property = j.callExpression(j.identifier(options.identifier), args);
+                cleanExpression(expression);
+            }
+        };
     }
 
-    function updateExist(p) {
-        const expression = p.node.expression;
-        p.node.expression.property = j.callExpression(j.identifier('toEqual'), [j.callExpression(j.identifier('anything'), [])]);
-        cleanExpression(expression);
+    function findAndUpdate(source, options) {
+        source.find(j.ExpressionStatement, options.searchOptions).forEach(update(options));
     }
 
-    function updateNull(p) {
-        const expression = p.node.expression;
-        expression.property = j.callExpression(j.identifier('toBeNull'), []);
-        cleanExpression(expression);
+    /** find the predefied statements and update */
+
+    for (const mapping of mappings) {
+        findAndUpdate(root, mapping);
     }
-
-    function updateUndefined(p) {
-        const expression = p.node.expression;
-        expression.property = j.callExpression(j.identifier('toBeUndefined'), []);
-        cleanExpression(expression);
-    }
-
-    function updateTrue(p) {
-        const expression = p.node.expression;
-        expression.property = j.callExpression(j.identifier('toBeTruthy'), []);
-        cleanExpression(expression);
-    }
-
-    function updateCloseTo(p) {
-        const callExpression = p.node.expression;
-        const callee = callExpression.callee;
-        callee.property = j.identifier('toBeCloseTo');
-
-        const args = callExpression.arguments;
-        const digits = (args[1].raw.toString().split('.')[1] || '').length.toString();
-        callExpression.arguments = [args[0], digits];
-
-        cleanExpression(callee);
-    }
-
-    function updateToBeFalse(p) {
-        const expression = p.node.expression;
-        expression.property = j.callExpression(j.identifier('toBeFalsy'), []);
-        cleanExpression(expression);
-    }
-
-    function updateAbove(p) {
-        const callExpression = p.node.expression;
-        const callee = callExpression.callee;
-        callee.property = j.identifier('toBeGreaterThan');
-        cleanExpression(callee);
-    }
-
-    function updateLeast(p) {
-        const callExpression = p.node.expression;
-        const callee = callExpression.callee;
-        callee.property = j.identifier('toBeGreaterThanOrEqual');
-        cleanExpression(callee);
-    }
-
-    function updateBelow(p) {
-        const callExpression = p.node.expression;
-        const callee = callExpression.callee;
-        callee.property = j.identifier('toBeLessThan');
-        cleanExpression(callee);
-    }
-
-    function updateMost(p) {
-        const callExpression = p.node.expression;
-        const callee = callExpression.callee;
-        callee.property = j.identifier('toBeLessThanOrEqual');
-        cleanExpression(callee);
-    }
-
-    function updateInstanceOf(p) {
-        const callExpression = p.node.expression;
-        const callee = callExpression.callee;
-        callee.property = j.identifier('toBeInstanceOf');
-        cleanExpression(callee);
-    }
-
-    // find and update all expect(...) statements:
-    root.find(j.CallExpression, {
-        callee: {
-            object: { object: { callee: { name: 'expect' } } },
-        },
-    }).forEach(update);
-
-    // find and update all exist statements:
-    root.find(j.ExpressionStatement, {
-        expression: { property: { name: 'exist' } },
-    }).forEach(updateExist);
-
-    // find and update all null statements:
-    root.find(j.ExpressionStatement, {
-        expression: { property: { name: 'null' } },
-    }).forEach(updateNull);
-
-    // find and update all undefined statements:
-    root.find(j.ExpressionStatement, {
-        expression: { property: { name: 'undefined' } },
-    }).forEach(updateUndefined);
-
-    // find and update all true statements:
-    root.find(j.ExpressionStatement, {
-        expression: { property: { name: 'true' } },
-    }).forEach(updateTrue);
-
-    // find and update all closeTo statements:
-    root.find(j.ExpressionStatement, {
-        expression: { callee: { property: { name: 'closeTo' } } },
-    }).forEach(updateCloseTo);
-
-    // find and update all to.be.false statements:
-    root.find(j.ExpressionStatement, {
-        expression: { property: { name: 'false' } },
-    }).forEach(updateToBeFalse);
-
-    // find and update all ablove statements:
-    root.find(j.ExpressionStatement, {
-        expression: { callee: { property: { name: 'above' } } },
-    }).forEach(updateAbove);
-
-    // find and update all ablove statements:
-    root.find(j.ExpressionStatement, {
-        expression: { callee: { property: { name: 'least' } } },
-    }).forEach(updateLeast);
-
-    // find and update all below statements:
-    root.find(j.ExpressionStatement, {
-        expression: { callee: { property: { name: 'below' } } },
-    }).forEach(updateBelow);
-
-    // find and update all most statements:
-    root.find(j.ExpressionStatement, {
-        expression: { callee: { property: { name: 'most' } } },
-    }).forEach(updateMost);
-
-    // find and update all instanceof statements:
-    root.find(j.ExpressionStatement, {
-        expression: { callee: { property: { name: 'instanceof' } } },
-    }).forEach(updateInstanceOf);
 
     // print
     return root.toSource();
