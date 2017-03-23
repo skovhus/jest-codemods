@@ -30,13 +30,11 @@ const mappings = [
         // eql to toEqual
         searchOptions: { expression: { callee: { property: { name: 'eql' } } } },
         identifier: 'toEqual',
-        updateArgs: (expression, _) => expression.arguments,
     },
     {
         // equals,equal to toBe
         searchOptions: { expression: { callee: { property: n => /equal/.test(n.name) } } },
         identifier: 'toBe',
-        updateArgs: (expression, _) => expression.arguments,
     },
     {
         // closeTo to toBeCloseTo()
@@ -58,37 +56,36 @@ const mappings = [
         // least to toBeGreaterThanOrEqual
         searchOptions: { expression: { callee: { property: { name: 'least' } } } },
         identifier: 'toBeGreaterThanOrEqual',
-        updateArgs: (expression, _) => expression.arguments,
     },
     {
         // below to toBeLessThan
         searchOptions: { expression: { callee: { property: { name: 'below' } } } },
         identifier: 'toBeLessThan',
-        updateArgs: (expression, _) => expression.arguments,
     },
     {
         // most to toBeLessThanOrEqual
         searchOptions: { expression: { callee: { property: { name: 'most' } } } },
         identifier: 'toBeLessThanOrEqual',
-        updateArgs: (expression, _) => expression.arguments,
     },
     {
         // instanceof to toBeInstanceOf
         searchOptions: { expression: { callee: { property: { name: 'instanceof' } } } },
         identifier: 'toBeInstanceOf',
-        updateArgs: (expression, _) => expression.arguments,
     },
     {
         // lengthOf to toHaveLength
         searchOptions: { expression: { callee: { property: { name: 'lengthOf' } } } },
         identifier: 'toHaveLength',
-        updateArgs: (expression, _) => expression.arguments,
     },
     {
         // match to toMatch
         searchOptions: { expression: { callee: { property: { name: 'match' } } } },
         identifier: 'toMatch',
-        updateArgs: (expression, _) => expression.arguments,
+    },
+    {
+        // property to toHaveProperty
+        searchOptions: { expression: { callee: { property: { name: 'property' } } } },
+        identifier: 'toHaveProperty',
     },
 ];
 
@@ -130,13 +127,13 @@ export default function(file, api) {
     function update(options) {
         return p => {
             const expression = p.node.expression;
-            const args = options.updateArgs ? options.updateArgs(expression, j) : [];
+            const args = options.updateArgs ? options.updateArgs(expression, j) : null;
             if (expression.type === 'CallExpression') {
                 expression.callee.property = j.identifier(options.identifier);
-                expression.arguments = args;
+                expression.arguments = args || expression.arguments;
                 cleanExpression(expression.callee);
             } else {
-                expression.property = j.callExpression(j.identifier(options.identifier), args);
+                expression.property = j.callExpression(j.identifier(options.identifier), args || []);
                 cleanExpression(expression);
             }
         };
