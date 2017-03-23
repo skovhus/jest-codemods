@@ -20,15 +20,6 @@ function testChanged(msg, source, expectedOutput) {
     });
 }
 
-testChanged('first test @dev',
-`
-test.should.eql('123');
-`,
-`
-expect(test).to.eql('123');
-`);
-
-
 const mappings = [
     ['foo.should.not.equal(bar);', 'expect(foo).to.not.equal(bar);'],
     ['goodFn.should.not.throw(Error);', 'expect(goodFn).to.not.throw(Error);'],
