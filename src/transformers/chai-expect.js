@@ -78,6 +78,18 @@ const mappings = [
         identifier: 'toBeInstanceOf',
         updateArgs: (expression, _) => expression.arguments,
     },
+    {
+        // lengthOf to toHaveLength
+        searchOptions: { expression: { callee: { property: { name: 'lengthOf' } } } },
+        identifier: 'toHaveLength',
+        updateArgs: (expression, _) => expression.arguments,
+    },
+    {
+        // match to toMatch
+        searchOptions: { expression: { callee: { property: { name: 'match' } } } },
+        identifier: 'toMatch',
+        updateArgs: (expression, _) => expression.arguments,
+    },
 ];
 
 export default function(file, api) {
