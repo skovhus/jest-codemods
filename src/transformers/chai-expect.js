@@ -98,8 +98,8 @@ export default function(file, api) {
         let containingNot = false;
         let object = expression.object;
         while (object.type === 'MemberExpression' && !containingNot) {
-            object = object.object;
             containingNot = (object.property || {}).name === 'not';
+            object = object.object;
         }
         return containingNot;
     }
