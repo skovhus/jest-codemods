@@ -54,6 +54,4 @@ const mappingTest = mappings.reduce((test, [assert, expect]) => ({
     output: '',
 });
 
-console.log(mappingTest.input);
-
-testChanged('mappings @dev', mappingTest.input, mappingTest.output);
+testChanged('mappings', mappingTest.input, mappingTest.output);

@@ -39,6 +39,9 @@ const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
 const TRANSFORMER_TAPE = 'tape';
 const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_MOCHA = 'mocha';
+const TRANSFORMER_CHAI_SHOULD = 'chai-should';
+const TRANSFORMER_CHAI_EXPECT = 'chai-expect';
+const chaiShouldExpectTransormers = [TRANSFORMER_CHAI_SHOULD, TRANSFORMER_CHAI_EXPECT];
 const allTransformers = [TRANSFORMER_TAPE, TRANSFORMER_AVA, TRANSFORMER_MOCHA];
 
 function supportFailure(supportedItems) {
@@ -84,6 +87,9 @@ if (cli.input.length) {
             name: 'Assert Syntax',
             value: TRANSFORMER_CHAI_ASSERT,
         }, {
+            name: 'Should/Expect Syntax',
+            value: 'chai-should-expect',
+        }, {
             name: 'Other',
             value: 'other',
         }, {
@@ -103,14 +109,21 @@ if (cli.input.length) {
             return supportFailure('AVA, Tape, and Mocha');
         }
 
-        const transformers = transformer === 'all' ? allTransformers : [transformer];
+        let transformers = transformer === 'all' ? allTransformers : [transformer];
+        console.log(transformers);
+        console.log(`chai: ${chai}`);
 
         if (chai) {
-            if (chai !== TRANSFORMER_CHAI_ASSERT) {
-                return supportFailure('Chai Assert syntax');
+            if (chai === 'chai-should-expect') {
+                transformers = transformers.concat(chaiShouldExpectTransormers);
+            } else if (chai === TRANSFORMER_CHAI_ASSERT) {
+                transformers.push(chai);
+            } else {
+                return supportFailure('Chai Assert/Should/Expect syntax');
             }
-            transformers.push(chai);
         }
+
+        console.log(transformers);
 
         if (!files.length) {
             return undefined;

@@ -1,6 +1,5 @@
 
 
-
 export default function(file, api) {
     const j = api.jscodeshift; // alias the jscodeshift API
     const root = j(file.source); // parse JS code into an AST
