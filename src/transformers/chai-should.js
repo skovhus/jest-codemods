@@ -26,22 +26,10 @@ export default function(file, api) {
     }
 
     function update(p) {
-        const list = traceProperties(p.node);
-        list.splice(list.length - 1, 1);
-
-        let parameters;
-        if (list.length === 1 && typeof list[0] === 'object') {
-            parameters = list;
-        } else {
-            parameters = [j.identifier(list.join('.'))];
-        }
-
-        return j(p).replaceWith(
-          j.memberExpression(
-            j.callExpression(j.identifier('expect'), parameters),
+        j(p).replaceWith(j.memberExpression(
+            j.callExpression(j.identifier('expect'), [p.node.object]),
             j.identifier('to')
-          )
-        );
+        ));
     }
 
     function updateExist(p) {

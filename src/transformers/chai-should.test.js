@@ -40,6 +40,7 @@ const mappings = [
     ['([ 1, 2, 3 ]).should.have.length.above(2);', 'expect([ 1, 2, 3 ]).to.have.length.above(2);'],
     ['(10).should.be.at.least(10);', 'expect(10).to.be.at.least(10);'],
     ['(\'foo\').should.have.length.within(2,4);', 'expect(\'foo\').to.have.length.within(2,4);'],
+    ['friends[1].deletedBy.should.eql(memberId);', 'expect(friends[1].deletedBy).to.eql(memberId);'],
 ];
 
 const mappingTest = mappings.reduce((test, [assert, expect]) => ({
@@ -54,4 +55,4 @@ const mappingTest = mappings.reduce((test, [assert, expect]) => ({
     output: '',
 });
 
-testChanged('mappings', mappingTest.input, mappingTest.output);
+testChanged('mappings @dev', mappingTest.input, mappingTest.output);
