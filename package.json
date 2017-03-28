@@ -18,7 +18,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "babel src -d dist --ignore *.test.js",
+    "build": "babel src -d dist --ignore *.test.js,__testfixtures__",
     "check": "npm run lint && npm run test:cov",
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
@@ -44,6 +44,7 @@
     "codemods"
   ],
   "dependencies": {
+    "babel-eslint": "^7.2.1",
     "chalk": "~1.1.3",
     "execa": "~0.4.0",
     "globby": "~6.0.0",

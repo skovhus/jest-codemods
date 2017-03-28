@@ -1,4 +1,4 @@
 node_modules
 bin
 dist
-src/transformers/__testfixtures__
+__testfixtures__/
