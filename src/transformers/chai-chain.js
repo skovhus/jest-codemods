@@ -1,13 +1,14 @@
-const path = require('path');
-const parser = require('babel-eslint');
+import path from 'path';
+import parser from 'babel-eslint';
 
-const {
+import {
     createCallUtil,
     chainContainsUtil,
     getNodeBeforeMemberExpressionUtil,
     updateExpectUtil,
     createCallChainUtil,
-} = require('../utils/chai-chain-utils');
+} from '../utils/chai-chain-utils';
+import detectQuoteStyle from '../utils/quote-style';
 
 // not implemented respondTo
 // modifications, oneOf, change, increase, decrease - statement modification
@@ -340,7 +341,13 @@ module.exports = function transformer(file, api) {
     mutations += updateCallExpressions();
     mutations += updateMemberExpressions();
 
-    return mutations ? root.toSource({ parser, quote: 'single' }) : null;
+    if (!mutations) {
+        return null;
+    }
+
+    const quote = detectQuoteStyle(j, root) || 'single';
+    return root.toSource({ parser, quote });
 };
 
+// FIXME: how will this for for flow files?
 module.exports.parser = 'babylon';
