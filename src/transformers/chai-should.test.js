@@ -7,10 +7,10 @@ console.warn = () => {};
 const transformersPath = path.join(__dirname, 'transformers');
 
 const createTest = name => {
-    defineTest(transformersPath, 'chai-chain', null, path.join('chai-chain', name));
+    defineTest(transformersPath, 'chai-should', null, path.join('chai-should', name));
 };
 
-defineTest(transformersPath, 'chai-chain', null, 'chai-chain');
+defineTest(transformersPath, 'chai-should', null, 'chai-should');
 
 createTest('a-an');
 createTest('above');
