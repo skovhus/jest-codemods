@@ -19,6 +19,19 @@ const jestMethodsWithDescriptionsAllowed = new Set(['it', 'describe']);
 
 const methodModifiers = ['only', 'skip'];
 
+function hasBinding(name, scope) {
+    if (!scope) {
+        return false;
+    }
+
+    const bindings = Object.keys(scope.getBindings()) || [];
+    if (bindings.indexOf(name) >= 0) {
+        return true;
+    }
+
+    return scope.isGlobal ? false : hasBinding(name, scope.parent);
+}
+
 export default function mochaToJest(file, api) {
     const j = api.jscodeshift;
     const ast = j(file.source);
@@ -29,14 +42,15 @@ export default function mochaToJest(file, api) {
         ast.find(j.CallExpression, {
             type: 'CallExpression',
             callee: { type: 'Identifier', name: mochaMethod },
-        }).replaceWith(path => {
+        }).filter(({ scope }) =>
+            !hasBinding(mochaMethod, scope)
+        ).replaceWith(path => {
             let args = path.value.arguments;
             if (!jestMethodsWithDescriptionsAllowed.has(jestMethod)) {
                 args = args.filter(a => a.type !== 'Literal');
             }
             return j.callExpression(j.identifier(jestMethod), args);
         });
-
 
         methodModifiers.forEach(modifier => {
             ast.find(j.CallExpression, {

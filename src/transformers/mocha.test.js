@@ -124,3 +124,22 @@ describe.skip('skip suite', () => {
 });
 `
 );
+
+testChanged('preserves call expressions that are defined in scope',
+`
+const setup = () => {};
+context('test suite', () => {
+    it('test', () => {
+        const foo = setup();
+    });
+});
+`,
+`
+const setup = () => {};
+describe('test suite', () => {
+    it('test', () => {
+        const foo = setup();
+    });
+});
+`
+);
