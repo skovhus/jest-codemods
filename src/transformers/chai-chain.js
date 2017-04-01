@@ -98,9 +98,9 @@ module.exports = function transformer(fileInfo, api) {
     function containing(node) {
         switch (node.type) {
             case j.ArrayExpression.name:
-                return createCallChain(['jasmine', 'arrayContaining'], [node]);
+                return createCallChain(['expect', 'arrayContaining'], [node]);
             case j.ObjectExpression.name:
-                return createCallChain(['jasmine', 'objectContaining'], [node]);
+                return createCallChain(['expect', 'objectContaining'], [node]);
             default:
                 return node;
         }
@@ -239,7 +239,7 @@ module.exports = function transformer(fileInfo, api) {
                 }
                 return createCall(
                       'toEqual',
-                      [createCallChain(['jasmine', 'arrayContaining'], parseArgs(args))],
+                      [createCallChain(['expect', 'arrayContaining'], parseArgs(args))],
                       updateExpect(value, node => {
                           if (node.type === j.ObjectExpression.name) {
                               return createCallChain(['Object', 'keys'], [node]);
@@ -264,8 +264,8 @@ module.exports = function transformer(fileInfo, api) {
                   );
             case 'instanceof':
                 return createCall(
-                      'toEqual',
-                      [createCallChain(['jasmine', 'any'], [args[0]])],
+                      'toBeInstanceOf',
+                      args,
                       rest,
                       containsNot
                   );
