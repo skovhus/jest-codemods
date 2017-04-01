@@ -1,4 +1,3 @@
-import path from 'path';
 import parser from 'babel-eslint';
 
 import {
@@ -8,6 +7,7 @@ import {
     updateExpectUtil,
     createCallChainUtil,
 } from '../utils/chai-chain-utils';
+import logger from '../utils/logger';
 import detectQuoteStyle from '../utils/quote-style';
 
 // not implemented respondTo
@@ -52,9 +52,9 @@ const members = [
     'defined',
 ];
 
-module.exports = function transformer(file, api) {
+module.exports = function transformer(fileInfo, api) {
     const j = api.jscodeshift;
-    const root = j(file.source);
+    const root = j(fileInfo.source);
     let mutations = 0;
 
     const createCall = createCallUtil(j);
@@ -68,6 +68,8 @@ module.exports = function transformer(file, api) {
         (node.type === j.MemberExpression.name && isExpectCall(node.object)) ||
         (node.type === j.CallExpression.name && isExpectCall(node.callee))
     );
+
+    const logWarning = (msg, node) => logger(fileInfo, msg, node);
 
     const typeOf = (value, args, containsNot) => {
         switch (args[0].value) {
@@ -232,8 +234,8 @@ module.exports = function transformer(file, api) {
                 return createCall('toEqual', args.map(containing), rest, containsNot);
             case 'keys':
                 if (containsAny) {
-                    const relativePath = path.relative(process.cwd(), file.path);
-                    console.warn(`any.keys is an unsupported keyword, please check ${relativePath}`);
+                    logWarning('any.keys is an unsupported keyword', p);
+                    // FIXME: why not bail?
                 }
                 return createCall(
                       'toEqual',
@@ -277,8 +279,8 @@ module.exports = function transformer(file, api) {
                   );
             case 'property':
                 if (containsDeep) {
-                    const relativePath = path.relative(process.cwd(), file.path);
-                    console.warn(`deep.property is an unsupported keyword, please check ${relativePath}`);
+                    logWarning('deep.property is an unsupported keyword', p);
+                    // FIXME: why not bail?
                 }
                 return args.length === 1 ?
                       createCall(

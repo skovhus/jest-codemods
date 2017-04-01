@@ -1,5 +1,8 @@
-const path = require('path');
-const defineTest = require('jscodeshift/dist/testUtils').defineTest;
+/* eslint-env jest */
+import path from 'path';
+import { defineTest } from 'jscodeshift/dist/testUtils';
+
+console.warn = () => {};
 
 const transformersPath = path.join(__dirname, 'transformers');
 
