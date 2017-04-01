@@ -78,6 +78,7 @@ $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folde
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/ava.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-assert.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-should.js test-folder
 ```
 
 
@@ -112,7 +113,9 @@ Warnings for unsupported Tape features:
 
 Thanks to [avajs/ava-codemods](https://github.com/avajs/ava-codemods) for inspiration and CLI setup.
 
-The Mocha and Chai support began its life at [paularmstrong/mocha-to-jest-codemod](https://github.com/paularmstrong/mocha-to-jest-codemod)
+The Mocha and Chai assert support began its life at [paularmstrong/mocha-to-jest-codemod](https://github.com/paularmstrong/mocha-to-jest-codemod).
+
+Chai Should/Expect came from [AlexJuarez/chai-to-jasmine](https://github.com/AlexJuarez/chai-to-jasmine).
 
 
 ## Contributing
