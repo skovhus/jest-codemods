@@ -1,6 +1,14 @@
 const path = require('path');
 const parser = require('babel-eslint');
-const util = require('./util');
+
+const {
+  createCallUtil,
+  chainContainsUtil,
+  getNodeBeforeMemberExpressionUtil,
+  updateExpectUtil,
+  createCallChainUtil,
+} = require('../utils/chai-chain-utils');
+
 // not implemented respondTo
 // modifications, oneOf, change, increase, decrease - statement modification
 
@@ -15,11 +23,11 @@ module.exports = function transformer(file, api) {
     const root = j(file.source);
     let mutations = 0;
 
-    const createCall = util.createCall(j);
-    const chainContains = util.chainContains(j);
-    const getAllBefore = util.getNodeBeforeMemberExpression(j);
-    const updateExpect = util.updateExpect(j);
-    const createCallChain = util.createCallChain(j);
+    const createCall = createCallUtil(j);
+    const chainContains = chainContainsUtil(j);
+    const getAllBefore = getNodeBeforeMemberExpressionUtil(j);
+    const updateExpect = updateExpectUtil(j);
+    const createCallChain = createCallChainUtil(j);
 
     const isExpectCall = node => (node.name === 'expect' ||
   (node.type === j.MemberExpression.name &&
