@@ -16,8 +16,3 @@ describe('Instantiating TextField', () => {
 
     thing1.equal(thing2);
 });
-
-// simple referencing
-const obj = { foo: 'bar' };
-expect(obj).to.have.property('foo');
-expect(obj).to.have.property('foo', 'bar');

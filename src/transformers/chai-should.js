@@ -12,6 +12,7 @@ import detectQuoteStyle from '../utils/quote-style';
 
 // not implemented respondTo
 // modifications, oneOf, change, increase, decrease - statement modification
+// closeTo
 
 const fns = [
     'keys',
@@ -272,33 +273,18 @@ module.exports = function transformer(fileInfo, api) {
             case 'length':
             case 'lengthof':
                 return createCall(
-                      'toBe',
+                      'toHaveLength',
                       args,
-                      updateExpect(value, node => j.memberExpression(node, j.identifier('length'))),
+                      rest,
                       containsNot
                   );
             case 'property':
-                if (containsDeep) {
-                    logWarning('deep.property is an unsupported keyword', p);
-                    // FIXME: why not bail?
-                }
-                return args.length === 1 ?
-                      createCall(
-                          'toBeTruthy',
-                          [],
-                          updateExpect(value, node => j.callExpression(
-                              j.memberExpression(node, j.identifier('hasOwnProperty')),
-                              [args[0]]
-                          ))
-                      )
-                      :
-                      createCall(
-                          'toEqual',
-                          [args[1]],
-                          updateExpect(value, node => j.memberExpression(
-                              node, args[0], true
-                          ))
-                      );
+                return createCall(
+                    'toHaveProperty',
+                    args,
+                    rest,
+                    containsNot,
+                );
             case 'ownproperty':
                 return createCall(
                       'toBeTruthy',

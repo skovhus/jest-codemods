@@ -1,2 +1,2 @@
-expect([1, 2, 3].length).toBe(3);
-expect('foobar'.length).toBe(6);
+expect([1, 2, 3]).toHaveLength(3);
+expect('foobar').toHaveLength(6);
