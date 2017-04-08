@@ -10,9 +10,14 @@ import {
 import logger from '../utils/logger';
 import detectQuoteStyle from '../utils/quote-style';
 
-// not implemented respondTo
-// modifications, oneOf, change, increase, decrease - statement modification
-// closeTo
+// FIXME: Methods not implemented:
+// - respondTo
+// - modifications
+// - oneOf
+// - change
+// - increase
+// - decrease
+// - closeTo
 
 const fns = [
     'keys',
