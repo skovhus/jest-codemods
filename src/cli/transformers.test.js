@@ -8,7 +8,9 @@ jest.setMock('execa', {
 const fs = require('fs');
 const path = require('path');
 const {
-    executeTransformations, jscodeshiftExecutable, transformerDirectory,
+    executeTransformations,
+    jscodeshiftExecutable,
+    transformerDirectory,
 } = require('./transformers');
 
 it('finds transformer directory', () => {

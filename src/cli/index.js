@@ -43,7 +43,9 @@ const allTransformers = [TRANSFORMER_TAPE, TRANSFORMER_AVA, TRANSFORMER_MOCHA];
 
 function supportFailure(supportedItems) {
     console.log(`\nCurrently, jest-codemods only has support for ${supportedItems}.`);
-    console.log('Feel free to create an issue on https://github.com/skovhus/jest-codemods to contribute!\n');
+    console.log(
+        'Feel free to create an issue on https://github.com/skovhus/jest-codemods to contribute!\n'
+    );
 }
 
 if (cli.input.length) {
@@ -52,80 +54,100 @@ if (cli.input.length) {
     if (!cli.flags.dry) {
         checkGitStatus(cli.flags.force);
     }
-    executeTransformations(cli.input, cli.flags, [...allTransformers, TRANSFORMER_CHAI_ASSERT]);
+    executeTransformations(cli.input, cli.flags, [
+        ...allTransformers,
+        TRANSFORMER_CHAI_ASSERT,
+    ]);
 } else {
     // Else show the fancy inquirer prompt.
-    inquirer.prompt([{
-        type: 'list',
-        name: 'transformer',
-        message: 'Which test library would you like to migrate from?',
-        choices: [{
-            name: 'Tape',
-            value: TRANSFORMER_TAPE,
-        }, {
-            name: 'AVA',
-            value: TRANSFORMER_AVA,
-        }, {
-            name: 'Mocha',
-            value: TRANSFORMER_MOCHA,
-        }, {
-            name: 'All of the above!',
-            value: 'all',
-        }, {
-            name: 'Other',
-            value: 'other',
-        }],
-    }, {
-        type: 'list',
-        name: 'chai',
-        message: 'Would you like to include Chai transformations with Mocha?',
-        when: ({ transformer }) => [TRANSFORMER_MOCHA, 'all'].indexOf(transformer) > -1,
-        choices: [{
-            name: 'Assert Syntax',
-            value: TRANSFORMER_CHAI_ASSERT,
-        }, {
-            name: 'Other',
-            value: 'other',
-        }, {
-            name: 'None',
-            value: null,
-        }],
-    }, {
-        type: 'input',
-        name: 'files',
-        message: 'On which files or directory should the codemods be applied?',
-        default: 'src test/**/*.js',
-        filter: files => files.trim().split(/\s+/).filter(v => v),
-    }]).then(answers => {
-        const { files, transformer, chai } = answers;
+    inquirer
+        .prompt([
+            {
+                type: 'list',
+                name: 'transformer',
+                message: 'Which test library would you like to migrate from?',
+                choices: [
+                    {
+                        name: 'Tape',
+                        value: TRANSFORMER_TAPE,
+                    },
+                    {
+                        name: 'AVA',
+                        value: TRANSFORMER_AVA,
+                    },
+                    {
+                        name: 'Mocha',
+                        value: TRANSFORMER_MOCHA,
+                    },
+                    {
+                        name: 'All of the above!',
+                        value: 'all',
+                    },
+                    {
+                        name: 'Other',
+                        value: 'other',
+                    },
+                ],
+            },
+            {
+                type: 'list',
+                name: 'chai',
+                message: 'Would you like to include Chai transformations with Mocha?',
+                when: ({ transformer }) =>
+                    [TRANSFORMER_MOCHA, 'all'].indexOf(transformer) > -1,
+                choices: [
+                    {
+                        name: 'Assert Syntax',
+                        value: TRANSFORMER_CHAI_ASSERT,
+                    },
+                    {
+                        name: 'Other',
+                        value: 'other',
+                    },
+                    {
+                        name: 'None',
+                        value: null,
+                    },
+                ],
+            },
+            {
+                type: 'input',
+                name: 'files',
+                message: 'On which files or directory should the codemods be applied?',
+                default: 'src test/**/*.js',
+                filter: files => files.trim().split(/\s+/).filter(v => v),
+            },
+        ])
+        .then(answers => {
+            const { files, transformer, chai } = answers;
 
-        if (transformer === 'other') {
-            return supportFailure('AVA, Tape, and Mocha');
-        }
-
-        const transformers = transformer === 'all' ? allTransformers : [transformer];
-
-        if (chai) {
-            if (chai !== TRANSFORMER_CHAI_ASSERT) {
-                return supportFailure('Chai Assert syntax');
+            if (transformer === 'other') {
+                return supportFailure('AVA, Tape, and Mocha');
             }
-            transformers.push(chai);
-        }
 
-        if (!files.length) {
-            return undefined;
-        }
+            const transformers = transformer === 'all' ? allTransformers : [transformer];
 
-        const filesExpanded = globby.sync(files);
-        if (!filesExpanded.length) {
-            console.log(`No files found matching ${files.join(' ')}`);
-            return undefined;
-        }
+            if (chai) {
+                if (chai !== TRANSFORMER_CHAI_ASSERT) {
+                    return supportFailure('Chai Assert syntax');
+                }
+                transformers.push(chai);
+            }
 
-        if (!cli.flags.dry) {
-            checkGitStatus(cli.flags.force);
-        }
+            if (!files.length) {
+                return undefined;
+            }
 
-        return executeTransformations(filesExpanded, cli.flags, transformers);
-    });
+            const filesExpanded = globby.sync(files);
+            if (!filesExpanded.length) {
+                console.log(`No files found matching ${files.join(' ')}`);
+                return undefined;
+            }
+
+            if (!cli.flags.dry) {
+                checkGitStatus(cli.flags.force);
+            }
+
+            return executeTransformations(filesExpanded, cli.flags, transformers);
+        });
 }

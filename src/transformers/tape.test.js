@@ -20,42 +20,45 @@ function testChanged(msg, source, expectedOutput) {
     });
 }
 
-testChanged('does not touch code without tape require/import',
-`
+testChanged(
+    'does not touch code without tape require/import',
+    `
 const test = require("testlib");
 test(t => {
     t.notOk(1);
 });`,
-`
+    `
 const test = require("testlib");
 test(t => {
     t.notOk(1);
 });`
 );
 
-testChanged('CommonJs requires',
-`
+testChanged(
+    'CommonJs requires',
+    `
 const test = require('tape');
 const x = 1;
 `,
-`
+    `
 const x = 1;
 `
 );
 
-
-testChanged('ES2015 imports',
-`
+testChanged(
+    'ES2015 imports',
+    `
 import test from 'tape';
 const x = 1;
 `,
-`
+    `
 const x = 1;
 `
 );
 
-testChanged('maps assertions and comments',
-`
+testChanged(
+    'maps assertions and comments',
+    `
 import test from 'tape';
 test((t) => {
     t.fail('msg');
@@ -108,7 +111,7 @@ test((t) => {
     t.comment('this is a comment...');
 });
 `,
-`
+    `
 test(done => {
     done.fail('msg');
     expect(1).toBeTruthy();
@@ -158,24 +161,27 @@ test(done => {
     expect(1).not.toThrow();
     console.log('this is a comment...');
 });
-`);
-
-testChanged('preserves quote style',
 `
+);
+
+testChanged(
+    'preserves quote style',
+    `
 import test from "tape";
 test("mytest", t => {
     t.ok("msg");
 });
 `,
-`
+    `
 test("mytest", () => {
     expect("msg").toBeTruthy();
 });
 `
 );
 
-testChanged('rewriting non standard naming of test function and t argument',
-`
+testChanged(
+    'rewriting non standard naming of test function and t argument',
+    `
 import myTapeTest from "tape";
 myTapeTest("mytest", t => {
     t.ok("msg");
@@ -193,7 +199,7 @@ myTapeTest(function(t) {
     t.ok("msg");
 });
 `,
-`
+    `
 test("mytest", () => {
     expect("msg").toBeTruthy();
 });
@@ -212,51 +218,55 @@ test(function() {
 `
 );
 
-testChanged('test options: removes',
-`
+testChanged(
+    'test options: removes',
+    `
 import test from 'tape';
 test('mytest', {objectPrintDepth: 4, skip: false}, t => {
     t.ok('msg');
 });
 `,
-`
+    `
 test('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
 );
 
-testChanged('test options: skip',
-`
+testChanged(
+    'test options: skip',
+    `
 import test from 'tape';
 test('mytest', {objectPrintDepth: 4, skip: true}, t => {
     t.ok('msg');
 });
 `,
-`
+    `
 test.skip('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
 );
 
-testChanged('removes t.end in scope of test function',
-`
+testChanged(
+    'removes t.end in scope of test function',
+    `
 import test from 'tape';
 test('mytest', t => {
     t.equal(1, 1);
     t.end();
 });
 `,
-`
+    `
 test('mytest', () => {
     expect(1).toBe(1);
 });
 `
 );
 
-testChanged('keeps t.end in nested functions',
-`
+testChanged(
+    'keeps t.end in nested functions',
+    `
 import test from 'tape';
 
 test(t => {
@@ -265,16 +275,18 @@ test(t => {
     }, 500);
 });
 `,
-`
+    `
 test(done => {
     setTimeout(() => {
         done();
     }, 500);
 });
-`);
-
-testChanged('removes t.pass but keeps t.fail',
 `
+);
+
+testChanged(
+    'removes t.pass but keeps t.fail',
+    `
 import test from 'tape'
 
 test(function(t) {
@@ -288,7 +300,7 @@ test('handles done.fail and done.pass', t => {
     }, 500);
 });
 `,
-`
+    `
 test(function(done) {
     done.fail();
 });
@@ -298,10 +310,12 @@ test('handles done.fail and done.pass', done => {
         done.fail('no');
     }, 500);
 });
-`);
-
-testChanged('t.throws',
 `
+);
+
+testChanged(
+    't.throws',
+    `
 import test from 'tape';
 test(t => {
     t.throws(myfunc, 'should not throw');
@@ -310,7 +324,7 @@ test(t => {
     t.throws(myfunc, /err_reg_exp/i, 'should not throw');
 });
 `,
-`
+    `
 test(() => {
     expect(myfunc).toThrow();
     expect(myfunc).toThrowError('xxx');
@@ -320,8 +334,9 @@ test(() => {
 `
 );
 
-testChanged('destructured test argument',
-`
+testChanged(
+    'destructured test argument',
+    `
 import test from 'tape';
 test(({ok}) => {
     ok('msg');
@@ -330,7 +345,7 @@ test('my test', ({equal}) => {
     equal('msg', 'other msg');
 });
 `,
-`
+    `
 test(() => {
     expect('msg').toBeTruthy();
 });
@@ -341,136 +356,159 @@ test('my test', () => {
 );
 
 test('not supported warnings: createStream', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test.createStream(() => {});
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) "createStream" is currently not supported',
     ]);
 });
 
 test('not supported warnings: onFinish', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test.onFinish(() => {});
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) "onFinish" is currently not supported',
     ]);
 });
 
 test('not supported warnings: unmapped t property', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test(t => {
             t.unknownAssert(100);
         });
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 4) "t.unknownAssert" is currently not supported',
     ]);
 });
 
 test('not supported warnings: t.timeoutAfter', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test(t => {
             t.timeoutAfter(100);
         });
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 4) "t.timeoutAfter" is currently not supported',
     ]);
 });
 
 test('not supported warnings: t.looseEquals', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test(t => {
             t.looseEquals({}, {});
         });
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 4) "t.looseEquals" is currently not supported. Try the stricter "toEqual" or "not.toEqual"',
     ]);
 });
 
 test('not supported warnings: t.skip', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test(t => {
             t.skip();
         });
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 4) "t.skip" is currently not supported',
     ]);
 });
 
 test('not supported warnings: timeout option', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test({timeout: 42}, t => {
             t.equal(1, 1);
         });
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) "timeout" option is currently not supported',
     ]);
 });
 
 test('not supported warnings: non standard argument for test', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test(x => {
             x.equal(1, 1);
         });
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "x"',
     ]);
 });
 
 test('not supported warnings: non standard argument for test.skip', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test.skip(function(y) {
             y.equal(1, 1);
         });
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "y"',
     ]);
 });
 
 test('warns about some conflicting packages', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         import proxyquire from 'proxyquire';
         import testdouble from 'testdouble';
         test(t => {});
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
     ]);
 });
 
 test('graciously warns about unknown destructured assertions', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'tape';
         test(({plan}) => {
             plan('msg');
         });
-    `);
+    `
+    );
 });
 
-testChanged('supports renaming non standard import name',
-`
+testChanged(
+    'supports renaming non standard import name',
+    `
 import foo from 'tape';
 foo(() => {});
 `,
-`
+    `
 test(() => {});
 `
 );

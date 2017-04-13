@@ -20,15 +20,16 @@ function testChanged(msg, source, expectedOutput) {
     });
 }
 
-testChanged('does not touch code without ava require/import',
-`
+testChanged(
+    'does not touch code without ava require/import',
+    `
 // @flow
 const test = require("testlib");
 test(t => {
     t.notOk(1);
 })
 `,
-`
+    `
 // @flow
 const test = require("testlib");
 test(t => {
@@ -38,8 +39,9 @@ test(t => {
 );
 
 // TODO: jscodeshift adds semi colon when preserving first line comments :/
-testChanged('maps assertions',
-`
+testChanged(
+    'maps assertions',
+    `
 // @flow
 import test from 'ava'
 
@@ -69,7 +71,7 @@ test('mapping', (t) => {
   t.plan(3)
 })
 `,
-`
+    `
 // @flow
 test('mapping', () => {
   const abc = { a: 'a', b: 'b', c: 'c' }
@@ -96,11 +98,12 @@ test('mapping', () => {
   expect(abc).toBeFalsy()
   expect.assertions(3)
 });
-`);
-
-
-testChanged('handles test setup/teardown modifiers',
 `
+);
+
+testChanged(
+    'handles test setup/teardown modifiers',
+    `
 import test from 'ava'
 
 test.before(t => {});
@@ -108,24 +111,28 @@ test.after(t => {});
 test.beforeEach(t => {});
 test.afterEach(t => {});
 `,
-`
+    `
 beforeAll(() => {});
 afterAll(() => {});
 beforeEach(() => {});
 afterEach(() => {});
-`);
-
-testChanged('all tests are serial by default',
 `
+);
+
+testChanged(
+    'all tests are serial by default',
+    `
 import test from 'ava'
 test.serial(t => {});
 `,
-`
+    `
 test(() => {});
-`);
-
-testChanged('handles skip/only modifiers and chaining',
 `
+);
+
+testChanged(
+    'handles skip/only modifiers and chaining',
+    `
 import test from 'ava'
 
 test.only(t => {});
@@ -136,7 +143,7 @@ test.skip.serial(t => {});
 test.only.serial(t => {});
 test.serial.only(t => {});
 `,
-`
+    `
 test.only(() => {});
 test.skip(() => {});
 
@@ -144,10 +151,12 @@ test.skip(() => {});
 test.skip(() => {});
 test.only(() => {});
 test.only(() => {});
-`);
-
-testChanged('removes t.pass, but keeps t.fail',
 `
+);
+
+testChanged(
+    'removes t.pass, but keeps t.fail',
+    `
 import test from 'ava'
 
 test('handles done.fail and done.pass', t => {
@@ -164,7 +173,7 @@ test.serial.only('handles done.fail and done.pass', t => {
     }, 500);
 });
 `,
-`
+    `
 test('handles done.fail and done.pass', done => {
     setTimeout(() => {
         done.fail('no');
@@ -176,26 +185,30 @@ test.only('handles done.fail and done.pass', done => {
         done.fail('no');
     }, 500);
 });
-`);
+`
+);
 
 // TODO: semantics is not the same for t.end and done
 // t.end automatically checks for error as first argument (jasmine doesn't)
-testChanged('callback tests',
-`
+testChanged(
+    'callback tests',
+    `
 import test from 'ava';
 test.cb(t => {
     fs.readFile('data.txt', t.end);
 });
 `,
-`
+    `
 test(done => {
     fs.readFile('data.txt', done);
 });
-`);
+`
+);
 
 // TODO: these hanging t variables should be removed or be renamed
-testChanged('passing around t',
-`
+testChanged(
+    'passing around t',
+    `
 import test from 'ava'
 
 test('should pass', t => {
@@ -213,7 +226,7 @@ function shouldFail2(t, message) {
     })
 }
 `,
-`
+    `
 test('should pass', () => {
     shouldFail(t, 'hi')
     return shouldFail2(t, 'hi')
@@ -228,9 +241,12 @@ function shouldFail2(t, message) {
         expect(err.message).toEqual(message)
     });
 }
-`);
+`
+);
 
-testChanged('keeps async and await', `
+testChanged(
+    'keeps async and await',
+    `
 import test from 'ava';
 
 test(async (t) => {
@@ -243,7 +259,7 @@ test(async function (t) {
     t.true(value);
 });
 `,
-`
+    `
 test(async () => {
     const value = await promiseFn();
     expect(value).toBe(true);
@@ -253,10 +269,12 @@ test(async function () {
     const value = await promiseFn();
     expect(value).toBe(true);
 });
-`);
-
-testChanged('destructured test argument',
 `
+);
+
+testChanged(
+    'destructured test argument',
+    `
 import test from 'ava';
 test(({ok}) => {
     ok('msg');
@@ -265,7 +283,7 @@ test('my test', ({is}) => {
     is('msg', 'other msg');
 });
 `,
-`
+    `
 test(() => {
     expect('msg').toBeTruthy();
 });
@@ -276,7 +294,8 @@ test('my test', () => {
 );
 
 test('not supported warnings: skipping test setup/teardown hooks', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'ava'
 
         test.before.skip(() => {
@@ -290,7 +309,8 @@ test('not supported warnings: skipping test setup/teardown hooks', () => {
         test.skip.after(() => {});
         test.skip.afterEach(() => {});
         test.beforeEach.skip(() => {});
-    `);
+    `
+    );
 
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 4) Skipping setup/teardown hooks is currently not supported',
@@ -305,59 +325,68 @@ test('not supported warnings: skipping test setup/teardown hooks', () => {
 });
 
 test('not supported warnings: unmapped t property', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'ava';
         test(t => {
             t.unknownAssert(100);
         });
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 4) "t.unknownAssert" is currently not supported',
     ]);
 });
 
 test('not supported warnings: non standard argument for test', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'ava';
         test(x => {
             x.equal(1, 1);
         });
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "x"',
     ]);
 });
 
 test('warns about some conflicting packages', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import ava from 'ava';
         import proxyquire from 'proxyquire';
         import testdouble from 'testdouble';
         test(t => {});
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
     ]);
 });
 
 test('warns about unknown AVA functions', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         import test from 'ava';
         test.todo(t => {});
         test.failing(t => {});
-    `);
+    `
+    );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) Unknown AVA method "todo"',
         'jest-codemods warning: (test.js line 4) Unknown AVA method "failing"',
     ]);
 });
 
-testChanged('supports renaming non standard import name',
-`
+testChanged(
+    'supports renaming non standard import name',
+    `
 import foo from 'ava';
 foo(() => {});
 `,
-`
+    `
 test(() => {});
 `
 );

@@ -7,10 +7,13 @@ import { removeRequireAndImport } from '../utils/imports';
 import detectIncompatiblePackages from '../utils/incompatible-packages';
 import { PROP_WITH_SECONDS_ARGS } from '../utils/consts';
 import {
-    detectUnsupportedNaming, rewriteAssertionsAndTestArgument, rewriteDestructuredTArgument,
+    detectUnsupportedNaming,
+    rewriteAssertionsAndTestArgument,
+    rewriteDestructuredTArgument,
 } from '../utils/tape-ava-helpers';
 import {
-    getIdentifierFromExpression, getMemberExpressionElements,
+    getIdentifierFromExpression,
+    getMemberExpressionElements,
 } from '../utils/recast-helpers';
 import logger from '../utils/logger';
 import proxyquireTransformer from '../utils/proxyquire';
@@ -41,11 +44,7 @@ const tPropertiesMap = {
     plan: SPECIAL_PLAN_CASE,
 };
 
-const tPropertiesNotMapped = new Set([
-    'end',
-    'fail',
-    'pass',
-]);
+const tPropertiesNotMapped = new Set(['end', 'fail', 'pass']);
 
 const avaToJestMethods = {
     before: 'beforeAll',
@@ -75,90 +74,94 @@ export default function avaToJest(fileInfo, api) {
         () => detectUnsupportedNaming(fileInfo, j, ast, testFunctionName),
 
         function updateAssertions() {
-            ast.find(j.CallExpression, {
-                callee: {
-                    object: { name: 't' },
-                    property: ({ name }) => !tPropertiesNotMapped.has(name),
-                },
-            })
-            .forEach(p => {
-                const args = p.node.arguments;
-                const oldPropertyName = p.value.callee.property.name;
-                const newPropertyName = tPropertiesMap[oldPropertyName];
-                if (typeof newPropertyName === 'undefined') {
-                    logWarning(`"t.${oldPropertyName}" is currently not supported`, p);
-                    return null;
-                }
+            ast
+                .find(j.CallExpression, {
+                    callee: {
+                        object: { name: 't' },
+                        property: ({ name }) => !tPropertiesNotMapped.has(name),
+                    },
+                })
+                .forEach(p => {
+                    const args = p.node.arguments;
+                    const oldPropertyName = p.value.callee.property.name;
+                    const newPropertyName = tPropertiesMap[oldPropertyName];
+                    if (typeof newPropertyName === 'undefined') {
+                        logWarning(
+                            `"t.${oldPropertyName}" is currently not supported`,
+                            p
+                        );
+                        return null;
+                    }
 
-                let newCondition;
-                if (newPropertyName === SPECIAL_BOOL) {
-                    newCondition = j.callExpression(
-                        j.identifier('toBe'),
-                        [j.identifier(oldPropertyName)]
-                    );
-                } else if (newPropertyName === SPECIAL_PLAN_CASE) {
-                    const condition = (
-                        j.memberExpression(
+                    let newCondition;
+                    if (newPropertyName === SPECIAL_BOOL) {
+                        newCondition = j.callExpression(j.identifier('toBe'), [
+                            j.identifier(oldPropertyName),
+                        ]);
+                    } else if (newPropertyName === SPECIAL_PLAN_CASE) {
+                        const condition = j.memberExpression(
                             j.identifier('expect'),
                             j.callExpression(j.identifier('assertions'), [args[0]])
-                        )
-                    );
-                    return j(p).replaceWith(condition);
-                } else if (newPropertyName === SPECIAL_THROWS_CASE) {
-                    if (args.length === 1) {
-                        newCondition = j.callExpression(
-                            j.identifier(oldPropertyName === 'throws' ? 'toThrow' : 'not.toThrow'),
-                            []
                         );
+                        return j(p).replaceWith(condition);
+                    } else if (newPropertyName === SPECIAL_THROWS_CASE) {
+                        if (args.length === 1) {
+                            newCondition = j.callExpression(
+                                j.identifier(
+                                    oldPropertyName === 'throws'
+                                        ? 'toThrow'
+                                        : 'not.toThrow'
+                                ),
+                                []
+                            );
+                        } else {
+                            newCondition = j.callExpression(
+                                j.identifier(
+                                    oldPropertyName === 'throws'
+                                        ? 'toThrowError'
+                                        : 'not.toThrowError'
+                                ),
+                                [args[1]]
+                            );
+                        }
                     } else {
+                        const hasSecondArgument =
+                            PROP_WITH_SECONDS_ARGS.indexOf(newPropertyName) >= 0;
+                        const conditionArgs = hasSecondArgument ? [args[1]] : [];
                         newCondition = j.callExpression(
-                            j.identifier(oldPropertyName === 'throws' ? 'toThrowError' : 'not.toThrowError'),
-                            [args[1]]
+                            j.identifier(newPropertyName),
+                            conditionArgs
                         );
                     }
-                } else {
-                    const hasSecondArgument = PROP_WITH_SECONDS_ARGS.indexOf(newPropertyName) >= 0;
-                    const conditionArgs = hasSecondArgument ? [args[1]] : [];
-                    newCondition = j.callExpression(
-                        j.identifier(newPropertyName),
-                        conditionArgs
+
+                    const newExpression = j.memberExpression(
+                        j.callExpression(j.identifier('expect'), [args[0]]),
+                        newCondition
                     );
-                }
 
-                const newExpression = j.memberExpression(
-                    j.callExpression(
-                        j.identifier('expect'),
-                        [args[0]]
-                    ),
-                    newCondition
-                );
-
-                return j(p).replaceWith(newExpression);
-            });
+                    return j(p).replaceWith(newExpression);
+                });
         },
 
         function rewriteTestCallExpression() {
             // Can either be simple CallExpression like test()
             // Or MemberExpression like test.after.skip()
 
-            ast.find(j.CallExpression, {
-                callee: { name: testFunctionName },
-            }).forEach(p => {
-                p.node.callee.name = 'test';
-                rewriteAssertionsAndTestArgument(j, p);
-            });
+            ast
+                .find(j.CallExpression, {
+                    callee: { name: testFunctionName },
+                })
+                .forEach(p => {
+                    p.node.callee.name = 'test';
+                    rewriteAssertionsAndTestArgument(j, p);
+                });
 
             function mapPathToJestMethod(p) {
                 let jestMethod = 'test';
 
                 // List like ['test', 'serial', 'cb']
-                const avaMethods = getMemberExpressionElements(
-                    p.node.callee
-                )
-                .filter(
-                    e => e !== 'serial' &&
-                    e !== testFunctionName &&
-                    e !== 'cb'
+                const avaMethods = getMemberExpressionElements(p.node.callee).filter(
+                    e => e !== 'serial' && e !== testFunctionName && e !== 'cb'
                 );
 
                 if (avaMethods.length === 1) {
@@ -170,36 +173,40 @@ export default function avaToJest(fileInfo, api) {
                         logWarning(`Unknown AVA method "${avaMethod}"`, p);
                     }
                 } else if (avaMethods.length > 0) {
-                    logWarning('Skipping setup/teardown hooks is currently not supported', p);
+                    logWarning(
+                        'Skipping setup/teardown hooks is currently not supported',
+                        p
+                    );
                 }
 
                 return jestMethod;
             }
 
-            ast.find(j.CallExpression, {
-                callee: {
-                    type: 'MemberExpression',
-                },
-            })
-            .filter(p => {
-                const identifier = getIdentifierFromExpression(p.node.callee);
-                if (identifier === null) {
+            ast
+                .find(j.CallExpression, {
+                    callee: {
+                        type: 'MemberExpression',
+                    },
+                })
+                .filter(p => {
+                    const identifier = getIdentifierFromExpression(p.node.callee);
+                    if (identifier === null) {
+                        return null;
+                    }
+                    if (identifier.name === testFunctionName) {
+                        return p;
+                    }
                     return null;
-                }
-                if (identifier.name === testFunctionName) {
-                    return p;
-                }
-                return null;
-            })
-            .forEach(p => {
-                rewriteAssertionsAndTestArgument(j, p);
-            })
-            .replaceWith(p =>
-                j.callExpression(
-                    j.identifier(mapPathToJestMethod(p)),
-                    p.node.arguments
-                )
-            );
+                })
+                .forEach(p => {
+                    rewriteAssertionsAndTestArgument(j, p);
+                })
+                .replaceWith(p =>
+                    j.callExpression(
+                        j.identifier(mapPathToJestMethod(p)),
+                        p.node.arguments
+                    )
+                );
         },
 
         () => detectIncompatiblePackages(fileInfo, j, ast),
