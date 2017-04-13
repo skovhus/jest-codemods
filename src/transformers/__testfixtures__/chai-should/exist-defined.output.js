@@ -6,3 +6,5 @@ expect(input).toBeDefined();
 expect(foo).toBeDefined();
 expect(foo).not.toBeDefined();
 expect(foo).toBeFalsy();
+
+expect('').toBeDefined();

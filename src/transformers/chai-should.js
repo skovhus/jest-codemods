@@ -83,6 +83,18 @@ module.exports = function transformer(fileInfo, api) {
         (node.type === j.CallExpression.name && isExpectCall(node.callee))
     );
 
+    const isShouldMemberExpression = node => {
+        if (!node) {
+            return false;
+        }
+
+        if (node.type === 'Identifier' && node.name === 'should') {
+            return true;
+        }
+
+        return isShouldMemberExpression(node.object);
+    };
+
     const isExpectMemberExpression = node => {
         if (!node) {
             return false;
@@ -155,7 +167,7 @@ module.exports = function transformer(fileInfo, api) {
         return createCall('toBeGreaterThanOrEqual', [args[1]], expect(), containsNot);
     }
 
-    const shouldToExpect = () =>
+    const shouldChainedToExpect = () =>
         root.find(j.MemberExpression, {
             property: {
                 type: j.Identifier.name,
@@ -164,6 +176,43 @@ module.exports = function transformer(fileInfo, api) {
         })
         .replaceWith(p => j.callExpression(j.identifier('expect'), [p.node.object]))
         .size();
+
+    const shouldIdentifierToExpect = () =>
+        root.find(j.CallExpression)
+        .filter(p => isShouldMemberExpression(p.value.callee))
+        .replaceWith(p => {
+            const { callee } = p.value;
+            const [args0, args1] = p.node.arguments;
+
+            const assertionNode = j.identifier(callee.property.name);
+            const assertionPrefixNode = callee.object.property;
+            const firstChainElement = assertionPrefixNode || assertionNode;
+
+            let memberExpression = j.memberExpression(
+                j.callExpression(
+                    j.identifier('expect'),
+                    [args0]
+                ),
+                firstChainElement
+            );
+
+            if (assertionPrefixNode) {
+                // if there is a .not wrap it in another memberExpression
+                memberExpression = j.memberExpression(
+                    memberExpression,
+                    assertionNode
+                );
+            }
+
+            if (typeof args1 === 'undefined') {
+                return memberExpression;
+            }
+
+            return j.callExpression(
+                memberExpression,
+                [args1],
+            );
+        });
 
     const updateMemberExpressions = () =>
         root.find(j.MemberExpression, {
@@ -350,7 +399,8 @@ module.exports = function transformer(fileInfo, api) {
         })
         .size();
 
-    mutations += shouldToExpect();
+    mutations += shouldChainedToExpect();
+    mutations += shouldIdentifierToExpect();
     mutations += updateCallExpressions();
     mutations += updateMemberExpressions();
 
