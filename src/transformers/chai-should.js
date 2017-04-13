@@ -257,8 +257,8 @@ module.exports = function transformer(fileInfo, api) {
                     return createCall('toEqual', args.map(containing), rest, containsNot);
                 case 'keys':
                     if (containsAny) {
-                        logWarning('any.keys is an unsupported keyword', p);
-                        // FIXME: why not bail?
+                        logWarning('Unsupported Chai Assertion "any.keys"', p);
+                        return value;
                     }
                     return createCall(
                           'toEqual',
