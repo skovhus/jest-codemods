@@ -164,3 +164,36 @@ testChanged(
     'expect(obj).to.have.property("foo", "bar");',
     'expect(obj).toHaveProperty("foo", "bar");'
 );
+
+
+test('not supported assertions', () => {
+    wrappedPlugin(`
+        expect(arguments).to.be.arguments;
+        expect(arguments).not.to.be.arguments;
+        expect(obj).to.respondTo('bar');
+        expect(1).to.satisfy(function(num) { return num > 0; });
+        expect(fn).to.closeTo(obj, 'val');
+        expect([3]).to.not.be.oneOf([1, 2, [3]]);
+        expect(fn).to.change(obj, 'val');
+        expect(fn).to.increase(obj, 'val');
+        expect(fn).to.decrease(obj, 'val');
+        expect(nonExtensibleObject).to.not.be.extensible;
+        expect(sealedObject).to.be.sealed;
+        expect(sealedObject).to.be.frozen;
+    `);
+
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 2) Unsupported Chai Assertion "arguments"',
+        'jest-codemods warning: (test.js line 3) Unsupported Chai Assertion "arguments"',
+        'jest-codemods warning: (test.js line 4) Unsupported Chai Assertion "respondTo"',
+        'jest-codemods warning: (test.js line 5) Unsupported Chai Assertion "satisfy"',
+        'jest-codemods warning: (test.js line 6) Unsupported Chai Assertion "closeTo"',
+        'jest-codemods warning: (test.js line 7) Unsupported Chai Assertion "oneOf"',
+        'jest-codemods warning: (test.js line 8) Unsupported Chai Assertion "change"',
+        'jest-codemods warning: (test.js line 9) Unsupported Chai Assertion "increase"',
+        'jest-codemods warning: (test.js line 10) Unsupported Chai Assertion "decrease"',
+        'jest-codemods warning: (test.js line 11) Unsupported Chai Assertion "extensible"',
+        'jest-codemods warning: (test.js line 12) Unsupported Chai Assertion "sealed"',
+        'jest-codemods warning: (test.js line 13) Unsupported Chai Assertion "frozen"',
+    ]);
+});

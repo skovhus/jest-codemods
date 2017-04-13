@@ -10,15 +10,6 @@ import {
 import logger from '../utils/logger';
 import detectQuoteStyle from '../utils/quote-style';
 
-// FIXME: Methods not implemented:
-// - respondTo
-// - modifications
-// - oneOf
-// - change
-// - increase
-// - decrease
-// - closeTo
-
 const fns = [
     'keys',
     'a',
@@ -58,6 +49,20 @@ const members = [
     'defined',
 ];
 
+const unsupportedProperties = new Set([
+    'arguments',
+    'respondTo',
+    'satisfy',
+    'closeTo',
+    'oneOf',
+    'change',
+    'increase',
+    'decrease',
+    'extensible',
+    'sealed',
+    'frozen',
+]);
+
 module.exports = function transformer(fileInfo, api) {
     const j = api.jscodeshift;
     const root = j(fileInfo.source);
@@ -74,6 +79,18 @@ module.exports = function transformer(fileInfo, api) {
         (node.type === j.MemberExpression.name && isExpectCall(node.object)) ||
         (node.type === j.CallExpression.name && isExpectCall(node.callee))
     );
+
+    const isExpectMemberExpression = node => {
+        if (!node) {
+            return false;
+        }
+
+        if (node.type === j.CallExpression.name && node.callee.name === 'expect') {
+            return true;
+        }
+
+        return isExpectMemberExpression(node.object);
+    };
 
     const logWarning = (msg, node) => logger(fileInfo, msg, node);
 
@@ -333,6 +350,17 @@ module.exports = function transformer(fileInfo, api) {
     mutations += shouldToExpect();
     mutations += updateCallExpressions();
     mutations += updateMemberExpressions();
+
+    root.find(j.MemberExpression, {
+        property: {
+            name: name => unsupportedProperties.has(name),
+        },
+    })
+    .filter(p => isExpectMemberExpression(p.value))
+    .forEach(p => {
+        const assertion = p.value.property.name;
+        logWarning(`Unsupported Chai Assertion "${assertion}"`, p);
+    });
 
     if (!mutations) {
         return null;
