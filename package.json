@@ -59,15 +59,20 @@
     "eslint": "^3.5.0",
     "eslint-config-airbnb-base": "^7.1.0",
     "eslint-plugin-import": "^1.15.0",
-    "jest": "^16.0.1"
+    "jest": "^19.0.2"
   },
   "jest": {
-    "collectCoverageFrom": "src/**/*.js",
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
+    "coverageReporters": [
+      "text", "html"
+    ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
-      "/dist/"
+      "/dist/",
+      "/__testfixtures__/"
     ],
-    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
     "testEnvironment": "node"
   }
 }
