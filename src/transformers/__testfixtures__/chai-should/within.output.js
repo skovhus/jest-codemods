@@ -10,3 +10,7 @@ expect([1, 2, 3].length).toBeGreaterThanOrEqual(4);
 expect('foo'.length).toBeLessThanOrEqual(2);
 
 expect('foo'.length).toBeGreaterThanOrEqual(4);
+
+expect(5).toBeLessThanOrEqual(2);
+
+expect(5).toBeGreaterThanOrEqual(4);
