@@ -306,6 +306,10 @@ module.exports = function transformer(fileInfo, api) {
                 case 'match':
                     return createCall('toMatch', args, rest, containsNot);
                 case 'members':
+                    if (chainContains('ordered', value.callee, isPrefix)) {
+                        logWarning('Unsupported Chai Assertion "ordered"', p);
+                    }
+
                     return createCall('toEqual', args.map(containing), rest, containsNot);
                 case 'keys':
                     if (containsAny) {
