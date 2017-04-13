@@ -1,3 +1,6 @@
+var expect = require('chai').expect;
+var should = require('chai').should();
+
 describe('Instantiating TextField', () => {
     it('should set the placeholder correctly', () => {
         textField.props.placeholder.should.equal(PLACEHOLDER);

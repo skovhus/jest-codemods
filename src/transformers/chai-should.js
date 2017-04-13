@@ -6,6 +6,7 @@ import {
     createCallChainUtil,
 } from '../utils/chai-chain-utils';
 import logger from '../utils/logger';
+import { removeRequireAndImport } from '../utils/imports';
 import detectQuoteStyle from '../utils/quote-style';
 
 const fns = [
@@ -71,6 +72,10 @@ module.exports = function transformer(fileInfo, api) {
     const getAllBefore = getNodeBeforeMemberExpressionUtil(j);
     const updateExpect = updateExpectUtil(j);
     const createCallChain = createCallChainUtil(j);
+
+    removeRequireAndImport(j, root, 'chai', 'expect');
+    removeRequireAndImport(j, root, 'chai', 'should');
+    // Not sure if expect is always imported... So we continue with the transformation:
 
     const isExpectCall = node => (
         node.name === 'expect' ||
