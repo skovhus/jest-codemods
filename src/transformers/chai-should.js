@@ -1,5 +1,3 @@
-import parser from 'babel-eslint';
-
 import {
     createCallUtil,
     chainContainsUtil,
@@ -276,7 +274,7 @@ module.exports = function transformer(fileInfo, api) {
                     if (!args.length) {
                         return value;
                     }
-                    if (args[0].type === j.StringLiteral.name) {
+                    if (args[0].type === 'Literal') {
                         return typeOf(value, args, containsNot);
                     }
                     return createCall(
@@ -367,8 +365,5 @@ module.exports = function transformer(fileInfo, api) {
     }
 
     const quote = detectQuoteStyle(j, root) || 'single';
-    return root.toSource({ parser, quote });
+    return root.toSource({ quote });
 };
-
-// FIXME: how will this for for flow files?
-module.exports.parser = 'babylon';
