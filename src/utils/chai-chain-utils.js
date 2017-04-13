@@ -1,9 +1,7 @@
 import { MATCHER_TO_MAX_ARGS } from './consts';
 
 export const createCallUtil = j => (fnName, args, rest, containsNot) => {
-    const expression = containsNot
-        ? j.memberExpression(rest, j.identifier('not'))
-        : rest;
+    const expression = containsNot ? j.memberExpression(rest, j.identifier('not')) : rest;
 
     const numberOfArgs = MATCHER_TO_MAX_ARGS[fnName];
     if (typeof numberOfArgs === 'undefined') {
@@ -12,16 +10,13 @@ export const createCallUtil = j => (fnName, args, rest, containsNot) => {
 
     return j.memberExpression(
         expression,
-        j.callExpression(
-            j.identifier(fnName),
-            args.slice(0, numberOfArgs)
-        )
+        j.callExpression(j.identifier(fnName), args.slice(0, numberOfArgs))
     );
 };
 
 export const chainContainsUtil = j => (fnName, node, end) => {
     let curr = node;
-    const checkEnd = (typeof end === 'function') ? end : name => name === end;
+    const checkEnd = typeof end === 'function' ? end : name => name === end;
 
     while (
         curr.type === j.MemberExpression.name &&
@@ -36,8 +31,10 @@ export const chainContainsUtil = j => (fnName, node, end) => {
 
 export const getNodeBeforeMemberExpressionUtil = j => (memberName, node, end) => {
     let rest = node;
-    const equalsMemberName = (typeof memberName === 'function') ? memberName : (name => name === memberName);
-    const equalsEnd = (typeof end === 'function') ? end : name => name === end;
+    const equalsMemberName = typeof memberName === 'function'
+        ? memberName
+        : name => name === memberName;
+    const equalsEnd = typeof end === 'function' ? end : name => name === end;
 
     while (
         rest.type === j.MemberExpression.name &&
@@ -91,12 +88,12 @@ export const createCallChainUtil = j => (chain, args) => {
     const arr = chain.reverse();
 
     let val = arr.pop();
-    let temp = (typeof val === 'string') ? j.identifier(val) : val;
+    let temp = typeof val === 'string' ? j.identifier(val) : val;
     let curr = temp;
 
     while (chain.length) {
         val = arr.pop();
-        temp = (typeof val === 'string') ? j.identifier(val) : val;
+        temp = typeof val === 'string' ? j.identifier(val) : val;
         curr = j.memberExpression(curr, temp);
     }
 

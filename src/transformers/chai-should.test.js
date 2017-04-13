@@ -65,50 +65,23 @@ function testChanged(_msg, _source, _expectedOutput) {
     });
 }
 
-testChanged(
-    'expect("123").to.eql("123");',
-    'expect("123").toEqual("123");'
-);
+testChanged('expect("123").to.eql("123");', 'expect("123").toEqual("123");');
 
-testChanged(
-    'expect("123").to.not.eql("123");',
-    'expect("123").not.toEqual("123");'
-);
+testChanged('expect("123").to.not.eql("123");', 'expect("123").not.toEqual("123");');
 
-testChanged(
-    'expect(foo).to.exist;',
-    'expect(foo).toBeDefined();'
-);
+testChanged('expect(foo).to.exist;', 'expect(foo).toBeDefined();');
 
-testChanged(
-    'expect(bar).to.not.exist;',
-    'expect(bar).toBeFalsy();'
-);
+testChanged('expect(bar).to.not.exist;', 'expect(bar).toBeFalsy();');
 
-testChanged(
-    'expect(foo + bar).to.be.false;',
-    'expect(foo + bar).toBe(false);'
-);
+testChanged('expect(foo + bar).to.be.false;', 'expect(foo + bar).toBe(false);');
 
-testChanged(
-    'expect(10).to.be.above(5);',
-    'expect(10).toBeGreaterThan(5);'
-);
+testChanged('expect(10).to.be.above(5);', 'expect(10).toBeGreaterThan(5);');
 
-testChanged(
-    'expect(10).to.be.at.least(10);',
-    'expect(10).toBeGreaterThanOrEqual(10);'
-);
+testChanged('expect(10).to.be.at.least(10);', 'expect(10).toBeGreaterThanOrEqual(10);');
 
-testChanged(
-    'expect(3).to.be.at.below(5);',
-    'expect(3).toBeLessThan(5);'
-);
+testChanged('expect(3).to.be.at.below(5);', 'expect(3).toBeLessThan(5);');
 
-testChanged(
-    'expect(5).to.be.at.most(5);',
-    'expect(5).toBeLessThanOrEqual(5);'
-);
+testChanged('expect(5).to.be.at.most(5);', 'expect(5).toBeLessThanOrEqual(5);');
 
 testChanged(
     'expect(123).to.be.instanceof(Number);',
@@ -120,45 +93,27 @@ testChanged(
     'expect("123").not.toBeInstanceOf(Number);'
 );
 
-testChanged(
-    'expect(undefined).to.not.be.null;',
-    'expect(undefined).not.toBeNull();'
-);
+testChanged('expect(undefined).to.not.be.null;', 'expect(undefined).not.toBeNull();');
 
-testChanged(
-    'expect(1).to.be.true;',
-    'expect(1).toBe(true);'
-);
+testChanged('expect(1).to.be.true;', 'expect(1).toBe(true);');
 
-testChanged(
-    'expect(1).not.to.be.true;',
-    'expect(1).not.toBe(true);'
-);
+testChanged('expect(1).not.to.be.true;', 'expect(1).not.toBe(true);');
 
-testChanged(
-    'expect(undefined).to.be.undefined;',
-    'expect(undefined).toBeUndefined();'
-);
+testChanged('expect(undefined).to.be.undefined;', 'expect(undefined).toBeUndefined();');
 
 testChanged(
     'expect([ 1, 2, 3]).to.have.lengthOf(3);',
     'expect([ 1, 2, 3]).toHaveLength(3);'
 );
 
-testChanged(
-    'expect("foobar").to.match(/^foo/);',
-    'expect("foobar").toMatch(/^foo/);'
-);
+testChanged('expect("foobar").to.match(/^foo/);', 'expect("foobar").toMatch(/^foo/);');
 
 testChanged(
     'expect(deepObj).to.have.deep.property("green.tea", "matcha");',
     'expect(deepObj).toHaveProperty("green.tea", "matcha");'
 );
 
-testChanged(
-    'expect(obj).to.have.property("foo");',
-    'expect(obj).toHaveProperty("foo");'
-);
+testChanged('expect(obj).to.have.property("foo");', 'expect(obj).toHaveProperty("foo");');
 
 testChanged(
     'expect(obj).to.have.property("foo", "bar");',
@@ -166,7 +121,8 @@ testChanged(
 );
 
 test('not supported assertions', () => {
-    wrappedPlugin(`
+    wrappedPlugin(
+        `
         expect([1, 2, 3]).to.have.any.keys([1, 2]);
         expect([4, 2]).to.have.ordered.members([2, 4]);
         expect(arguments).to.be.arguments;
@@ -181,7 +137,8 @@ test('not supported assertions', () => {
         expect(nonExtensibleObject).to.not.be.extensible;
         expect(sealedObject).to.be.sealed;
         expect(sealedObject).to.be.frozen;
-    `);
+    `
+    );
 
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 2) Unsupported Chai Assertion "any.keys"',
