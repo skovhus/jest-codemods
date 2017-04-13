@@ -157,7 +157,7 @@ module.exports = function transformer(fileInfo, api) {
 
     function withIn(p, rest, args, containsNot) {
         if (args.length < 2) {
-            logWarning(`.withIn needs two arguments, you passed ${args.length}`, p);
+            logWarning(`.within needs at least two arguments`, p);
             return p.value;
         }
 
@@ -221,7 +221,8 @@ module.exports = function transformer(fileInfo, api) {
                 }
 
                 return j.callExpression(memberExpression, [args1]);
-            });
+            })
+            .size();
 
     const updateMemberExpressions = () =>
         root
