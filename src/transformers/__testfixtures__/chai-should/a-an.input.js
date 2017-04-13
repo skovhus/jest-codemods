@@ -1,4 +1,4 @@
-expect('test').to.be.a('string');
+expect('test').to.be.a('string', 'error message');
 expect({ foo: 'bar' }).to.be.an('object');
 expect(null).to.be.a('null');
 expect(undefined).to.be.an('undefined');

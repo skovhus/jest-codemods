@@ -1,11 +1,20 @@
+import { MATCHER_TO_MAX_ARGS } from './consts';
+
 export const createCallUtil = j => (fnName, args, rest, containsNot) => {
-    const expression = containsNot ? j.memberExpression(rest, j.identifier('not')) : rest;
+    const expression = containsNot
+        ? j.memberExpression(rest, j.identifier('not'))
+        : rest;
+
+    const numberOfArgs = MATCHER_TO_MAX_ARGS[fnName];
+    if (typeof numberOfArgs === 'undefined') {
+        throw new Error(`Unknown matcher "${fnName}" (MATCHER_TO_MAX_ARGS)`);
+    }
 
     return j.memberExpression(
         expression,
         j.callExpression(
             j.identifier(fnName),
-            args
+            args.slice(0, numberOfArgs)
         )
     );
 };
