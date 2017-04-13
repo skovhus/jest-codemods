@@ -133,9 +133,9 @@ module.exports = function transformer(fileInfo, api) {
     }
 
     function withIn(p, rest, args, containsNot) {
-        if (args.length !== 2) {
-            console.warn(`.withIn needs two arguments, you passed ${args.length}`);
-            return p;
+        if (args.length < 2) {
+            logWarning(`.withIn needs two arguments, you passed ${args.length}`, p);
+            return p.value;
         }
 
         const containsLength = chainContains('length', p.value.callee, isPrefix);
