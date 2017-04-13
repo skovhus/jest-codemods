@@ -18,7 +18,9 @@ export default function checkGitStatus(force) {
             console.log(`WARNING: ${errorMessage}. Forcibly continuing.`);
         } else {
             console.log(chalk.red(`\nERROR: ${errorMessage}. Refusing to continue.`));
-            console.log('Ensure you have a backup of your tests or commit the latest changes before continuing.');
+            console.log(
+                'Ensure you have a backup of your tests or commit the latest changes before continuing.'
+            );
             console.log('You may use the --force flag to override this safety check.');
             process.exit(1);
         }

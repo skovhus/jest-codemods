@@ -39,31 +39,39 @@ export default function mochaToJest(file, api) {
     Object.keys(methodMap).forEach(mochaMethod => {
         const jestMethod = methodMap[mochaMethod];
 
-        ast.find(j.CallExpression, {
-            type: 'CallExpression',
-            callee: { type: 'Identifier', name: mochaMethod },
-        }).filter(({ scope }) =>
-            !hasBinding(mochaMethod, scope)
-        ).replaceWith(path => {
-            let args = path.value.arguments;
-            if (!jestMethodsWithDescriptionsAllowed.has(jestMethod)) {
-                args = args.filter(a => a.type !== 'Literal');
-            }
-            return j.callExpression(j.identifier(jestMethod), args);
-        });
+        ast
+            .find(j.CallExpression, {
+                type: 'CallExpression',
+                callee: { type: 'Identifier', name: mochaMethod },
+            })
+            .filter(({ scope }) => !hasBinding(mochaMethod, scope))
+            .replaceWith(path => {
+                let args = path.value.arguments;
+                if (!jestMethodsWithDescriptionsAllowed.has(jestMethod)) {
+                    args = args.filter(a => a.type !== 'Literal');
+                }
+                return j.callExpression(j.identifier(jestMethod), args);
+            });
 
         methodModifiers.forEach(modifier => {
-            ast.find(j.CallExpression, {
-                type: 'CallExpression',
-                callee: {
-                    type: 'MemberExpression',
-                    object: { type: 'Identifier', name: mochaMethod },
-                    property: { type: 'Identifier', name: modifier },
-                },
-            }).replaceWith(path => j.callExpression(j.memberExpression(
-                j.identifier(jestMethod),
-                j.identifier(modifier)
-            ), path.value.arguments));
+            ast
+                .find(j.CallExpression, {
+                    type: 'CallExpression',
+                    callee: {
+                        type: 'MemberExpression',
+                        object: { type: 'Identifier', name: mochaMethod },
+                        property: { type: 'Identifier', name: modifier },
+                    },
+                })
+                .replaceWith(path =>
+                    j.callExpression(
+                        j.memberExpression(
+                            j.identifier(jestMethod),
+                            j.identifier(modifier)
+                        ),
+                        path.value.arguments
+                    )
+                );
         });
     });
 

@@ -18,8 +18,9 @@ function testChanged(msg, source, expectedOutput) {
     });
 }
 
-testChanged('maps BDD-style interface',
-`
+testChanged(
+    'maps BDD-style interface',
+    `
 // @flow
 describe('describe', () => {
   before(() => {});
@@ -38,7 +39,7 @@ describe('describe', () => {
   })
 })
 `,
-`
+    `
 // @flow
 describe('describe', () => {
   beforeAll(() => {});
@@ -56,10 +57,12 @@ describe('describe', () => {
     it('specify', () => {})
   })
 })
-`);
-
-testChanged('maps TDD-style interface',
 `
+);
+
+testChanged(
+    'maps TDD-style interface',
+    `
 // @flow
 suite('suite', () => {
   suiteSetup(() => {});
@@ -75,7 +78,7 @@ suite('suite', () => {
   test('description', () => {});
 })
 `,
-`
+    `
 // @flow
 describe('suite', () => {
   beforeAll(() => {});
@@ -93,14 +96,15 @@ describe('suite', () => {
 `
 );
 
-testChanged('preserves exclusive tests',
-`
+testChanged(
+    'preserves exclusive tests',
+    `
 // @flow
 suite.only('only suite', () => {
   test.only('only test', () => {});
 });
 `,
-`
+    `
 // @flow
 describe.only('only suite', () => {
   it.only('only test', () => {});
@@ -108,15 +112,16 @@ describe.only('only suite', () => {
 `
 );
 
-testChanged('preserves skipped tests',
-`
+testChanged(
+    'preserves skipped tests',
+    `
 // @flow
 suite.skip('skip suite', () => {
   test.skip('skip test', () => {});
   test('test will be skipped');
 });
 `,
-`
+    `
 // @flow
 describe.skip('skip suite', () => {
   it.skip('skip test', () => {});
@@ -125,8 +130,9 @@ describe.skip('skip suite', () => {
 `
 );
 
-testChanged('preserves call expressions that are defined in scope',
-`
+testChanged(
+    'preserves call expressions that are defined in scope',
+    `
 const setup = () => {};
 context('test suite', () => {
     it('test', () => {
@@ -134,7 +140,7 @@ context('test suite', () => {
     });
 });
 `,
-`
+    `
 const setup = () => {};
 describe('test suite', () => {
     it('test', () => {

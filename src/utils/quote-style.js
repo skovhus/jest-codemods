@@ -7,20 +7,21 @@
 export default function detectQuoteStyle(j, ast) {
     let detectedQuoting = null;
 
-    ast.find(j.Literal, {
-        value: v => typeof v === 'string',
-        raw: v => typeof v === 'string',
-    })
-    .forEach(p => {
-        // The raw value is from the original babel source
-        if (p.value.raw[0] === '\'') {
-            detectedQuoting = 'single';
-        }
+    ast
+        .find(j.Literal, {
+            value: v => typeof v === 'string',
+            raw: v => typeof v === 'string',
+        })
+        .forEach(p => {
+            // The raw value is from the original babel source
+            if (p.value.raw[0] === "'") {
+                detectedQuoting = 'single';
+            }
 
-        if (p.value.raw[0] === '"') {
-            detectedQuoting = 'double';
-        }
-    });
+            if (p.value.raw[0] === '"') {
+                detectedQuoting = 'double';
+            }
+        });
 
     return detectedQuoting;
 }

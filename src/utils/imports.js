@@ -1,9 +1,10 @@
 export function findRequires(j, ast, pkg) {
-    return ast.find(j.CallExpression, {
-        callee: { name: 'require' },
-        arguments: arg => arg[0].value === pkg,
-    })
-    .filter(p => p.value.arguments.length === 1);
+    return ast
+        .find(j.CallExpression, {
+            callee: { name: 'require' },
+            arguments: arg => arg[0].value === pkg,
+        })
+        .filter(p => p.value.arguments.length === 1);
 }
 
 export function findImports(j, ast, pkg) {
@@ -51,8 +52,7 @@ export function removeRequireAndImport(j, ast, pkg, specifier) {
 
     let localName = null;
     let importName = null;
-    findRequires(j, ast, pkg)
-    .forEach(p => {
+    findRequires(j, ast, pkg).forEach(p => {
         const variableDeclarationPath = findParentVariableDeclaration(p);
         const parentMember = findParentPathMemberRequire(p);
         if (!specifier || (parentMember && parentMember.name === specifier)) {
@@ -65,10 +65,10 @@ export function removeRequireAndImport(j, ast, pkg, specifier) {
         }
     });
 
-    findImports(j, ast, pkg)
-    .forEach(p => {
+    findImports(j, ast, pkg).forEach(p => {
         const pathSpecifier = p.value.specifiers[0];
-        importName = pathSpecifier && pathSpecifier.imported && pathSpecifier.imported.name;
+        importName =
+            pathSpecifier && pathSpecifier.imported && pathSpecifier.imported.name;
 
         if (!specifier || importName === specifier) {
             if (pathSpecifier) {
