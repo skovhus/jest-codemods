@@ -12,17 +12,7 @@ beforeEach(() => {
     console.warn = v => consoleWarnings.push(v);
 });
 
-function testChanged(_msg, _source, _expectedOutput) {
-    let msg = _msg;
-    let source = _source;
-    let expectedOutput = _expectedOutput;
-
-    if (!expectedOutput) {
-        msg = 'chai-should';
-        source = _msg;
-        expectedOutput = _source;
-    }
-
+function testChanged(msg, source, expectedOutput) {
     test(msg, () => {
         const result = wrappedPlugin(source);
         expect(result).toBe(expectedOutput);
@@ -107,12 +97,8 @@ testChanged(
 
 testChanged(
     'converts "above"',
-    `
-        expect(10).to.be.above(5);
-    `,
-    `
-        expect(10).toBeGreaterThan(5);
-    `
+    `expect(10).to.be.above(5);`,
+    `expect(10).toBeGreaterThan(5);`
 );
 
 testChanged(
@@ -120,10 +106,12 @@ testChanged(
     `
         expect(5).to.be.below(10);
         expect(5).to.be.below(10, 'error message');
+        expect(3).to.be.at.below(5);
     `,
     `
         expect(5).toBeLessThan(10);
         expect(5).toBeLessThan(10);
+        expect(3).toBeLessThan(5);
     `
 );
 
@@ -133,11 +121,17 @@ testChanged(
         expect({ foo: 'bar' }).to.eql({ foo: 'bar' });
         expect([1, 2, 3]).to.eql([1, 2, 3]);
         a.should.eql(a);
+
+        expect("123").to.eql("123");
+        expect("123").to.not.eql("123");
     `,
     `
         expect({ foo: 'bar' }).toEqual({ foo: 'bar' });
         expect([1, 2, 3]).toEqual([1, 2, 3]);
         expect(a).toEqual(a);
+
+        expect("123").toEqual("123");
+        expect("123").not.toEqual("123");
     `
 );
 
@@ -198,10 +192,12 @@ testChanged(
     `
         expect(false).to.be.false;
         expect(0).to.not.be.false;
+        expect(foo + bar).to.be.false;
     `,
     `
         expect(false).toBe(false);
         expect(0).not.toBe(false);
+        expect(foo + bar).toBe(false);
     `
 );
 
@@ -226,10 +222,12 @@ testChanged(
     `
         expect(foo).to.be.an.instanceof(Foo);
         expect(foo).not.to.be.an.instanceof(Foo);
+        expect(123).to.be.instanceof(Number);
     `,
     `
         expect(foo).toBeInstanceOf(Foo);
         expect(foo).not.toBeInstanceOf(Foo);
+        expect(123).toBeInstanceOf(Number);
     `
 );
 
@@ -251,11 +249,21 @@ testChanged(
 
 testChanged(
     'converts "least"',
+    `expect(10).to.be.at.least(10);`,
+    `expect(10).toBeGreaterThanOrEqual(10);`
+);
+
+testChanged(
+    'converts "length"',
     `
-        expect(10).to.be.at.least(10);
+        expect('foo').to.have.length.of.at.most(4);
+        expect([1,2]).to.have.length.of.at.most(4);
+        expect(anArray).to.have.length.above(2);
     `,
     `
-        expect(10).toBeGreaterThanOrEqual(10);
+        expect('foo'.length).toBeLessThanOrEqual(4);
+        expect([1,2].length).toBeLessThanOrEqual(4);
+        expect(anArray.length).toBeGreaterThan(2);
     `
 );
 
@@ -275,12 +283,8 @@ testChanged(
 
 testChanged(
     'converts "match"',
-    `
-        expect('foobar').to.match(/^foo/);
-    `,
-    `
-        expect('foobar').toMatch(/^foo/);
-    `
+    `expect('foobar').to.match(/^foo/);`,
+    `expect('foobar').toMatch(/^foo/);`
 );
 
 testChanged(
@@ -311,12 +315,8 @@ testChanged(
 
 testChanged(
     'converts "most"',
-    `
-        expect(5).to.be.at.most(5);
-    `,
-    `
-        expect(5).toBeLessThanOrEqual(5);
-    `
+    `expect(5).to.be.at.most(5);`,
+    `expect(5).toBeLessThanOrEqual(5);`
 );
 
 testChanged(
@@ -378,6 +378,20 @@ testChanged(
         expect(Object.getOwnPropertyDescriptor('test', 'length')).not.toBeUndefined();
         expect(Object.getOwnPropertyDescriptor('test', 'length')).toEqual({ enumerable: false, configurable: false, writable: false, value: 4 });
         expect(Object.getOwnPropertyDescriptor('test', 'length')).toEqual({ enumerable: false, configurable: false, writable: false, value: 3 });
+    `
+);
+
+testChanged(
+    'converts "property"',
+    `
+        expect(deepObj).to.have.deep.property("green.tea", "matcha");
+        expect(obj).to.have.property("foo");
+        expect(obj).to.have.property("foo", "bar");
+    `,
+    `
+        expect(deepObj).toHaveProperty("green.tea", "matcha");
+        expect(obj).toHaveProperty("foo");
+        expect(obj).toHaveProperty("foo", "bar");
     `
 );
 
@@ -461,87 +475,13 @@ testChanged(
     `
 );
 
-testChanged('expect("123").to.eql("123");', 'expect("123").toEqual("123");');
-
-testChanged('expect("123").to.not.eql("123");', 'expect("123").not.toEqual("123");');
-
-testChanged('expect(foo).to.exist;', 'expect(foo).toBeDefined();');
-
-testChanged('expect(bar).to.not.exist;', 'expect(bar).toBeFalsy();');
-
-testChanged('expect(foo + bar).to.be.false;', 'expect(foo + bar).toBe(false);');
-
-testChanged('expect(10).to.be.above(5);', 'expect(10).toBeGreaterThan(5);');
-
-testChanged('expect(10).to.be.at.least(10);', 'expect(10).toBeGreaterThanOrEqual(10);');
-
-testChanged('expect(3).to.be.at.below(5);', 'expect(3).toBeLessThan(5);');
-
-testChanged('expect(5).to.be.at.most(5);', 'expect(5).toBeLessThanOrEqual(5);');
-
-testChanged(
-    'expect(123).to.be.instanceof(Number);',
-    'expect(123).toBeInstanceOf(Number);'
-);
-
-testChanged(
-    'expect("123").to.not.be.instanceof(Number);',
-    'expect("123").not.toBeInstanceOf(Number);'
-);
-
-testChanged('expect(undefined).to.not.be.null;', 'expect(undefined).not.toBeNull();');
-
-testChanged('expect(1).to.be.true;', 'expect(1).toBe(true);');
-
-testChanged('expect(1).not.to.be.true;', 'expect(1).not.toBe(true);');
-
-testChanged('expect(undefined).to.be.undefined;', 'expect(undefined).toBeUndefined();');
-
-testChanged(
-    'expect([ 1, 2, 3]).to.have.lengthOf(3);',
-    'expect([ 1, 2, 3]).toHaveLength(3);'
-);
-
-testChanged('expect("foobar").to.match(/^foo/);', 'expect("foobar").toMatch(/^foo/);');
-
-testChanged(
-    'expect(deepObj).to.have.deep.property("green.tea", "matcha");',
-    'expect(deepObj).toHaveProperty("green.tea", "matcha");'
-);
-
-testChanged('expect(obj).to.have.property("foo");', 'expect(obj).toHaveProperty("foo");');
-
-testChanged(
-    'expect(obj).to.have.property("foo", "bar");',
-    'expect(obj).toHaveProperty("foo", "bar");'
-);
-
-test('handling .length', () => {
-    const result = wrappedPlugin(
-        `
-        expect('foo').to.have.length.of.at.most(4);
-        expect([1,2]).to.have.length.of.at.most(4);
-        expect(anArray).to.have.length.above(2);
-        `
-    );
-
-    expect(result).toEqual(
-        `
-        expect('foo'.length).toBeLessThanOrEqual(4);
-        expect([1,2].length).toBeLessThanOrEqual(4);
-        expect(anArray.length).toBeGreaterThan(2);
-        `
-    );
-});
-
-test('not supported assertions part 1', () => {
+it('warns about not supported assertions part 1', () => {
     wrappedPlugin(
         `
         expect([1, 2, 3]).to.have.any.keys([1, 2]);
         expect([4, 2]).to.have.ordered.members([2, 4]);
         expect(7).to.be.within(10);
-
-    `
+        `
     );
 
     expect(consoleWarnings).toEqual([
@@ -551,7 +491,7 @@ test('not supported assertions part 1', () => {
     ]);
 });
 
-test('not supported assertions part 2', () => {
+it('warns about not supported assertions part 2', () => {
     wrappedPlugin(
         `
         expect(arguments).to.be.arguments;
@@ -566,7 +506,7 @@ test('not supported assertions part 2', () => {
         expect(nonExtensibleObject).to.not.be.extensible;
         expect(sealedObject).to.be.sealed;
         expect(sealedObject).to.be.frozen;
-    `
+        `
     );
 
     expect(consoleWarnings).toEqual([
@@ -585,14 +525,14 @@ test('not supported assertions part 2', () => {
     ]);
 });
 
-test('leaves code without should/expect', () => {
+it('leaves code without should/expect', () => {
     const result = wrappedPlugin(
         `
         function test() {
             i.have.a.dream();
             i.have.a.dream;
         }
-    `
+        `
     );
 
     expect(result).toBeNull();
