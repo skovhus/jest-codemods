@@ -42,6 +42,7 @@ const members = [
     'true',
     'false',
     'extensible',
+    'finite',
     'frozen',
     'sealed',
     'null',
@@ -61,7 +62,6 @@ const unsupportedProperties = new Set([
     'change',
     'increase',
     'decrease',
-    'extensible',
 ]);
 
 const mapValueNameToObjectMethod = {
@@ -263,6 +263,14 @@ module.exports = function transformer(fileInfo, api) {
                             [j.booleanLiteral(false)],
                             rest,
                             containsNot
+                        );
+                    case 'finite':
+                        return createCall(
+                            'toBe',
+                            [j.booleanLiteral(!containsNot)],
+                            updateExpect(value, node => {
+                                return createCallChain(['isFinite'], [node]);
+                            })
                         );
                     case 'extensible':
                     case 'frozen':

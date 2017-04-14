@@ -238,6 +238,18 @@ testChanged(
 );
 
 testChanged(
+    'converts "finite"',
+    `
+        (Infinity).should.not.be.finite;
+        (-10).should.be.finite;
+    `,
+    `
+        expect(isFinite(Infinity)).toBe(false);
+        expect(isFinite(-10)).toBe(true);
+    `
+);
+
+testChanged(
     'converts "frozen"',
     `
         expect(frozenObject).to.be.frozen;
