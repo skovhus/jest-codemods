@@ -192,6 +192,18 @@ testChanged(
 );
 
 testChanged(
+    'converts "extensible"',
+    `
+        expect(nonExtensibleObject).to.not.be.extensible;
+        expect({}).to.be.extensible;
+    `,
+    `
+        expect(Object.isExtensible(nonExtensibleObject)).toBe(false);
+        expect(Object.isExtensible({})).toBe(true);
+    `
+);
+
+testChanged(
     'converts "empty"',
     `
         expect([]).to.be.empty;
@@ -218,6 +230,18 @@ testChanged(
         expect(false).toBe(false);
         expect(0).not.toBe(false);
         expect(foo + bar).toBe(false);
+    `
+);
+
+testChanged(
+    'converts "frozen"',
+    `
+        expect(frozenObject).to.be.frozen;
+        expect({}).to.not.be.frozen;
+    `,
+    `
+        expect(Object.isFrozen(frozenObject)).toBe(true);
+        expect(Object.isFrozen({})).toBe(false);
     `
 );
 
@@ -422,6 +446,18 @@ testChanged(
 );
 
 testChanged(
+    'converts "sealed"',
+    `
+        expect(sealedObject).to.be.sealed;
+        expect({}).to.not.be.sealed;
+    `,
+    `
+        expect(Object.isSealed(sealedObject)).toBe(true);
+        expect(Object.isSealed({})).toBe(false);
+    `
+);
+
+testChanged(
     'converts "throw"',
     `
         const err = new ReferenceError('This is a bad function.');
@@ -529,9 +565,6 @@ it('warns about not supported assertions part 2', () => {
         expect(fn).to.change(obj, 'val');
         expect(fn).to.increase(obj, 'val');
         expect(fn).to.decrease(obj, 'val');
-        expect(nonExtensibleObject).to.not.be.extensible;
-        expect(sealedObject).to.be.sealed;
-        expect(sealedObject).to.be.frozen;
         `
     );
 
@@ -545,9 +578,6 @@ it('warns about not supported assertions part 2', () => {
         'jest-codemods warning: (test.js line 8) Unsupported Chai Assertion "change"',
         'jest-codemods warning: (test.js line 9) Unsupported Chai Assertion "increase"',
         'jest-codemods warning: (test.js line 10) Unsupported Chai Assertion "decrease"',
-        'jest-codemods warning: (test.js line 11) Unsupported Chai Assertion "extensible"',
-        'jest-codemods warning: (test.js line 12) Unsupported Chai Assertion "sealed"',
-        'jest-codemods warning: (test.js line 13) Unsupported Chai Assertion "frozen"',
     ]);
 });
 

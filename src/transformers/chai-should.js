@@ -40,6 +40,9 @@ const members = [
     'ok',
     'true',
     'false',
+    'extensible',
+    'frozen',
+    'sealed',
     'null',
     'undefined',
     'exist',
@@ -58,9 +61,13 @@ const unsupportedProperties = new Set([
     'increase',
     'decrease',
     'extensible',
-    'sealed',
-    'frozen',
 ]);
+
+const mapValueNameToObjectMethod = {
+    extensible: 'isExtensible',
+    frozen: 'isFrozen',
+    sealed: 'isSealed',
+};
 
 module.exports = function transformer(fileInfo, api) {
     const j = api.jscodeshift;
@@ -235,7 +242,9 @@ module.exports = function transformer(fileInfo, api) {
                 const rest = getAllBefore(isPrefix, value, 'should');
                 const containsNot = chainContains('not', value, 'to');
 
-                switch (value.property.name.toLowerCase()) {
+                const propertyName = value.property.name.toLowerCase();
+
+                switch (propertyName) {
                     case 'ok':
                         return containsNot
                             ? createCall('toBeFalsy', [], rest)
@@ -253,6 +262,19 @@ module.exports = function transformer(fileInfo, api) {
                             [j.booleanLiteral(false)],
                             rest,
                             containsNot
+                        );
+                    case 'extensible':
+                    case 'frozen':
+                    case 'sealed':
+                        return createCall(
+                            'toBe',
+                            [j.booleanLiteral(!containsNot)],
+                            updateExpect(value, node => {
+                                return createCallChain(
+                                    ['Object', mapValueNameToObjectMethod[propertyName]],
+                                    [node]
+                                );
+                            })
                         );
                     case 'null':
                         return createCall('toBeNull', [], rest, containsNot);
