@@ -120,6 +120,24 @@ testChanged(
     'expect(obj).toHaveProperty("foo", "bar");'
 );
 
+test('handling .length', () => {
+    const result = wrappedPlugin(
+        `
+        expect('foo').to.have.length.of.at.most(4);
+        expect([1,2]).to.have.length.of.at.most(4);
+        expect(anArray).to.have.length.above(2);
+        `
+    );
+
+    expect(result).toEqual(
+        `
+        expect('foo'.length).toBeLessThanOrEqual(4);
+        expect([1,2].length).toBeLessThanOrEqual(4);
+        expect(anArray.length).toBeGreaterThan(2);
+        `
+    );
+});
+
 test('not supported assertions part 1', () => {
     wrappedPlugin(
         `

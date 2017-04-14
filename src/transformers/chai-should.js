@@ -155,29 +155,28 @@ module.exports = function transformer(fileInfo, api) {
         }
     }
 
+    function getRestWithLengthHandled(p, rest) {
+        const containsLength = chainContains('length', p.value.callee, isPrefix);
+        return containsLength
+            ? updateExpect(rest, node => j.memberExpression(node, j.identifier('length')))
+            : rest;
+    }
+
     function withIn(p, rest, args, containsNot) {
         if (args.length < 2) {
             logWarning(`.within needs at least two arguments`, p);
             return p.value;
         }
 
-        const containsLength = chainContains('length', p.value.callee, isPrefix);
-        const expect = () =>
-            (containsLength
-                ? updateExpect(rest, node =>
-                      j.memberExpression(node, j.identifier('length'))
-                  )
-                : rest);
-
         j(p)
             .closest(j.ExpressionStatement)
             .insertBefore(
                 j.expressionStatement(
-                    createCall('toBeLessThanOrEqual', [args[0]], expect(), containsNot)
+                    createCall('toBeLessThanOrEqual', [args[0]], rest, containsNot)
                 )
             );
 
-        return createCall('toBeGreaterThanOrEqual', [args[1]], expect(), containsNot);
+        return createCall('toBeGreaterThanOrEqual', [args[1]], rest, containsNot);
     }
 
     const shouldChainedToExpect = () =>
@@ -288,7 +287,10 @@ module.exports = function transformer(fileInfo, api) {
             })
             .replaceWith(p => {
                 const { value } = p;
-                const rest = getAllBefore(isPrefix, value.callee, 'should');
+                const rest = getRestWithLengthHandled(
+                    p,
+                    getAllBefore(isPrefix, value.callee, 'should')
+                );
                 const containsNot = chainContains('not', value.callee, isPrefix);
                 const containsDeep = chainContains('deep', value.callee, isPrefix);
                 const containsAny = chainContains('any', value.callee, isPrefix);
