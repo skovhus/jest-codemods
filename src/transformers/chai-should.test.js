@@ -72,6 +72,8 @@ testChanged(
     `
         expect('test').to.be.a('string', 'error message');
         expect({ foo: 'bar' }).to.be.an('object');
+        expect({ foo: 'bar' }).to.be.an(Object);
+        expect('xyz').to.be.a(String);
         expect(null).to.be.a('null');
         expect(undefined).to.be.an('undefined');
         expect(new Error()).to.be.an('error');
@@ -84,6 +86,8 @@ testChanged(
     `
         expect(typeof 'test').toBe('string');
         expect(typeof { foo: 'bar' }).toBe('object');
+        expect({ foo: 'bar' }).toBeInstanceOf(Object);
+        expect('xyz').toBeInstanceOf(String);
         expect(null).toBeNull();
         expect(undefined).toBeUndefined();
         expect(typeof new Error()).toBe('error');
@@ -272,11 +276,17 @@ testChanged(
 testChanged(
     'converts "length"',
     `
+        expect('foo').to.have.length(3);
+        expect([1,2]).to.have.length(2);
+
         expect('foo').to.have.length.of.at.most(4);
         expect([1,2]).to.have.length.of.at.most(4);
         expect(anArray).to.have.length.above(2);
     `,
     `
+        expect('foo').toHaveLength(3);
+        expect([1,2]).toHaveLength(2);
+
         expect('foo'.length).toBeLessThanOrEqual(4);
         expect([1,2].length).toBeLessThanOrEqual(4);
         expect(anArray.length).toBeGreaterThan(2);

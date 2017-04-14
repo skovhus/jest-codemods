@@ -301,10 +301,9 @@ module.exports = function transformer(fileInfo, api) {
             })
             .replaceWith(p => {
                 const { value } = p;
-                const rest = getRestWithLengthHandled(
-                    p,
-                    getAllBefore(isPrefix, value.callee, 'should')
-                );
+
+                const restRaw = getAllBefore(isPrefix, value.callee, 'should');
+                const rest = getRestWithLengthHandled(p, restRaw);
                 const containsNot = chainContains('not', value.callee, isPrefix);
                 const containsDeep = chainContains('deep', value.callee, isPrefix);
                 const containsAny = chainContains('any', value.callee, isPrefix);
@@ -387,19 +386,12 @@ module.exports = function transformer(fileInfo, api) {
                         if (args[0].type === 'Literal') {
                             return typeOf(value, args, containsNot);
                         }
-                        return createCall(
-                            'toBe',
-                            [j.booleanLiteral(true)],
-                            updateExpect(value, node =>
-                                j.binaryExpression('instanceof', node, args[0])
-                            ),
-                            containsNot
-                        );
+                        return createCall('toBeInstanceOf', args, rest, containsNot);
                     case 'instanceof':
                         return createCall('toBeInstanceOf', args, rest, containsNot);
                     case 'length':
                     case 'lengthof':
-                        return createCall('toHaveLength', args, rest, containsNot);
+                        return createCall('toHaveLength', args, restRaw, containsNot);
                     case 'property':
                         return createCall('toHaveProperty', args, rest, containsNot);
                     case 'ownproperty':
