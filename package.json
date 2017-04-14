@@ -18,7 +18,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "babel src -d dist --ignore *.test.js,__testfixtures__",
+    "build": "babel src -d dist --ignore *.test.js",
     "check": "npm run lint && npm run test:cov",
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
@@ -75,8 +75,7 @@
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
-      "/dist/",
-      "/__testfixtures__/"
+      "/dist/"
     ],
     "testEnvironment": "node"
   }

@@ -1,1 +1,0 @@
-expect('foobar').toMatch(/^foo/);
