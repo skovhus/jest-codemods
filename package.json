@@ -75,8 +75,7 @@
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
-      "/dist/",
-      "/__testfixtures__/"
+      "/dist/"
     ],
     "testEnvironment": "node"
   }

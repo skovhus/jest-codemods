@@ -1,4 +1,3 @@
 node_modules
 bin
 dist
-src/transformers/__testfixtures__

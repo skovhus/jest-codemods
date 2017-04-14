@@ -36,6 +36,7 @@ const cli = meow(
 updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 
 const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
+const TRANSFORMER_CHAI_SHOULD = 'chai-should';
 const TRANSFORMER_TAPE = 'tape';
 const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_MOCHA = 'mocha';
@@ -101,8 +102,8 @@ if (cli.input.length) {
                         value: TRANSFORMER_CHAI_ASSERT,
                     },
                     {
-                        name: 'Other',
-                        value: 'other',
+                        name: 'Should/Expect BDD Syntax',
+                        value: TRANSFORMER_CHAI_SHOULD,
                     },
                     {
                         name: 'None',
@@ -128,9 +129,6 @@ if (cli.input.length) {
             const transformers = transformer === 'all' ? allTransformers : [transformer];
 
             if (chai) {
-                if (chai !== TRANSFORMER_CHAI_ASSERT) {
-                    return supportFailure('Chai Assert syntax');
-                }
                 transformers.push(chai);
             }
 
