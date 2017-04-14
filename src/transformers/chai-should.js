@@ -263,6 +263,20 @@ module.exports = function transformer(fileInfo, api) {
                             ? createCall('toBeDefined', [], rest)
                             : createCall('toBeUndefined', [], rest);
                     case 'empty':
+                        return createCall(
+                            'toHaveLength',
+                            [j.literal(0)],
+                            updateExpect(value, node => {
+                                if (
+                                    node.type === j.ObjectExpression.name ||
+                                    node.type === j.Identifier.name
+                                ) {
+                                    return createCallChain(['Object', 'keys'], [node]);
+                                }
+                                return node;
+                            }),
+                            containsNot
+                        );
                     case 'exist':
                     case 'defined':
                         return containsNot

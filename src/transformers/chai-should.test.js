@@ -188,6 +188,22 @@ testChanged(
 );
 
 testChanged(
+    'converts "empty"',
+    `
+        expect([]).to.be.empty;
+        expect('').to.be.empty;
+        expect(v).to.be.empty;
+        expect({}).to.be.empty;
+    `,
+    `
+        expect([]).toHaveLength(0);
+        expect('').toHaveLength(0);
+        expect(Object.keys(v)).toHaveLength(0);
+        expect(Object.keys({})).toHaveLength(0);
+    `
+);
+
+testChanged(
     'converts "false"',
     `
         expect(false).to.be.false;
