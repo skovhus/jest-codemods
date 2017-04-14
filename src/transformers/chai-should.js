@@ -24,6 +24,7 @@ const fns = [
     'above',
     'least',
     'below',
+    'lessthan',
     'most',
     'match',
     'string',
@@ -360,6 +361,7 @@ module.exports = function transformer(fileInfo, api) {
                             containsNot
                         );
                     case 'below':
+                    case 'lessthan':
                         return createCall('toBeLessThan', args, rest, containsNot);
                     case 'most':
                     case 'lte':
