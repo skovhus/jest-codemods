@@ -29,17 +29,13 @@ export const chainContainsUtil = j => (fnName, node, end) => {
     return curr.type === j.MemberExpression.name && curr.property.name === fnName;
 };
 
-export const getNodeBeforeMemberExpressionUtil = j => (memberName, node, end) => {
+export const getNodeBeforeMemberExpressionUtil = j => (equalsMemberName, node, end) => {
     let rest = node;
-    const equalsMemberName = typeof memberName === 'function'
-        ? memberName
-        : name => name === memberName;
-    const equalsEnd = typeof end === 'function' ? end : name => name === end;
 
     while (
         rest.type === j.MemberExpression.name &&
         !equalsMemberName(rest.property.name) &&
-        !equalsEnd(rest.property.name)
+        rest.property.name !== end
     ) {
         rest = rest.object;
     }
@@ -47,7 +43,7 @@ export const getNodeBeforeMemberExpressionUtil = j => (memberName, node, end) =>
     if (
         rest.type === j.MemberExpression.name &&
         equalsMemberName(rest.property.name) &&
-        !equalsEnd(rest.property.name)
+        rest.property.name !== end
     ) {
         rest = rest.object;
     }
