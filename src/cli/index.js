@@ -40,7 +40,13 @@ const TRANSFORMER_CHAI_SHOULD = 'chai-should';
 const TRANSFORMER_TAPE = 'tape';
 const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_MOCHA = 'mocha';
-const allTransformers = [TRANSFORMER_TAPE, TRANSFORMER_AVA, TRANSFORMER_MOCHA];
+const ALL_TRANSFORMERS = [
+    TRANSFORMER_TAPE,
+    TRANSFORMER_AVA,
+    TRANSFORMER_MOCHA,
+    TRANSFORMER_CHAI_ASSERT,
+    // TRANSFORMER_CHAI_SHOULD doesn't have import detection
+];
 
 function supportFailure(supportedItems) {
     console.log(`\nCurrently, jest-codemods only has support for ${supportedItems}.`);
@@ -55,10 +61,7 @@ if (cli.input.length) {
     if (!cli.flags.dry) {
         checkGitStatus(cli.flags.force);
     }
-    executeTransformations(cli.input, cli.flags, [
-        ...allTransformers,
-        TRANSFORMER_CHAI_ASSERT,
-    ]);
+    executeTransformations(cli.input, cli.flags, ALL_TRANSFORMERS);
 } else {
     // Else show the fancy inquirer prompt.
     inquirer
@@ -69,19 +72,27 @@ if (cli.input.length) {
                 message: 'Which test library would you like to migrate from?',
                 choices: [
                     {
-                        name: 'Tape',
-                        value: TRANSFORMER_TAPE,
-                    },
-                    {
                         name: 'AVA',
                         value: TRANSFORMER_AVA,
+                    },
+                    {
+                        name: 'Chai: Assert Syntax',
+                        value: TRANSFORMER_CHAI_ASSERT,
+                    },
+                    {
+                        name: 'Chai: Should/Expect BDD Syntax',
+                        value: TRANSFORMER_CHAI_SHOULD,
                     },
                     {
                         name: 'Mocha',
                         value: TRANSFORMER_MOCHA,
                     },
                     {
-                        name: 'All of the above!',
+                        name: 'Tape',
+                        value: TRANSFORMER_TAPE,
+                    },
+                    {
+                        name: 'All of the above (by detecting usage)!',
                         value: 'all',
                     },
                     {
@@ -92,10 +103,9 @@ if (cli.input.length) {
             },
             {
                 type: 'list',
-                name: 'chai',
+                name: 'mochaChai',
                 message: 'Would you like to include Chai transformations with Mocha?',
-                when: ({ transformer }) =>
-                    [TRANSFORMER_MOCHA, 'all'].indexOf(transformer) > -1,
+                when: ({ transformer }) => TRANSFORMER_MOCHA === transformer,
                 choices: [
                     {
                         name: 'Assert Syntax',
@@ -120,16 +130,16 @@ if (cli.input.length) {
             },
         ])
         .then(answers => {
-            const { files, transformer, chai } = answers;
+            const { files, transformer, mochaChai } = answers;
 
             if (transformer === 'other') {
-                return supportFailure('AVA, Tape, and Mocha');
+                return supportFailure('AVA, Tape, Chai and Mocha');
             }
 
-            const transformers = transformer === 'all' ? allTransformers : [transformer];
+            const transformers = transformer === 'all' ? ALL_TRANSFORMERS : [transformer];
 
-            if (chai) {
-                transformers.push(chai);
+            if (mochaChai) {
+                transformers.push(mochaChai);
             }
 
             if (!files.length) {
