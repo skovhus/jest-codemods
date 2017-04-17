@@ -1,4 +1,4 @@
-import { JEST_MATCHERS_WITH_NO_ARGS } from '../utils/consts';
+import { JEST_MATCHER_TO_MAX_ARGS } from '../utils/consts';
 import detectQuoteStyle from '../utils/quote-style';
 import {
     getRequireOrImportName,
@@ -66,6 +66,34 @@ export default function expectTransformer(fileInfo, api, options) {
 
     if (!standaloneMode) {
         removeRequireAndImport(j, ast, expectPackageName);
+    }
+
+    function balanceMatcherNodeArguments(matcherNode, matcher, path) {
+        const newJestMatcherName = matcher.name.replace('not.', '');
+        const maxArgs = JEST_MATCHER_TO_MAX_ARGS[newJestMatcherName];
+        if (typeof maxArgs === 'undefined') {
+            throw new Error(
+                `Unknown matcher "${newJestMatcherName}" (JEST_MATCHER_TO_MAX_ARGS)`
+            );
+        }
+
+        if (matcherNode.arguments.length > maxArgs) {
+            // Try to remove assertion message
+            const lastArg = matcherNode.arguments[matcherNode.arguments.length - 1];
+            if (lastArg.type === 'Literal') {
+                matcherNode.arguments.pop();
+            }
+        }
+
+        if (matcherNode.arguments.length <= maxArgs) {
+            return;
+        }
+
+        logger(
+            fileInfo,
+            `Too many arguments given to "${newJestMatcherName}". Expected max ${maxArgs} but got ${matcherNode.arguments.length}`,
+            path
+        );
     }
 
     ast
@@ -136,17 +164,7 @@ ${keys}.forEach(e => {
                 }
             }
 
-            if (JEST_MATCHERS_WITH_NO_ARGS.has(matcher.name)) {
-                matcherNode.arguments = [];
-            }
-
-            if (matcherNode.arguments.length > 1) {
-                const lastArg = matcherNode.arguments[matcherNode.arguments.length - 1];
-                if (lastArg.type === 'Literal') {
-                    // Remove assertion message
-                    matcherNode.arguments.pop();
-                }
-            }
+            balanceMatcherNodeArguments(matcherNode, matcher, path);
         });
 
     const addRequireOrImportOnce = addRequireOrImportOnceFactory(j, ast);

@@ -37,7 +37,3 @@ export const JEST_MATCHER_TO_MAX_ARGS = {
     toThrowError: 1,
     toThrowErrorMatchingSnapshot: 0,
 };
-
-export const JEST_MATCHERS_WITH_NO_ARGS = Object.keys(JEST_MATCHER_TO_MAX_ARGS).filter(
-    k => JEST_MATCHER_TO_MAX_ARGS[k] === 0
-);

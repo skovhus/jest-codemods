@@ -90,7 +90,8 @@ testChanged(
 
       expect(stuff).toHaveBeenCalled();
       expect(stuff).toNotHaveBeenCalled();
-      expect(stuff).toHaveBeenCalledWith();
+      expect(stuff).toNotHaveBeenCalled('msg');
+      expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `,
     `
@@ -143,7 +144,8 @@ testChanged(
 
       expect(stuff).toHaveBeenCalled();
       expect(stuff).not.toHaveBeenCalled();
-      expect(stuff).toHaveBeenCalledWith();
+      expect(stuff).not.toHaveBeenCalled();
+      expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `
 );
@@ -179,6 +181,7 @@ testChanged(
 
     test(() => {
       expect(stuff).toInclude(1);
+      expect(stuff).toInclude(1, 'msg');
       expect(stuff).toExclude('world');
       expect(stuff).toNotContain({b: 2});
       expect(stuff).toNotInclude('world');
@@ -192,6 +195,7 @@ testChanged(
     `,
     `
     test(() => {
+      expect(stuff).toContain(1);
       expect(stuff).toContain(1);
       expect(stuff).not.toContain('world');
       expect(stuff).not.toContain({b: 2});
@@ -218,14 +222,14 @@ testChanged(
     test(() => {
       expect(stuff).toHaveBeenCalled();
       expect(stuff).toNotHaveBeenCalled();
-      expect(stuff).toHaveBeenCalledWith();
+      expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `,
     `
     test(() => {
       expect(stuff).toHaveBeenCalled();
       expect(stuff).not.toHaveBeenCalled();
-      expect(stuff).toHaveBeenCalledWith();
+      expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `
 );
@@ -262,14 +266,14 @@ testChanged(
     test(() => {
       exp(stuff).toHaveBeenCalled();
       exp(stuff).toNotHaveBeenCalled();
-      exp(stuff).toHaveBeenCalledWith();
+      exp(stuff).toHaveBeenCalledWith(1);
     });
     `,
     `
     test(() => {
       expect(stuff).toHaveBeenCalled();
       expect(stuff).not.toHaveBeenCalled();
-      expect(stuff).toHaveBeenCalledWith();
+      expect(stuff).toHaveBeenCalledWith(1);
     });
     `
 );
@@ -382,5 +386,36 @@ test('warns about chaining', () => {
         JSON.stringify([
             'jest-codemods warning: (test.js line 5) Chaining except matchers is currently not supported',
         ])
+    );
+});
+
+test('warns about unsupported number of arguments (comparator)', () => {
+    wrappedPlugin(
+        `
+        import expect from 'expect';
+
+        test(() => {
+            expect({ a: 1, b: 2 }).toContainKey([ 'a', 'b' ], myFunc, 'msg');
+            expect({ a: 1, b: 2 }).toContain({ b: 2 }, myComparator);
+            expect({ a: 1, b: 2 }).toExclude([ 'a', 'b' ], myFunc);
+            expect({ a: 1, b: 2 }).toExcludeKey([ 'a', 'b' ], myFunc);
+            expect({ a: 1, b: 2 }).toInclude({ b: 2 }, myComparator);
+            expect({ a: 1, b: 2 }).toIncludeKeys([ 'a', 'b' ], () => {});
+            expect({ a: 1, b: 2 }).toNotContain([ 'a', 'b' ], myFunc, 'msg');
+            expect({ a: 1, b: 2 }).toNotContainKey([ 'a', 'b' ], myFunc);
+            expect({ a: 1, b: 2 }).toNotInclude([ 'a', 'b' ], myFunc, 'msg');
+            expect({ a: 1, b: 2 }).toNotIncludeKey([ 'a', 'b' ], myFunc);
+        });
+    `
+    );
+    const firstErrorLine = 5;
+    const numberOfErrors = 10;
+    expect(JSON.stringify(consoleWarnings)).toEqual(
+        JSON.stringify(
+            [...Array(numberOfErrors).keys()].map(
+                e =>
+                    `jest-codemods warning: (test.js line ${e + firstErrorLine}) Too many arguments given to "toContain". Expected max 1 but got 2`
+            )
+        )
     );
 });
