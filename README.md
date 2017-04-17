@@ -4,7 +4,7 @@ Codemods that simplify migrating JavaScript test files from
 [Mocha](https://github.com/mochajs/mocha),
 [Chai](https://github.com/chaijs/chai),
 [Should.js](https://github.com/tj/should.js/),
-[Expect](https://github.com/mjackson/expect),
+[Expect@1.x.x](https://github.com/mjackson/expect),
 [proxyquire](https://github.com/thlorenz/proxyquire),
 [Tape](https://github.com/substack/tape)
 and [AVA](https://github.com/avajs/ava)
