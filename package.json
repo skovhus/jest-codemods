@@ -20,10 +20,11 @@
   "scripts": {
     "build": "babel src -d dist --ignore *.test.js",
     "check": "npm run lint && npm run test:cov",
+    "check:bail": "eslint src && npm run test:cov",
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
-    "prepublish": "npm run clean && npm run check && npm run build",
-    "ci": "eslint src && npm run test:cov",
+    "prepublish": "npm run clean && npm run check:bail && npm run build",
+    "ci": "npm run check:bail",
     "test:cov": "npm run test -- --coverage",
     "test:watch": "npm run test -- --watch",
     "test": "jest --runInBand"
