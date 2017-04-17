@@ -1,5 +1,9 @@
 import detectQuoteStyle from '../utils/quote-style';
-import { getRequireOrImportName, addRequireOrImportOnceFactory, removeRequireAndImport } from '../utils/imports';
+import {
+    getRequireOrImportName,
+    addRequireOrImportOnceFactory,
+    removeRequireAndImport,
+} from '../utils/imports';
 import logger from '../utils/logger';
 import proxyquireTransformer from '../utils/proxyquire';
 
@@ -25,12 +29,7 @@ const matcherRenaming = {
     toNotHaveBeenCalled: 'not.toHaveBeenCalled',
 };
 
-const matchersToBe = new Set([
-    'toBeA',
-    'toBeAn',
-    'toNotBeA',
-    'toNotBeAn',
-]);
+const matchersToBe = new Set(['toBeA', 'toBeAn', 'toNotBeA', 'toNotBeAn']);
 
 const matchersWithKey = new Set([
     'toContainKey',
@@ -48,11 +47,7 @@ const matchersWithKeys = new Set([
     'toNotIncludeKeys',
 ]);
 
-const jestMatchersWithNoArgs = new Set([
-    'toBeTruthy',
-    'toBeFalsy',
-    'toHaveBeenCalled',
-]);
+const jestMatchersWithNoArgs = new Set(['toBeTruthy', 'toBeFalsy', 'toHaveBeenCalled']);
 
 const spyFunctions = new Set(['spyOn']);
 
@@ -74,97 +69,107 @@ export default function expectTransformer(fileInfo, api, options) {
         removeRequireAndImport(j, ast, expectPackageName);
     }
 
-    ast.find(j.MemberExpression, {
-        object: {
-            type: 'CallExpression',
-            callee: { type: 'Identifier', name: expectFunctionName },
-        },
-        property: { type: 'Identifier' },
-    })
-    .forEach(path => {
-        if (path.parentPath.parentPath.node.type === 'MemberExpression') {
-            logger(fileInfo, 'Chaining except matchers is currently not supported', path);
-            return;
-        }
-
-        if (!standaloneMode) {
-            path.parentPath.node.callee.object.callee.name = 'expect';
-        }
-
-        const matcherNode = path.parentPath.node;
-        const matcher = path.node.property;
-        const matcherName = matcher.name;
-
-        const matcherArgs = matcherNode.arguments;
-        const expectArgs = path.node.object.arguments;
-
-        const isNot = matcherName.indexOf('Not') !== -1 || matcherName.indexOf('Exclude') !== -1;
-
-        if (matcherRenaming[matcherName]) {
-            matcher.name = matcherRenaming[matcherName];
-        }
-
-        if (matchersToBe.has(matcherName)) {
-            if (matcherArgs[0].type === 'Literal') {
-                expectArgs[0] = j.unaryExpression('typeof', expectArgs[0]);
-                matcher.name = isNot ? 'not.toBe' : 'toBe';
+    ast
+        .find(j.MemberExpression, {
+            object: {
+                type: 'CallExpression',
+                callee: { type: 'Identifier', name: expectFunctionName },
+            },
+            property: { type: 'Identifier' },
+        })
+        .forEach(path => {
+            if (path.parentPath.parentPath.node.type === 'MemberExpression') {
+                logger(
+                    fileInfo,
+                    'Chaining except matchers is currently not supported',
+                    path
+                );
+                return;
             }
-        }
 
-        if (matchersWithKey.has(matcherName)) {
-            expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`;
-            matcher.name = isNot ? 'not.toContain' : 'toContain';
-        }
+            if (!standaloneMode) {
+                path.parentPath.node.callee.object.callee.name = 'expect';
+            }
 
-        if (matchersWithKeys.has(matcherName)) {
-            const keys = matcherArgs[0];
-            matcherArgs[0] = j.identifier('e');
-            matcher.name = isNot ? 'not.toContain' : 'toContain';
-            j(path.parentPath).replaceWith(j.template.expression`\
+            const matcherNode = path.parentPath.node;
+            const matcher = path.node.property;
+            const matcherName = matcher.name;
+
+            const matcherArgs = matcherNode.arguments;
+            const expectArgs = path.node.object.arguments;
+
+            const isNot =
+                matcherName.indexOf('Not') !== -1 ||
+                matcherName.indexOf('Exclude') !== -1;
+
+            if (matcherRenaming[matcherName]) {
+                matcher.name = matcherRenaming[matcherName];
+            }
+
+            if (matchersToBe.has(matcherName)) {
+                if (matcherArgs[0].type === 'Literal') {
+                    expectArgs[0] = j.unaryExpression('typeof', expectArgs[0]);
+                    matcher.name = isNot ? 'not.toBe' : 'toBe';
+                }
+            }
+
+            if (matchersWithKey.has(matcherName)) {
+                expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`;
+                matcher.name = isNot ? 'not.toContain' : 'toContain';
+            }
+
+            if (matchersWithKeys.has(matcherName)) {
+                const keys = matcherArgs[0];
+                matcherArgs[0] = j.identifier('e');
+                matcher.name = isNot ? 'not.toContain' : 'toContain';
+                j(path.parentPath).replaceWith(
+                    j.template.expression`\
 ${keys}.forEach(e => {
   ${matcherNode}
-})`);
-        }
-
-        if (matcherName === 'toMatch' || matcherName === 'toNotMatch') {
-            const arg = matcherArgs[0];
-            if (arg.type === 'ObjectExpression') {
-                matcher.name = isNot ? 'not.toMatchObject' : 'toMatchObject';
+})`
+                );
             }
-        }
 
-        if (jestMatchersWithNoArgs.has(matcher.name)) {
-            matcherNode.arguments = [];
-        }
-
-        if (matcherNode.arguments.length > 1) {
-            const lastArg = matcherNode.arguments[matcherNode.arguments.length - 1];
-            if (lastArg.type === 'Literal') {
-                // Remove assertion message
-                matcherNode.arguments.pop();
+            if (matcherName === 'toMatch' || matcherName === 'toNotMatch') {
+                const arg = matcherArgs[0];
+                if (arg.type === 'ObjectExpression') {
+                    matcher.name = isNot ? 'not.toMatchObject' : 'toMatchObject';
+                }
             }
-        }
-    });
+
+            if (jestMatchersWithNoArgs.has(matcher.name)) {
+                matcherNode.arguments = [];
+            }
+
+            if (matcherNode.arguments.length > 1) {
+                const lastArg = matcherNode.arguments[matcherNode.arguments.length - 1];
+                if (lastArg.type === 'Literal') {
+                    // Remove assertion message
+                    matcherNode.arguments.pop();
+                }
+            }
+        });
 
     const addRequireOrImportOnce = addRequireOrImportOnceFactory(j, ast);
 
-    ast.find(j.CallExpression, {
-        callee: {
-            type: 'MemberExpression',
-            object: { type: 'Identifier', name: expectFunctionName },
-            property: { name: p => spyFunctions.has(p) },
-        },
-    })
-    .forEach(path => {
-        const { callee } = path.node;
-        if (standaloneMode) {
-            const mockLocalName = 'mock';
-            addRequireOrImportOnce(mockLocalName, 'jest-mock');
-            callee.object = mockLocalName;
-        } else {
-            callee.object = 'jest';
-        }
-    });
+    ast
+        .find(j.CallExpression, {
+            callee: {
+                type: 'MemberExpression',
+                object: { type: 'Identifier', name: expectFunctionName },
+                property: { name: p => spyFunctions.has(p) },
+            },
+        })
+        .forEach(path => {
+            const { callee } = path.node;
+            if (standaloneMode) {
+                const mockLocalName = 'mock';
+                addRequireOrImportOnce(mockLocalName, 'jest-mock');
+                callee.object = mockLocalName;
+            } else {
+                callee.object = 'jest';
+            }
+        });
 
     proxyquireTransformer(fileInfo, j, ast);
 

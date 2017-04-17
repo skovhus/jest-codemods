@@ -31,7 +31,12 @@ function executeTransformation(files, flags, transformer, transformerArgs) {
     }
 }
 
-export function executeTransformations(files, flags, transformers, transformerOptions = []) {
+export function executeTransformations(
+    files,
+    flags,
+    transformers,
+    transformerOptions = []
+) {
     transformers.forEach(t => {
         executeTransformation(files, flags, t, transformerOptions);
     });

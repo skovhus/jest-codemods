@@ -42,7 +42,12 @@ it('supports jscodeshift flags', () => {
 it('supports jscodeshift custom arguments', () => {
     execaReturnValue = { error: null };
     console.log = jest.fn();
-    executeTransformations('folder', { dry: true, parser: 'flow' }, ['ava'], ['--standaloneMode']);
+    executeTransformations(
+        'folder',
+        { dry: true, parser: 'flow' },
+        ['ava'],
+        ['--standaloneMode']
+    );
     expect(console.log).toBeCalledWith(
         `Executing command: jscodeshift -t ${path.join(transformerDirectory, 'ava.js')} folder --dry --parser flow --standaloneMode`
     );

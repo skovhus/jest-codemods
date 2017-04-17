@@ -15,8 +15,7 @@ export function addRequireOrImport(j, ast, localName, pkg) {
         );
     }
 
-    ast.find(j.Program).get('body', 0)
-    .insertAfter(requireStatement);
+    ast.find(j.Program).get('body', 0).insertAfter(requireStatement);
 }
 
 export function addRequireOrImportOnceFactory(j, ast) {
@@ -79,16 +78,14 @@ function findParentPathMemberRequire(path) {
  */
 export function getRequireOrImportName(j, ast, pkg) {
     let localName = null;
-    findRequires(j, ast, pkg)
-    .forEach(p => {
+    findRequires(j, ast, pkg).forEach(p => {
         const variableDeclarationPath = findParentVariableDeclaration(p);
         if (variableDeclarationPath) {
             localName = variableDeclarationPath.value.id.name;
         }
     });
 
-    findImports(j, ast, pkg)
-    .forEach(p => {
+    findImports(j, ast, pkg).forEach(p => {
         const pathSpecifier = p.value.specifiers[0];
         if (pathSpecifier) {
             localName = pathSpecifier.local.name;
