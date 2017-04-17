@@ -1,3 +1,4 @@
+import { JEST_MATCHERS_WITH_NO_ARGS } from '../utils/consts';
 import detectQuoteStyle from '../utils/quote-style';
 import {
     getRequireOrImportName,
@@ -46,8 +47,6 @@ const matchersWithKeys = new Set([
     'toNotContainKeys',
     'toNotIncludeKeys',
 ]);
-
-const jestMatchersWithNoArgs = new Set(['toBeTruthy', 'toBeFalsy', 'toHaveBeenCalled']);
 
 const spyFunctions = new Set(['spyOn']);
 
@@ -137,7 +136,7 @@ ${keys}.forEach(e => {
                 }
             }
 
-            if (jestMatchersWithNoArgs.has(matcher.name)) {
+            if (JEST_MATCHERS_WITH_NO_ARGS.has(matcher.name)) {
                 matcherNode.arguments = [];
             }
 
