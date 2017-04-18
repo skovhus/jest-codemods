@@ -200,10 +200,16 @@ testChanged(
     `
         expect(nonExtensibleObject).to.not.be.extensible;
         expect({}).to.be.extensible;
+        expect({}).to.be.extensible();
+        x.should.be.extensible;
+        x.should.be.extensible();
     `,
     `
         expect(Object.isExtensible(nonExtensibleObject)).toBe(false);
         expect(Object.isExtensible({})).toBe(true);
+        expect(Object.isExtensible({})).toBe(true);
+        expect(Object.isExtensible(x)).toBe(true);
+        expect(Object.isExtensible(x)).toBe(true);
     `
 );
 
@@ -417,12 +423,14 @@ testChanged(
         expect(false).to.not.be.ok;
         expect(undefined).to.not.be.ok;
         expect(null).to.not.be.ok;
+        expect(null).to.not.be.ok();
     `,
     `
         expect('everything').toBeTruthy();
         expect(1).toBeTruthy();
         expect(false).toBeFalsy();
         expect(undefined).toBeFalsy();
+        expect(null).toBeFalsy();
         expect(null).toBeFalsy();
     `
 );
@@ -502,10 +510,12 @@ testChanged(
     `
         expect(true).to.be.true;
         expect(1).to.not.be.true;
+        expect(true).to.be.true();
     `,
     `
         expect(true).toBe(true);
         expect(1).not.toBe(true);
+        expect(true).toBe(true);
     `
 );
 
@@ -514,9 +524,11 @@ testChanged(
     `
         expect(undefined).to.be.undefined;
         expect(null).to.not.be.undefined;
+        expect(null).to.not.be.undefined();
     `,
     `
         expect(undefined).toBeUndefined();
+        expect(null).toBeDefined();
         expect(null).toBeDefined();
     `
 );
