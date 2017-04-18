@@ -231,13 +231,21 @@ module.exports = function transformer(fileInfo, api) {
             })
             .size();
 
-    const updateMemberExpressions = () =>
-        root
-            .find(j.MemberExpression, {
+    const updateMemberExpressions = () => {
+        const getMembers = () =>
+            root.find(j.MemberExpression, {
                 property: {
                     name: name => members.indexOf(name.toLowerCase()) !== -1,
                 },
-            })
+            });
+
+        getMembers().forEach(p => {
+            if (p.parentPath.value.type === j.CallExpression.name) {
+                p.parentPath.replace(p.value);
+            }
+        });
+
+        return getMembers()
             .replaceWith(p => {
                 const { value } = p;
                 const rest = getAllBefore(isPrefix, value, 'should');
@@ -318,6 +326,7 @@ module.exports = function transformer(fileInfo, api) {
                 }
             })
             .size();
+    };
 
     const updateCallExpressions = () =>
         root
