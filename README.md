@@ -2,6 +2,8 @@
 
 Codemods that simplify migrating JavaScript test files from
 [Mocha](https://github.com/mochajs/mocha),
+[Chai](https://github.com/chaijs/chai),
+[proxyquire](https://github.com/thlorenz/proxyquire),
 [Tape](https://github.com/substack/tape)
 and [AVA](https://github.com/avajs/ava)
 to [Jest](https://facebook.github.io/jest/).
@@ -47,17 +49,17 @@ For more options
 ```
 $ jest-codemods --help
 
-	Codemods for migrating test files to Jest.
+    Codemods for migrating test files to Jest.
 
-	Usage
-	  $ jest-codemods <path> [options]
+    Usage
+      $ jest-codemods <path> [options]
 
-	path		Files or directory to transform. Can be a glob like src/**.test.js
+    path	Files or directory to transform. Can be a glob like src/**.test.js
 
-	Options
-	  --force, -f	Bypass Git safety checks and forcibly run codemods
-	  --dry, -d		Dry run (no changes are made to files)
-	  --parser		The parser to use for parsing your source files (babel | babylon | flow)  [babel]
+    Options
+      --force, -f	Bypass Git safety checks and forcibly run codemods
+      --dry, -d		Dry run (no changes are made to files)
+      --parser		The parser to use for parsing your source files (babel | babylon | flow)  [babel]
 ```
 
 To transform all test files in a directory run `jest-codemods test-folder` in your terminal.
@@ -74,11 +76,11 @@ But you can also run the transformations directly using `jscodeshift`.
 ```
 $ npm install -g jscodeshift
 $ npm install jest-codemods
-$ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/ava.js test-folder
-$ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-assert.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-should.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
 ```
 
 
