@@ -621,3 +621,6 @@ it('leaves code without should/expect', () => {
 
     expect(result).toBeNull();
 });
+
+// TODO: warn about chaining not working
+// E.g. expect({ foo: 'baz' }).to.have.property('foo').and.not.equal('bar');

@@ -30,3 +30,19 @@ export function getMemberExpressionElements(node, _rest = []) {
     }
     return getMemberExpressionElements(node.object, [node.property.name].concat(_rest));
 }
+
+export function traverseMemberExpressionUtil(j, nodeValidator) {
+    const traverseMemberExpression = node => {
+        if (!node) {
+            return false;
+        }
+
+        if (nodeValidator(node)) {
+            return true;
+        }
+
+        return traverseMemberExpression(node.object);
+    };
+
+    return traverseMemberExpression;
+}
