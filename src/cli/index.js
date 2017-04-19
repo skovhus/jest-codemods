@@ -35,17 +35,17 @@ const cli = meow(
 
 updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 
+const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
 const TRANSFORMER_CHAI_SHOULD = 'chai-should';
-const TRANSFORMER_TAPE = 'tape';
-const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_MOCHA = 'mocha';
+const TRANSFORMER_TAPE = 'tape';
 const ALL_TRANSFORMERS = [
-    TRANSFORMER_TAPE,
     TRANSFORMER_AVA,
-    TRANSFORMER_MOCHA,
     TRANSFORMER_CHAI_ASSERT,
     // TRANSFORMER_CHAI_SHOULD doesn't have import detection
+    TRANSFORMER_MOCHA,
+    TRANSFORMER_TAPE,
 ];
 
 function supportFailure(supportedItems) {
@@ -55,107 +55,94 @@ function supportFailure(supportedItems) {
     );
 }
 
-if (cli.input.length) {
-    // Apply all transformers if input is given using CLI.
-    // TODO: consider removing this option...
-    if (!cli.flags.dry) {
-        checkGitStatus(cli.flags.force);
-    }
-    executeTransformations(cli.input, cli.flags, ALL_TRANSFORMERS);
-} else {
-    // Else show the fancy inquirer prompt.
-    inquirer
-        .prompt([
-            {
-                type: 'list',
-                name: 'transformer',
-                message: 'Which test library would you like to migrate from?',
-                choices: [
-                    {
-                        name: 'AVA',
-                        value: TRANSFORMER_AVA,
-                    },
-                    {
-                        name: 'Chai: Assert Syntax',
-                        value: TRANSFORMER_CHAI_ASSERT,
-                    },
-                    {
-                        name: 'Chai: Should/Expect BDD Syntax',
-                        value: TRANSFORMER_CHAI_SHOULD,
-                    },
-                    {
-                        name: 'Mocha',
-                        value: TRANSFORMER_MOCHA,
-                    },
-                    {
-                        name: 'Tape',
-                        value: TRANSFORMER_TAPE,
-                    },
-                    {
-                        name: 'All of the above (by detecting usage)!',
-                        value: 'all',
-                    },
-                    {
-                        name: 'Other',
-                        value: 'other',
-                    },
-                ],
-            },
-            {
-                type: 'list',
-                name: 'mochaChai',
-                message: 'Would you like to include Chai transformations with Mocha?',
-                when: ({ transformer }) => TRANSFORMER_MOCHA === transformer,
-                choices: [
-                    {
-                        name: 'Assert Syntax',
-                        value: TRANSFORMER_CHAI_ASSERT,
-                    },
-                    {
-                        name: 'Should/Expect BDD Syntax',
-                        value: TRANSFORMER_CHAI_SHOULD,
-                    },
-                    {
-                        name: 'None',
-                        value: null,
-                    },
-                ],
-            },
-            {
-                type: 'input',
-                name: 'files',
-                message: 'On which files or directory should the codemods be applied?',
-                default: 'src test/**/*.js',
-                filter: files => files.trim().split(/\s+/).filter(v => v),
-            },
-        ])
-        .then(answers => {
-            const { files, transformer, mochaChai } = answers;
+inquirer
+    .prompt([
+        {
+            type: 'list',
+            name: 'transformer',
+            message: 'Which test library would you like to migrate from?',
+            choices: [
+                {
+                    name: 'AVA',
+                    value: TRANSFORMER_AVA,
+                },
+                {
+                    name: 'Chai: Assert Syntax',
+                    value: TRANSFORMER_CHAI_ASSERT,
+                },
+                {
+                    name: 'Chai: Should/Expect BDD Syntax',
+                    value: TRANSFORMER_CHAI_SHOULD,
+                },
+                {
+                    name: 'Mocha',
+                    value: TRANSFORMER_MOCHA,
+                },
+                {
+                    name: 'Tape',
+                    value: TRANSFORMER_TAPE,
+                },
+                {
+                    name: 'All of the above (by detecting usage)!',
+                    value: 'all',
+                },
+                {
+                    name: 'Other',
+                    value: 'other',
+                },
+            ],
+        },
+        {
+            type: 'list',
+            name: 'mochaChai',
+            message: 'Would you like to include Chai transformations with Mocha?',
+            when: ({ transformer }) => TRANSFORMER_MOCHA === transformer,
+            choices: [
+                {
+                    name: 'Assert Syntax',
+                    value: TRANSFORMER_CHAI_ASSERT,
+                },
+                {
+                    name: 'Should/Expect BDD Syntax',
+                    value: TRANSFORMER_CHAI_SHOULD,
+                },
+                {
+                    name: 'None',
+                    value: null,
+                },
+            ],
+        },
+        {
+            type: 'input',
+            name: 'files',
+            message: 'On which files or directory should the codemods be applied?',
+            when: () => !cli.input.length,
+            default: 'src test/**/*.js',
+            filter: files => files.trim().split(/\s+/).filter(v => v),
+        },
+    ])
+    .then(answers => {
+        const { files, transformer, mochaChai } = answers;
 
-            if (transformer === 'other') {
-                return supportFailure('AVA, Tape, Chai and Mocha');
-            }
+        if (transformer === 'other') {
+            return supportFailure('AVA, Tape, Chai and Mocha');
+        }
 
-            const transformers = transformer === 'all' ? ALL_TRANSFORMERS : [transformer];
+        const transformers = transformer === 'all' ? ALL_TRANSFORMERS : [transformer];
 
-            if (mochaChai) {
-                transformers.push(mochaChai);
-            }
+        if (mochaChai) {
+            transformers.push(mochaChai);
+        }
 
-            if (!files.length) {
-                return undefined;
-            }
+        const filesExpanded = cli.input.length ? cli.input : globby.sync(files);
+        if (!filesExpanded.length) {
+            console.log(`No files found matching ${files.join(' ')}`);
+            return;
+        }
 
-            const filesExpanded = globby.sync(files);
-            if (!filesExpanded.length) {
-                console.log(`No files found matching ${files.join(' ')}`);
-                return undefined;
-            }
+        if (!cli.flags.dry) {
+            checkGitStatus(cli.flags.force);
+        }
 
-            if (!cli.flags.dry) {
-                checkGitStatus(cli.flags.force);
-            }
-
-            return executeTransformations(filesExpanded, cli.flags, transformers);
-        });
-}
+        return executeTransformations(filesExpanded, cli.flags, transformers);
+    });
