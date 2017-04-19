@@ -7,6 +7,7 @@ import {
 } from '../utils/chai-chain-utils';
 import logger from '../utils/logger';
 import { removeRequireAndImport } from '../utils/imports';
+import { traverseMemberExpressionUtil } from '../utils/recast-helpers';
 import detectQuoteStyle from '../utils/quote-style';
 
 const fns = [
@@ -70,6 +71,8 @@ const mapValueNameToObjectMethod = {
     sealed: 'isSealed',
 };
 
+export const assertPrefixes = new Set(['to', 'with', 'that']);
+
 module.exports = function transformer(fileInfo, api) {
     const j = api.jscodeshift;
     const root = j(fileInfo.source);
@@ -90,29 +93,15 @@ module.exports = function transformer(fileInfo, api) {
         (node.type === j.MemberExpression.name && isExpectCall(node.object)) ||
         (node.type === j.CallExpression.name && isExpectCall(node.callee));
 
-    const isShouldMemberExpression = node => {
-        if (!node) {
-            return false;
-        }
+    const isShouldMemberExpression = traverseMemberExpressionUtil(
+        j,
+        node => node.type === 'Identifier' && node.name === 'should'
+    );
 
-        if (node.type === 'Identifier' && node.name === 'should') {
-            return true;
-        }
-
-        return isShouldMemberExpression(node.object);
-    };
-
-    const isExpectMemberExpression = node => {
-        if (!node) {
-            return false;
-        }
-
-        if (node.type === j.CallExpression.name && node.callee.name === 'expect') {
-            return true;
-        }
-
-        return isExpectMemberExpression(node.object);
-    };
+    const isExpectMemberExpression = traverseMemberExpressionUtil(
+        j,
+        node => node.type === j.CallExpression.name && node.callee.name === 'expect'
+    );
 
     const logWarning = (msg, node) => logger(fileInfo, msg, node);
 
@@ -140,7 +129,9 @@ module.exports = function transformer(fileInfo, api) {
         }
     };
 
-    const isPrefix = name => ['to', 'with', 'that'].indexOf(name) !== -1;
+    // TODO: not sure if this is even required for chai...
+    // E.g. is should(x).true valid?
+    const isPrefix = name => assertPrefixes.has(name);
 
     function parseArgs(args) {
         if (args.length === 1 && args[0].type === j.ObjectExpression.name) {

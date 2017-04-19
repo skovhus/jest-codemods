@@ -39,11 +39,13 @@ const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
 const TRANSFORMER_CHAI_SHOULD = 'chai-should';
 const TRANSFORMER_MOCHA = 'mocha';
+const TRANSFORMER_SHOULD = 'should';
 const TRANSFORMER_TAPE = 'tape';
+
 const ALL_TRANSFORMERS = [
     TRANSFORMER_AVA,
     TRANSFORMER_CHAI_ASSERT,
-    // TRANSFORMER_CHAI_SHOULD doesn't have import detection
+    // TRANSFORMER_CHAI_SHOULD & TRANSFORMER_SHOULD doesn't have import detection
     TRANSFORMER_MOCHA,
     TRANSFORMER_TAPE,
 ];
@@ -79,6 +81,10 @@ inquirer
                     value: TRANSFORMER_MOCHA,
                 },
                 {
+                    name: 'Should.js',
+                    value: TRANSFORMER_SHOULD,
+                },
+                {
                     name: 'Tape',
                     value: TRANSFORMER_TAPE,
                 },
@@ -94,8 +100,8 @@ inquirer
         },
         {
             type: 'list',
-            name: 'mochaChai',
-            message: 'Would you like to include Chai transformations with Mocha?',
+            name: 'mochaAssertion',
+            message: 'Would you like to include assertion transformations with Mocha?',
             when: ({ transformer }) => TRANSFORMER_MOCHA === transformer,
             choices: [
                 {
@@ -105,6 +111,10 @@ inquirer
                 {
                     name: 'Should/Expect BDD Syntax',
                     value: TRANSFORMER_CHAI_SHOULD,
+                },
+                {
+                    name: 'Should.js',
+                    value: TRANSFORMER_SHOULD,
                 },
                 {
                     name: 'None',
@@ -122,7 +132,7 @@ inquirer
         },
     ])
     .then(answers => {
-        const { files, transformer, mochaChai } = answers;
+        const { files, transformer, mochaAssertion } = answers;
 
         if (transformer === 'other') {
             return supportFailure('AVA, Tape, Chai and Mocha');
@@ -130,8 +140,8 @@ inquirer
 
         const transformers = transformer === 'all' ? ALL_TRANSFORMERS : [transformer];
 
-        if (mochaChai) {
-            transformers.push(mochaChai);
+        if (mochaAssertion) {
+            transformers.push(mochaAssertion);
         }
 
         const filesExpanded = cli.input.length ? cli.input : globby.sync(files);
