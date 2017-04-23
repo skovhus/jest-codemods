@@ -1,3 +1,5 @@
+import { findParentVariableDeclaration } from './recast-helpers';
+
 export function addRequireOrImport(j, ast, localName, pkg) {
     const { statement } = j.template;
 
@@ -53,16 +55,6 @@ export function hasRequireOrImport(j, ast, pkg) {
     const requires = findRequires(j, ast, pkg).size();
     const imports = findImports(j, ast, pkg).size();
     return requires + imports > 0;
-}
-
-function findParentVariableDeclaration(path) {
-    if (!path) {
-        return null;
-    }
-    if (path.value.type === 'VariableDeclarator') {
-        return path;
-    }
-    return findParentVariableDeclaration(path.parentPath);
 }
 
 function findParentPathMemberRequire(path) {

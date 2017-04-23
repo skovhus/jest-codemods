@@ -235,25 +235,91 @@ testChanged(
 );
 
 testChanged(
-    'maps spy calls',
+    'maps spy creation calls',
     `
     import expect from 'expect';
 
     test(() => {
       var spy1 = expect.createSpy();
       var spy2 = expect.spyOn(video, 'play');
+
       expect.spyOn(video, 'play');
-      spy1.restore();
-      spy1.reset();
+      expect.spyOn(video, 'play').andCall(fn);
+      expect.spyOn(video, 'play').andReturn(42);
+      expect.spyOn(video, 'play').andThrow(new Error('bum'));
+
+      expect.createSpy().andCall(fn);
+      expect.createSpy().andReturn(value);
+
+      not.a.spy.andCall(fn);
     });
     `,
     `
     test(() => {
-      var spy1 = expect.createSpy();
+      var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
+
       jest.spyOn(video, 'play');
+      jest.spyOn(video, 'play').mockImplementation(fn);
+      jest.spyOn(video, 'play').mockImplementation(() => 42);
+      jest.spyOn(video, 'play').mockImplementation(() => {
+        throw new Error('bum');
+      });
+
+      jest.fn().mockImplementation(fn);
+      jest.fn().mockImplementation(() => value);
+
+      not.a.spy.andCall(fn);
+    });
+    `
+);
+
+testChanged(
+    'maps spy methods on intitialized spies',
+    `
+    import expect from 'expect';
+
+    test(() => {
+      var spy1 = expect.createSpy();
+      var spy2 = expect.spyOn(video, 'play');
+      var spy3 = expect.spyOn(video, 'play');
+
+      spy1.andCall(fn);
+      spy2.andReturn(42);
+      spy3.andThrow(new Error('bum'));
+
+      not.a.spy.andCall(fn);
+      not.a.spy.andReturn(fn);
+      not.a.spy.andThrow(fn);
+
+      expect(spy1.calls.length).toBe(2);
+      expect(spy2.calls[i].arguments[j]).toBe('yes');
+
       spy1.restore();
-      spy1.reset();
+      spy2.reset();
+    });
+    `,
+    `
+    test(() => {
+      var spy1 = jest.fn();
+      var spy2 = jest.spyOn(video, 'play');
+      var spy3 = jest.spyOn(video, 'play');
+
+      spy1.mockImplementation(fn);
+      spy2.mockImplementation(() => 42);
+      spy3.mockImplementation(() => {
+        throw new Error('bum');
+      });
+
+      not.a.spy.andCall(fn);
+      not.a.spy.andReturn(fn);
+      not.a.spy.andThrow(fn);
+
+      expect(spy1.mock.calls.length).toBe(2);
+      expect(spy2.mock.calls[i][j]).toBe('yes');
+
+      spy1.mockReset();
+      spy2.mockClear();
     });
     `
 );
@@ -310,9 +376,6 @@ testChanged(
         var spy2 = expect.spyOn(video, 'play');
         expect.spyOn(video, 'play');
 
-        expect.restoreSpies();
-        expect.isSpy(spy1);
-
         spy1.restore();
         spy1.reset();
         expect(spy1.calls.length).toEqual(3);
@@ -325,22 +388,22 @@ testChanged(
     import mock from 'jest-mock';
 
     test(() => {
-        var spy1 = expect.createSpy();
+        var spy1 = mock.fn();
         var spy2 = mock.spyOn(video, 'play');
         mock.spyOn(video, 'play');
 
-        expect.restoreSpies();
-        expect.isSpy(spy1);
-
-        spy1.restore();
-        spy1.reset();
-        expect(spy1.calls.length).toEqual(3);
+        spy1.mockReset();
+        spy1.mockClear();
+        expect(spy1.mock.calls.length).toEqual(3);
     });
     `,
     {
         standaloneMode: true,
     }
 );
+
+// FIXME: restoreSpies and isSpy is missing from Jest
+// FIXME: running the transformer twice should fail
 
 testChanged(
     'standaloneMode: rewrites expect.spyOn (require)',
@@ -351,6 +414,7 @@ testChanged(
     test(() => {
         var spy1 = expect.createSpy();
         var spy2 = expect.spyOn(video, 'play');
+        expect(spy1.calls.length).toEqual(3);
     });
     `,
     `
@@ -360,8 +424,9 @@ testChanged(
     const mock = require('jest-mock')
 
     test(() => {
-        var spy1 = expect.createSpy();
+        var spy1 = mock.fn();
         var spy2 = mock.spyOn(video, 'play');
+        expect(spy1.mock.calls.length).toEqual(3);
     });
     `,
     {
@@ -382,11 +447,47 @@ test('warns about chaining', () => {
         });
     `
     );
-    expect(JSON.stringify(consoleWarnings)).toEqual(
-        JSON.stringify([
-            'jest-codemods warning: (test.js line 5) Chaining except matchers is currently not supported',
-        ])
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 5) Chaining except matchers is currently not supported',
+    ]);
+});
+
+test('warns about unsupported spy features', () => {
+    wrappedPlugin(
+        `
+        import expect from 'expect';
+
+        test(() => {
+          expect.restoreSpies();
+          const spy = expect.spyOn(video, 'play').andCallThrough(fn);
+          expect(expect.isSpy(spy)).toBe(true);
+        });
+    `
     );
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 5) "restoreSpies" is currently not supported',
+        'jest-codemods warning: (test.js line 7) "isSpy" is currently not supported',
+        'jest-codemods warning: (test.js line 6) "andCallThrough" is currently not supported',
+    ]);
+});
+
+test('warns about spy features without expect', () => {
+    wrappedPlugin(
+        `
+        import expect, { createSpy, spyOn } from 'expect'
+
+        test(() => {
+          var spy1 = createSpy();
+          var spy2 = spyOn(video, 'play');
+        });
+    `
+    );
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 5) "createSpy" is currently not supported ' +
+            '(use "expect.createSpy" instead for transformation to work)',
+        'jest-codemods warning: (test.js line 6) "spyOn" is currently not supported ' +
+            '(use "expect.spyOn" instead for transformation to work)',
+    ]);
 });
 
 test('warns about unsupported number of arguments (comparator)', () => {
@@ -410,12 +511,10 @@ test('warns about unsupported number of arguments (comparator)', () => {
     );
     const firstErrorLine = 5;
     const numberOfErrors = 10;
-    expect(JSON.stringify(consoleWarnings)).toEqual(
-        JSON.stringify(
-            [...Array(numberOfErrors).keys()].map(
-                e =>
-                    `jest-codemods warning: (test.js line ${e + firstErrorLine}) Too many arguments given to "toContain". Expected max 1 but got 2`
-            )
+    expect(consoleWarnings).toEqual(
+        [...Array(numberOfErrors).keys()].map(
+            e =>
+                `jest-codemods warning: (test.js line ${e + firstErrorLine}) Too many arguments given to "toContain". Expected max 1 but got 2`
         )
     );
 });

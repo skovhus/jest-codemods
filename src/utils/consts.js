@@ -37,3 +37,5 @@ export const JEST_MATCHER_TO_MAX_ARGS = {
     toThrowError: 1,
     toThrowErrorMatchingSnapshot: 0,
 };
+
+export const JEST_MOCK_PROPERTIES = new Set(['spyOn', 'fn', 'createSpy']);
