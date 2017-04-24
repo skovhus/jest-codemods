@@ -79,7 +79,7 @@ inquirer
                     value: TRANSFORMER_CHAI_SHOULD,
                 },
                 {
-                    name: 'Expect@1',
+                    name: 'Expect@1.x',
                     value: TRANSFORMER_EXPECT,
                 },
                 {
@@ -106,15 +106,16 @@ inquirer
         },
         {
             name: 'standaloneMode',
+            type: 'list',
             message: 'Would you use Expect without Jest (e.g. in a browser)?',
             when: ({ transformer }) => TRANSFORMER_EXPECT === transformer,
             choices: [
                 {
-                    name: 'Yes, make it work in a browser without Jest',
+                    name: 'Yes, make it work in a browser',
                     value: true,
                 },
                 {
-                    name: 'No, Jest is all I need',
+                    name: 'No, node is all I need',
                     value: false,
                 },
             ],
@@ -177,7 +178,7 @@ inquirer
 
         const transformerArgs = [];
         if (standaloneMode) {
-            transformerArgs.push('--standaloneMode');
+            transformerArgs.push('--standaloneMode=true');
             console.log('\nYou need to manually install jest-mock');
         }
 
