@@ -17,6 +17,9 @@ function testChanged(msg, source, expectedOutput, options = {}) {
         const result = wrappedPlugin(source, options);
         expect(result).toBe(expectedOutput);
         expect(consoleWarnings).toEqual([]);
+
+        // Running it twice should yield same result
+        expect(wrappedPlugin(result, options)).toBe(result);
     });
 }
 
