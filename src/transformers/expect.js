@@ -109,7 +109,7 @@ export default function expectTransformer(fileInfo, api, options) {
             .forEach(path => {
                 if (path.parentPath.parentPath.node.type === 'MemberExpression') {
                     logWarning(
-                        'Chaining except matchers is currently not supported',
+                        'Chaining expect matchers is currently not supported',
                         path
                     );
                     return;

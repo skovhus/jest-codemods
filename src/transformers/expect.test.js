@@ -451,7 +451,7 @@ test('warns about chaining', () => {
     `
     );
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) Chaining except matchers is currently not supported',
+        'jest-codemods warning: (test.js line 5) Chaining expect matchers is currently not supported',
     ]);
 });
 
