@@ -8,7 +8,7 @@ import {
 import logger from '../utils/logger';
 import { removeRequireAndImport } from '../utils/imports';
 import { traverseMemberExpressionUtil } from '../utils/recast-helpers';
-import detectQuoteStyle from '../utils/quote-style';
+import finale from '../utils/finale';
 
 const fns = [
     'keys',
@@ -73,7 +73,7 @@ const mapValueNameToObjectMethod = {
 
 export const assertPrefixes = new Set(['to', 'with', 'that']);
 
-module.exports = function transformer(fileInfo, api) {
+module.exports = function transformer(fileInfo, api, options) {
     const j = api.jscodeshift;
     const root = j(fileInfo.source);
     let mutations = 0;
@@ -496,6 +496,5 @@ module.exports = function transformer(fileInfo, api) {
         return null;
     }
 
-    const quote = detectQuoteStyle(j, root) || 'single';
-    return root.toSource({ quote });
+    return finale(fileInfo, j, root, options);
 };

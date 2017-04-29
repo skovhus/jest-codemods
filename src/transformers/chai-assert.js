@@ -1,6 +1,6 @@
-import detectQuoteStyle from '../utils/quote-style';
 import logger from '../utils/logger';
 import { removeRequireAndImport } from '../utils/imports';
+import finale from '../utils/finale';
 
 const getAssertionExpression = identifier => ({
     type: 'CallExpression',
@@ -176,7 +176,7 @@ const unsupportedAssertions = [
     'ifError',
 ];
 
-export default function transformer(fileInfo, api) {
+export default function transformer(fileInfo, api, options) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
 
@@ -418,8 +418,5 @@ export default function transformer(fileInfo, api) {
         })
         .replaceWith(path => makeExpectation('toBeTruthy', path.value.arguments[0]));
 
-    // As Recast is not preserving original quoting, we try to detect it,
-    // and default to something sane.
-    const quote = detectQuoteStyle(j, ast) || 'single';
-    return ast.toSource({ quote });
+    return finale(fileInfo, j, ast, options);
 }

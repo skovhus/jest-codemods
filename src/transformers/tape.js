@@ -1,9 +1,7 @@
 /**
  * Codemod for transforming Tape tests into Jest.
  */
-import detectQuoteStyle from '../utils/quote-style';
 import { removeRequireAndImport } from '../utils/imports';
-import detectIncompatiblePackages from '../utils/incompatible-packages';
 import { PROP_WITH_SECONDS_ARGS } from '../utils/consts';
 import {
     detectUnsupportedNaming,
@@ -11,7 +9,7 @@ import {
     rewriteDestructuredTArgument,
 } from '../utils/tape-ava-helpers';
 import logger from '../utils/logger';
-import proxyquireTransformer from '../utils/proxyquire';
+import finale from '../utils/finale';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
 const SPECIAL_PLAN_CASE = '(special plan case)';
@@ -80,7 +78,7 @@ const tPropertiesUnsupported = new Set([
 
 const unsupportedTestFunctionProperties = new Set(['createStream', 'onFinish']);
 
-export default function tapeToJest(fileInfo, api) {
+export default function tapeToJest(fileInfo, api, options) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
 
@@ -256,15 +254,9 @@ export default function tapeToJest(fileInfo, api) {
                     rewriteAssertionsAndTestArgument(j, p);
                 });
         },
-
-        () => detectIncompatiblePackages(fileInfo, j, ast),
-        () => proxyquireTransformer(fileInfo, j, ast),
     ];
 
     transforms.forEach(t => t());
 
-    // As Recast is not preserving original quoting, we try to detect it,
-    // and default to something sane.
-    const quote = detectQuoteStyle(j, ast) || 'single';
-    return ast.toSource({ quote });
+    return finale(fileInfo, j, ast, options);
 }

@@ -2,9 +2,7 @@
  * Codemod for transforming AVA tests into Jest.
  */
 
-import detectQuoteStyle from '../utils/quote-style';
 import { removeRequireAndImport } from '../utils/imports';
-import detectIncompatiblePackages from '../utils/incompatible-packages';
 import { PROP_WITH_SECONDS_ARGS } from '../utils/consts';
 import {
     detectUnsupportedNaming,
@@ -16,7 +14,7 @@ import {
     getMemberExpressionElements,
 } from '../utils/recast-helpers';
 import logger from '../utils/logger';
-import proxyquireTransformer from '../utils/proxyquire';
+import finale from '../utils/finale';
 
 const SPECIAL_THROWS_CASE = '(special throws case)';
 const SPECIAL_BOOL = '(special bool case)';
@@ -55,7 +53,7 @@ const avaToJestMethods = {
     only: 'test.only',
 };
 
-export default function avaToJest(fileInfo, api) {
+export default function avaToJest(fileInfo, api, options) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
 
@@ -208,15 +206,9 @@ export default function avaToJest(fileInfo, api) {
                     )
                 );
         },
-
-        () => detectIncompatiblePackages(fileInfo, j, ast),
-        () => proxyquireTransformer(fileInfo, j, ast),
     ];
 
     transforms.forEach(t => t());
 
-    // As Recast is not preserving original quoting, we try to detect it,
-    // and default to something sane.
-    const quote = detectQuoteStyle(j, ast) || 'single';
-    return ast.toSource({ quote });
+    return finale(fileInfo, j, ast, options);
 }

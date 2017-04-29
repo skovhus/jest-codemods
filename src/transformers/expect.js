@@ -1,13 +1,11 @@
 import { JEST_MATCHER_TO_MAX_ARGS, JEST_MOCK_PROPERTIES } from '../utils/consts';
-import detectQuoteStyle from '../utils/quote-style';
 import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports';
-import updateJestImports from '../utils/jest-imports';
 import {
     findParentCallExpression,
     findParentVariableDeclaration,
 } from '../utils/recast-helpers';
 import logger from '../utils/logger';
-import proxyquireTransformer from '../utils/proxyquire';
+import finale from '../utils/finale';
 
 const matcherRenaming = {
     toExist: 'toBeTruthy',
@@ -332,9 +330,6 @@ ${keys}.forEach(e => {
 
     updateMatchers();
     updateSpies();
-    updateJestImports(j, ast, standaloneMode, expectFunctionName);
-    proxyquireTransformer(fileInfo, j, ast);
 
-    const quote = detectQuoteStyle(j, ast) || 'single';
-    return ast.toSource({ quote });
+    return finale(fileInfo, j, ast, options, expectFunctionName);
 }
