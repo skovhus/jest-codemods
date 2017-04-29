@@ -405,9 +405,6 @@ testChanged(
     }
 );
 
-// FIXME: restoreSpies and isSpy is missing from Jest
-// FIXME: running the transformer twice should fail
-
 testChanged(
     'standaloneMode: rewrites expect.spyOn (require)',
     `
@@ -490,6 +487,33 @@ test('warns about spy features without expect', () => {
             '(use "expect.createSpy" instead for transformation to work)',
         'jest-codemods warning: (test.js line 6) "spyOn" is currently not supported ' +
             '(use "expect.spyOn" instead for transformation to work)',
+    ]);
+});
+
+test('warns about toMatch usage on variables', () => {
+    const result = wrappedPlugin(
+        `
+        import expect from 'expect'
+
+        test(() => {
+          expect(stuff).toMatch(variable);
+          expect(stuff).toNotMatch(variable);
+        });
+        `
+    );
+
+    expect(result).toEqual(
+        `
+        test(() => {
+          expect(stuff).toMatchObject(variable);
+          expect(stuff).not.toMatchObject(variable);
+        });
+        `
+    );
+
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 5) Use "toMatch" if "variable" is not an object',
+        'jest-codemods warning: (test.js line 6) Use "toMatch" if "variable" is not an object',
     ]);
 });
 

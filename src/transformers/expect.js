@@ -159,9 +159,17 @@ ${keys}.forEach(e => {
                 }
 
                 if (matcherName === 'toMatch' || matcherName === 'toNotMatch') {
-                    const arg = matcherArgs[0];
-                    if (arg.type === 'ObjectExpression') {
+                    // expect toMatch handles string, reg exp and object.
+                    const { name, type } = matcherArgs[0];
+                    if (type === 'ObjectExpression' || type === 'Identifier') {
                         matcher.name = isNot ? 'not.toMatchObject' : 'toMatchObject';
+
+                        if (type === 'Identifier') {
+                            logWarning(
+                                `Use "toMatch" if "${name}" is not an object`,
+                                path
+                            );
+                        }
                     }
                 }
 
