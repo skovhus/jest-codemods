@@ -42,6 +42,7 @@ const tPropertiesMap = {
     ifError: 'toBeFalsy',
     error: 'toBeFalsy',
     plan: SPECIAL_PLAN_CASE,
+    snapshot: 'toMatchSnapshot',
 };
 
 const tPropertiesNotMapped = new Set(['end', 'fail', 'pass']);
