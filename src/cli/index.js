@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import chalk from 'chalk';
 import globby from 'globby';
 import inquirer from 'inquirer';
 import meow from 'meow';
@@ -179,7 +180,11 @@ inquirer
         const transformerArgs = [];
         if (standaloneMode) {
             transformerArgs.push('--standaloneMode=true');
-            console.log('\nYou need to manually install jest-mock');
+            console.log(
+                chalk.yellow(
+                    '\nNOTICE: You need to manually install jest-matchers and jest-mock'
+                )
+            );
         }
 
         return executeTransformations(
