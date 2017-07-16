@@ -9,7 +9,7 @@ export function addRequireOrImport(j, ast, localName, pkg) {
 
     let requireStatement;
     if (requires.size()) {
-        requireStatement = statement`const ${localName} = require(${j.literal(pkg)})`;
+        requireStatement = statement`const ${localName} = require(${j.literal(pkg)});`;
     } else {
         requireStatement = j.importDeclaration(
             [j.importDefaultSpecifier(j.identifier(localName))],

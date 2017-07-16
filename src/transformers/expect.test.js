@@ -421,7 +421,7 @@ testChanged(
     // @flow
     const expect = require('expect');
 
-    const mock = require('jest-mock')
+    const mock = require('jest-mock');
 
     test(() => {
         var spy1 = mock.fn();
