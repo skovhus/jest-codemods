@@ -15,7 +15,10 @@ function detectIncompatiblePackages(fileInfo, j, ast) {
 function updateJestImports(j, ast, isStandaloneMode, testFunctionName = 'jest') {
     const addRequireOrImportOnce = addRequireOrImportOnceFactory(j, ast);
 
-    // TODO: ensure expect is imported.
+    if (isStandaloneMode && !hasRequireOrImport(j, ast, 'expect')) {
+        addRequireOrImportOnce('expect', 'expect');
+    }
+
     ast
         .find(j.CallExpression, {
             callee: {

@@ -85,6 +85,51 @@ testChanged(
     }
 );
 
+testChanged(
+    'standaloneMode: add expect import when standaloneMode',
+    `
+    // @flow
+    test(() => {
+        expect(1).toBe(1);
+    });
+    `,
+    `
+    // @flow
+    import expect from 'expect';
+
+    test(() => {
+        expect(1).toBe(1);
+    });
+    `,
+    {
+        standaloneMode: true,
+    }
+);
+
+testChanged(
+    'standaloneMode: adds expect and jest-mock imports when standaloneMode',
+    `
+    // @flow
+    test(() => {
+        var spy1 = jest.fn();
+        expect(1).toBe(1);
+    });
+    `,
+    `
+    // @flow
+    import expect from 'expect';
+    import mock from 'jest-mock';
+
+    test(() => {
+        var spy1 = mock.fn();
+        expect(1).toBe(1);
+    });
+    `,
+    {
+        standaloneMode: true,
+    }
+);
+
 const unsupportedExample = `
     import sinon from 'sinon';
     import testdouble from 'testdouble';
