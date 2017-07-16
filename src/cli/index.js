@@ -108,16 +108,15 @@ inquirer
         {
             name: 'standaloneMode',
             type: 'list',
-            message: 'Would you use Expect without Jest (e.g. in a browser)?',
-            when: ({ transformer }) => TRANSFORMER_EXPECT === transformer,
+            message: 'Should the tests be able to run in a browser?',
             choices: [
                 {
-                    name: 'Yes, make it work in a browser',
-                    value: true,
+                    name: 'The tests should run on node.js (recommended)',
+                    value: false,
                 },
                 {
-                    name: 'No, node is all I need',
-                    value: false,
+                    name: 'The tests should run in a browser',
+                    value: true,
                 },
             ],
         },

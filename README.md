@@ -87,10 +87,10 @@ $ jscodeshift -t node_modules/jest-codemods/dist/transformers/should.js test-fol
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
 ```
 
-## Standalone mode
+## Test environment: node.js or browser
 
 Normally Jest tests are running on node.js. But in some cases you might want to use execute
-your tests in a browser. In that case you can select the standalone mode using the
+your tests in a browser. In that case you can select the environment using the
 `jest-codemod` CLI.
 
 After running `jest-codemods` you might need to install a few dependencies:
