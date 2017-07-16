@@ -66,7 +66,7 @@ $ jest-codemods --help
 
 To transform all test files in a directory run `jest-codemods test-folder` in your terminal.
 
-Notice the console output for errors, manual intervention and tweaks are to be expected.
+Notice the console output for errors, manual intervention and tweaks might be required.
 
 
 ## Usage (jscodeshift)
@@ -86,6 +86,16 @@ $ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-fold
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/should.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
 ```
+
+## Standalone mode
+
+Normally Jest tests are running on node.js. But in some cases you might want to use execute
+your tests in a browser. In that case you can select the standalone mode using the
+`jest-codemod` CLI.
+
+After running `jest-codemods` you might need to install a few dependencies:
+
+  yarn -D jest-matchers jest-mock
 
 
 ## Transformations
