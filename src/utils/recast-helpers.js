@@ -45,14 +45,18 @@ export function findParentCallExpression(path, name) {
     return findParentCallExpression(path.parentPath, name);
 }
 
-export function findParentVariableDeclaration(path, name) {
-    if (!path) {
+export function findParentVariableDeclaration(path) {
+    return findParentOfType(path, 'VariableDeclarator');
+}
+
+export function findParentOfType(path, type) {
+    if (!path || !path.value) {
         return null;
     }
-    if (path.value.type === 'VariableDeclarator') {
+    if (path.value.type === type) {
         return path;
     }
-    return findParentVariableDeclaration(path.parentPath);
+    return findParentOfType(path.parentPath, type);
 }
 
 export function traverseMemberExpressionUtil(j, nodeValidator) {

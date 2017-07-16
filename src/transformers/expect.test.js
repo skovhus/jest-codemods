@@ -245,11 +245,12 @@ testChanged(
     test(() => {
       var spy1 = expect.createSpy();
       var spy2 = expect.spyOn(video, 'play');
+      var spyOn;
 
-      expect.spyOn(video, 'play');
-      expect.spyOn(video, 'play').andCall(fn);
-      expect.spyOn(video, 'play').andReturn(42);
-      expect.spyOn(video, 'play').andThrow(new Error('bum'));
+      spyOn = expect.spyOn(video, 'play');
+      spyOn = expect.spyOn(video, 'play').andCall(fn);
+      spyOn = expect.spyOn(video, 'play').andReturn(42);
+      spyOn = expect.spyOn(video, 'play').andThrow(new Error('bum'));
 
       expect.createSpy().andCall(fn);
       expect.createSpy().andReturn(value);
@@ -261,11 +262,12 @@ testChanged(
     test(() => {
       var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
+      var spyOn;
 
-      jest.spyOn(video, 'play');
-      jest.spyOn(video, 'play').mockImplementation(fn);
-      jest.spyOn(video, 'play').mockImplementation(() => 42);
-      jest.spyOn(video, 'play').mockImplementation(() => {
+      spyOn = jest.spyOn(video, 'play');
+      spyOn = jest.spyOn(video, 'play').mockImplementation(fn);
+      spyOn = jest.spyOn(video, 'play').mockImplementation(() => 42);
+      spyOn = jest.spyOn(video, 'play').mockImplementation(() => {
         throw new Error('bum');
       });
 
@@ -377,7 +379,6 @@ testChanged(
     test(() => {
         var spy1 = expect.createSpy();
         var spy2 = expect.spyOn(video, 'play');
-        expect.spyOn(video, 'play');
 
         spy1.restore();
         spy1.reset();
@@ -393,7 +394,6 @@ testChanged(
     test(() => {
         var spy1 = mock.fn();
         var spy2 = mock.spyOn(video, 'play');
-        mock.spyOn(video, 'play');
 
         spy1.mockReset();
         spy1.mockClear();
@@ -487,6 +487,22 @@ test('warns about spy features without expect', () => {
             '(use "expect.createSpy" instead for transformation to work)',
         'jest-codemods warning: (test.js line 6) "spyOn" is currently not supported ' +
             '(use "expect.spyOn" instead for transformation to work)',
+    ]);
+});
+
+test('warns about creating spies without assigning it to a variable', () => {
+    wrappedPlugin(
+        `
+        import expect from 'expect'
+
+        test(() => {
+            expect.spyOn(console, 'error');
+            expect(console.error.calls.length).toEqual(0);
+        });
+    `
+    );
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 5) "spyOn" without variable assignment might not work as expected (see https://facebook.github.io/jest/docs/jest-object.html#jestspyonobject-methodname)',
     ]);
 });
 

@@ -2,6 +2,7 @@ import { JEST_MATCHER_TO_MAX_ARGS, JEST_MOCK_PROPERTIES } from '../utils/consts'
 import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports';
 import {
     findParentCallExpression,
+    findParentOfType,
     findParentVariableDeclaration,
 } from '../utils/recast-helpers';
 import logger from '../utils/logger';
@@ -208,6 +209,27 @@ ${keys}.forEach(e => {
                 if (unsupportedSpyFunctions.has(name)) {
                     logWarning(
                         `"${path.value.property.name}" is currently not supported`,
+                        path
+                    );
+                }
+            });
+
+        // Warn about expect.spyOn calls with variable assignment
+        ast
+            .find(j.MemberExpression, {
+                object: {
+                    type: 'Identifier',
+                    name: expectFunctionName,
+                },
+                property: { type: 'Identifier', name: 'spyOn' },
+            })
+            .forEach(path => {
+                const parentAssignment =
+                    findParentOfType(path, 'VariableDeclarator') ||
+                    findParentOfType(path, 'AssignmentExpression');
+                if (!parentAssignment) {
+                    logWarning(
+                        `"${path.value.property.name}" without variable assignment might not work as expected (see https://facebook.github.io/jest/docs/jest-object.html#jestspyonobject-methodname)`,
                         path
                     );
                 }
