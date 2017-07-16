@@ -373,7 +373,6 @@ testChanged(
 testChanged(
     'standaloneMode: rewrites expect.spyOn (import)',
     `
-    // @flow
     import expect from 'expect';
 
     test(() => {
@@ -386,10 +385,8 @@ testChanged(
     });
     `,
     `
-    // @flow
-    import expect from 'expect';
-
     import mock from 'jest-mock';
+    import expect from 'expect';
 
     test(() => {
         var spy1 = mock.fn();
@@ -408,7 +405,6 @@ testChanged(
 testChanged(
     'standaloneMode: rewrites expect.spyOn (require)',
     `
-    // @flow
     const expect = require('expect');
 
     test(() => {
@@ -418,10 +414,8 @@ testChanged(
     });
     `,
     `
-    // @flow
-    const expect = require('expect');
-
     const mock = require('jest-mock');
+    const expect = require('expect');
 
     test(() => {
         var spy1 = mock.fn();

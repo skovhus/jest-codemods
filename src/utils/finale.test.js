@@ -68,10 +68,9 @@ testChanged(
     });
     `,
     `
+    import mock from 'jest-mock';
     // @flow
     import expect from 'expect';
-
-    import mock from 'jest-mock';
 
     test(() => {
         var spy1 = mock.fn();
@@ -88,15 +87,12 @@ testChanged(
 testChanged(
     'standaloneMode: add expect import when standaloneMode',
     `
-    // @flow
     test(() => {
         expect(1).toBe(1);
     });
     `,
     `
-    // @flow
     import expect from 'expect';
-
     test(() => {
         expect(1).toBe(1);
     });
@@ -109,17 +105,14 @@ testChanged(
 testChanged(
     'standaloneMode: adds expect and jest-mock imports when standaloneMode',
     `
-    // @flow
     test(() => {
         var spy1 = jest.fn();
         expect(1).toBe(1);
     });
     `,
     `
-    // @flow
-    import expect from 'expect';
     import mock from 'jest-mock';
-
+    import expect from 'expect';
     test(() => {
         var spy1 = mock.fn();
         expect(1).toBe(1);
