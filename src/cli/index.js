@@ -42,6 +42,7 @@ const TRANSFORMER_CHAI_SHOULD = 'chai-should';
 const TRANSFORMER_MOCHA = 'mocha';
 const TRANSFORMER_SHOULD = 'should';
 const TRANSFORMER_TAPE = 'tape';
+const TRANSFORMER_JASMINE_THIS = 'jasmine-this';
 
 const ALL_TRANSFORMERS = [
     TRANSFORMER_AVA,
@@ -50,6 +51,7 @@ const ALL_TRANSFORMERS = [
     // TODO: waiting for expect@20+ release: TRANSFORMER_EXPECT,
     TRANSFORMER_MOCHA,
     TRANSFORMER_TAPE,
+    TRANSFORMER_JASMINE_THIS,
 ];
 
 function supportFailure(supportedItems) {
@@ -85,6 +87,10 @@ inquirer
                     value: TRANSFORMER_EXPECT,
                 },
                 */
+                {
+                    name: 'Jasmine: this usage',
+                    value: TRANSFORMER_JASMINE_THIS,
+                },
                 {
                     name: 'Mocha',
                     value: TRANSFORMER_MOCHA,
