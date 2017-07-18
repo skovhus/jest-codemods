@@ -7,7 +7,7 @@ export const PROP_WITH_SECONDS_ARGS = [
     'not.toMatch',
 ];
 
-export const MATCHER_TO_MAX_ARGS = {
+export const JEST_MATCHER_TO_MAX_ARGS = {
     toBe: 1,
     toBeCloseTo: 2,
     toBeDefined: 0,
@@ -37,3 +37,5 @@ export const MATCHER_TO_MAX_ARGS = {
     toThrowError: 1,
     toThrowErrorMatchingSnapshot: 0,
 };
+
+export const JEST_MOCK_PROPERTIES = new Set(['spyOn', 'fn', 'createSpy']);

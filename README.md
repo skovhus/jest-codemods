@@ -65,7 +65,7 @@ $ jest-codemods --help
 
 To transform all test files in a directory run `jest-codemods test-folder` in your terminal.
 
-Notice the console output for errors, manual intervention and tweaks are to be expected.
+Notice the console output for errors, manual intervention and tweaks might be required.
 
 
 ## Usage (jscodeshift)

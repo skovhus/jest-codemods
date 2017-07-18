@@ -4,15 +4,19 @@ import execa from 'execa';
 export const transformerDirectory = path.join(__dirname, '../', 'transformers');
 export const jscodeshiftExecutable = require.resolve('.bin/jscodeshift');
 
-function executeTransformation(files, flags, transformer) {
+function executeTransformation(files, flags, transformer, transformerArgs) {
     const transformerPath = path.join(transformerDirectory, `${transformer}.js`);
 
-    const args = ['-t', transformerPath].concat(files);
+    let args = ['-t', transformerPath].concat(files);
     if (flags.dry) {
         args.push('--dry');
     }
     if (['babel', 'babylon', 'flow'].indexOf(flags.parser) >= 0) {
         args.push('--parser', flags.parser);
+    }
+
+    if (transformerArgs && transformerArgs.length > 0) {
+        args = args.concat(transformerArgs);
     }
 
     console.log(`Executing command: jscodeshift ${args.join(' ')}`);
@@ -27,8 +31,13 @@ function executeTransformation(files, flags, transformer) {
     }
 }
 
-export function executeTransformations(files, flags, transformers) {
+export function executeTransformations(
+    files,
+    flags,
+    transformers,
+    transformerOptions = []
+) {
     transformers.forEach(t => {
-        executeTransformation(files, flags, t);
+        executeTransformation(files, flags, t, transformerOptions);
     });
 }

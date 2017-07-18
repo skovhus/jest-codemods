@@ -1,11 +1,11 @@
-import { MATCHER_TO_MAX_ARGS } from './consts';
+import { JEST_MATCHER_TO_MAX_ARGS } from './consts';
 
 export const createCallUtil = j => (fnName, args, rest, containsNot) => {
     const expression = containsNot ? j.memberExpression(rest, j.identifier('not')) : rest;
 
-    const numberOfArgs = MATCHER_TO_MAX_ARGS[fnName];
+    const numberOfArgs = JEST_MATCHER_TO_MAX_ARGS[fnName];
     if (typeof numberOfArgs === 'undefined') {
-        throw new Error(`Unknown matcher "${fnName}" (MATCHER_TO_MAX_ARGS)`);
+        throw new Error(`Unknown matcher "${fnName}" (JEST_MATCHER_TO_MAX_ARGS)`);
     }
 
     return j.memberExpression(

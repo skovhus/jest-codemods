@@ -31,6 +31,34 @@ export function getMemberExpressionElements(node, _rest = []) {
     return getMemberExpressionElements(node.object, [node.property.name].concat(_rest));
 }
 
+export function findParentCallExpression(path, name) {
+    if (!path) {
+        return null;
+    }
+    if (
+        path.value.type === 'CallExpression' &&
+        path.value.callee.property &&
+        path.value.callee.property.name === name
+    ) {
+        return path;
+    }
+    return findParentCallExpression(path.parentPath, name);
+}
+
+export function findParentVariableDeclaration(path) {
+    return findParentOfType(path, 'VariableDeclarator');
+}
+
+export function findParentOfType(path, type) {
+    if (!path || !path.value) {
+        return null;
+    }
+    if (path.value.type === type) {
+        return path;
+    }
+    return findParentOfType(path.parentPath, type);
+}
+
 export function traverseMemberExpressionUtil(j, nodeValidator) {
     const traverseMemberExpression = node => {
         if (!node) {

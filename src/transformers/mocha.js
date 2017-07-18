@@ -1,4 +1,4 @@
-import detectQuoteStyle from '../utils/quote-style';
+import finale from '../utils/finale';
 
 const methodMap = {
     suite: 'describe',
@@ -32,9 +32,9 @@ function hasBinding(name, scope) {
     return scope.isGlobal ? false : hasBinding(name, scope.parent);
 }
 
-export default function mochaToJest(file, api) {
+export default function mochaToJest(fileInfo, api, options) {
     const j = api.jscodeshift;
-    const ast = j(file.source);
+    const ast = j(fileInfo.source);
 
     Object.keys(methodMap).forEach(mochaMethod => {
         const jestMethod = methodMap[mochaMethod];
@@ -75,8 +75,5 @@ export default function mochaToJest(file, api) {
         });
     });
 
-    // As Recast is not preserving original quoting, we try to detect it,
-    // and default to something sane.
-    const quote = detectQuoteStyle(j, ast) || 'single';
-    return ast.toSource({ quote });
+    return finale(fileInfo, j, ast, options);
 }

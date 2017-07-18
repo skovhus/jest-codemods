@@ -5,7 +5,8 @@
  * @return 'double', 'single' or null
  */
 export default function detectQuoteStyle(j, ast) {
-    let detectedQuoting = null;
+    let doubles = 0;
+    let singles = 0;
 
     ast
         .find(j.Literal, {
@@ -14,14 +15,17 @@ export default function detectQuoteStyle(j, ast) {
         })
         .forEach(p => {
             // The raw value is from the original babel source
-            if (p.value.raw[0] === "'") {
-                detectedQuoting = 'single';
+            const quote = p.value.raw[0];
+            if (quote === '"') {
+                doubles += 1;
             }
-
-            if (p.value.raw[0] === '"') {
-                detectedQuoting = 'double';
+            if (quote === "'") {
+                singles += 1;
             }
         });
 
-    return detectedQuoting;
+    if (doubles === singles) {
+        return null;
+    }
+    return doubles > singles ? 'double' : 'single';
 }

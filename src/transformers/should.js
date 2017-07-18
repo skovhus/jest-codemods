@@ -8,7 +8,7 @@ const assertionRemappings = {
     throws: 'throw',
 };
 
-module.exports = function transformer(fileInfo, api) {
+module.exports = function transformer(fileInfo, api, options) {
     const j = api.jscodeshift;
     const root = j(fileInfo.source);
 
@@ -86,5 +86,5 @@ module.exports = function transformer(fileInfo, api) {
     const quote = detectQuoteStyle(j, root) || 'single';
     fileInfo.source = root.toSource({ quote });
 
-    return chaiShouldTransformer(fileInfo, api);
+    return chaiShouldTransformer(fileInfo, api, options);
 };

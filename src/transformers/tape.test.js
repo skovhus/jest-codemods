@@ -165,21 +165,6 @@ test(done => {
 );
 
 testChanged(
-    'preserves quote style',
-    `
-import test from "tape";
-test("mytest", t => {
-    t.ok("msg");
-});
-`,
-    `
-test("mytest", () => {
-    expect("msg").toBeTruthy();
-});
-`
-);
-
-testChanged(
     'rewriting non standard naming of test function and t argument',
     `
 import myTapeTest from "tape";
@@ -474,20 +459,6 @@ test('not supported warnings: non standard argument for test.skip', () => {
     );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "y"',
-    ]);
-});
-
-test('warns about some conflicting packages', () => {
-    wrappedPlugin(
-        `
-        import test from 'tape';
-        import proxyquire from 'proxyquire';
-        import testdouble from 'testdouble';
-        test(t => {});
-    `
-    );
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
     ]);
 });
 

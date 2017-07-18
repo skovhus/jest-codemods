@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import chalk from 'chalk';
 import globby from 'globby';
 import inquirer from 'inquirer';
 import meow from 'meow';
@@ -46,6 +47,7 @@ const ALL_TRANSFORMERS = [
     TRANSFORMER_AVA,
     TRANSFORMER_CHAI_ASSERT,
     // TRANSFORMER_CHAI_SHOULD & TRANSFORMER_SHOULD doesn't have import detection
+    // TODO: waiting for expect@20+ release: TRANSFORMER_EXPECT,
     TRANSFORMER_MOCHA,
     TRANSFORMER_TAPE,
 ];
@@ -76,6 +78,13 @@ inquirer
                     name: 'Chai: Should/Expect BDD Syntax',
                     value: TRANSFORMER_CHAI_SHOULD,
                 },
+                /*
+                // TODO: waiting for expect@20+ release
+                {
+                    name: 'Expect@1.x',
+                    value: TRANSFORMER_EXPECT,
+                },
+                */
                 {
                     name: 'Mocha',
                     value: TRANSFORMER_MOCHA,
@@ -98,6 +107,24 @@ inquirer
                 },
             ],
         },
+        /*
+        // TODO: waiting for expect@20+ release
+        {
+            name: 'standaloneMode',
+            type: 'list',
+            message: 'Should the tests be able to run in a browser?',
+            choices: [
+                {
+                    name: 'The tests should run on node.js (recommended)',
+                    value: false,
+                },
+                {
+                    name: 'The tests should run in a browser',
+                    value: true,
+                },
+            ],
+        },
+        */
         {
             type: 'list',
             name: 'mochaAssertion',
@@ -132,7 +159,7 @@ inquirer
         },
     ])
     .then(answers => {
-        const { files, transformer, mochaAssertion } = answers;
+        const { files, transformer, mochaAssertion, standaloneMode } = answers;
 
         if (transformer === 'other') {
             return supportFailure('AVA, Tape, Chai and Mocha');
@@ -154,5 +181,20 @@ inquirer
             checkGitStatus(cli.flags.force);
         }
 
-        return executeTransformations(filesExpanded, cli.flags, transformers);
+        const transformerArgs = [];
+        if (standaloneMode) {
+            transformerArgs.push('--standaloneMode=true');
+            console.log(
+                chalk.yellow(
+                    '\nNOTICE: You need to manually install jest-matchers and jest-mock'
+                )
+            );
+        }
+
+        return executeTransformations(
+            filesExpanded,
+            cli.flags,
+            transformers,
+            transformerArgs
+        );
     });
