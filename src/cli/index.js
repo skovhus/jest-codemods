@@ -39,7 +39,6 @@ updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
 const TRANSFORMER_CHAI_SHOULD = 'chai-should';
-const TRANSFORMER_EXPECT = 'expect';
 const TRANSFORMER_MOCHA = 'mocha';
 const TRANSFORMER_SHOULD = 'should';
 const TRANSFORMER_TAPE = 'tape';
@@ -48,7 +47,7 @@ const ALL_TRANSFORMERS = [
     TRANSFORMER_AVA,
     TRANSFORMER_CHAI_ASSERT,
     // TRANSFORMER_CHAI_SHOULD & TRANSFORMER_SHOULD doesn't have import detection
-    TRANSFORMER_EXPECT,
+    // TODO: waiting for expect@20+ release: TRANSFORMER_EXPECT,
     TRANSFORMER_MOCHA,
     TRANSFORMER_TAPE,
 ];
@@ -79,10 +78,13 @@ inquirer
                     name: 'Chai: Should/Expect BDD Syntax',
                     value: TRANSFORMER_CHAI_SHOULD,
                 },
+                /*
+                // TODO: waiting for expect@20+ release
                 {
                     name: 'Expect@1.x',
                     value: TRANSFORMER_EXPECT,
                 },
+                */
                 {
                     name: 'Mocha',
                     value: TRANSFORMER_MOCHA,
@@ -105,6 +107,8 @@ inquirer
                 },
             ],
         },
+        /*
+        // TODO: waiting for expect@20+ release
         {
             name: 'standaloneMode',
             type: 'list',
@@ -120,6 +124,7 @@ inquirer
                 },
             ],
         },
+        */
         {
             type: 'list',
             name: 'mochaAssertion',
@@ -157,7 +162,7 @@ inquirer
         const { files, transformer, mochaAssertion, standaloneMode } = answers;
 
         if (transformer === 'other') {
-            return supportFailure('AVA, Tape, Expect, Chai and Mocha');
+            return supportFailure('AVA, Tape, Chai and Mocha');
         }
 
         const transformers = transformer === 'all' ? ALL_TRANSFORMERS : [transformer];

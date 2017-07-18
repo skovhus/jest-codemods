@@ -4,7 +4,6 @@ Codemods that simplify migrating JavaScript test files from
 [Mocha](https://github.com/mochajs/mocha),
 [Chai](https://github.com/chaijs/chai),
 [Should.js](https://github.com/tj/should.js/),
-[Expect@1.x.x](https://github.com/mjackson/expect),
 [proxyquire](https://github.com/thlorenz/proxyquire),
 [Tape](https://github.com/substack/tape)
 and [AVA](https://github.com/avajs/ava)
@@ -81,21 +80,10 @@ $ npm install jest-codemods
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/ava.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-assert.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-should.js test-folder
-$ jscodeshift -t node_modules/jest-codemods/dist/transformers/expect.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/should.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
 ```
-
-## Test environment: node.js or browser
-
-Normally Jest tests are running on node.js. But in some cases you might want to use execute
-your tests in a browser. In that case you can select the environment using the
-`jest-codemod` CLI.
-
-After running `jest-codemods` you might need to install a few dependencies:
-
-  yarn -D jest-matchers jest-mock
 
 
 ## Transformations
