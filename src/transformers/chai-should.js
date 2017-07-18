@@ -119,6 +119,20 @@ module.exports = function transformer(fileInfo, api, options) {
                     [],
                     updateExpect(value, node => node, containsNot)
                 );
+            case 'array':
+                return createCall(
+                    'toBe',
+                    [j.booleanLiteral(containsNot ? false : true)],
+                    updateExpect(value, node =>
+                        j.callExpression(
+                            j.memberExpression(
+                                j.identifier('Array'),
+                                j.identifier('isArray')
+                            ),
+                            [node]
+                        )
+                    )
+                );
             default:
                 return createCall(
                     'toBe',

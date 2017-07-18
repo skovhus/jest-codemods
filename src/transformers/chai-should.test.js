@@ -80,6 +80,10 @@ testChanged(
         expect(new Promise()).to.be.a('promise');
         expect(new Float32Array()).to.be.a('float32array');
         expect(Symbol()).to.be.a('symbol');
+        expect(bar).to.be.an('object');
+        expect(foo).to.not.be.an('object');
+        expect(foo).to.be.an('array');
+        expect(baz).to.not.be.an('array');
 
         'test'.should.be.a('string');
     `,
@@ -94,6 +98,10 @@ testChanged(
         expect(typeof new Promise()).toBe('promise');
         expect(typeof new Float32Array()).toBe('float32array');
         expect(typeof Symbol()).toBe('symbol');
+        expect(typeof bar).toBe('object');
+        expect(typeof foo).not.toBe('object');
+        expect(Array.isArray(foo)).toBe(true);
+        expect(Array.isArray(baz)).toBe(false);
 
         expect(typeof 'test').toBe('string');
     `
