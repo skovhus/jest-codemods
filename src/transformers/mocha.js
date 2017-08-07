@@ -1,4 +1,5 @@
 import finale from '../utils/finale';
+import jasmineThisTransformer from './jasmine-this';
 
 const methodMap = {
     suite: 'describe',
@@ -75,5 +76,12 @@ export default function mochaToJest(fileInfo, api, options) {
         });
     });
 
-    return finale(fileInfo, j, ast, options);
+    fileInfo.source = finale(fileInfo, j, ast, options);
+
+    const transformedSource = jasmineThisTransformer(fileInfo, api, options);
+    if (transformedSource) {
+        fileInfo.source = transformedSource;
+    }
+
+    return fileInfo.source;
 }
