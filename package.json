@@ -23,7 +23,7 @@
     "check:bail": "eslint src && npm run test:cov",
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
-    "prepublish": "npm run clean && npm run check:bail && npm run build",
+    "prepare": "npm run clean && npm run check:bail && npm run build",
     "ci": "npm run check:bail",
     "test:cov": "npm run test -- --coverage",
     "test:watch": "npm run test -- --watch",
