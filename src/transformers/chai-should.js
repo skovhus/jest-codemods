@@ -7,7 +7,7 @@ import {
 } from '../utils/chai-chain-utils';
 import logger from '../utils/logger';
 import { removeRequireAndImport } from '../utils/imports';
-import { traverseMemberExpressionUtil } from '../utils/recast-helpers';
+import { findParentOfType, traverseMemberExpressionUtil } from '../utils/recast-helpers';
 import finale from '../utils/finale';
 
 const fns = [
@@ -238,11 +238,13 @@ module.exports = function transformer(fileInfo, api, options) {
 
     const updateMemberExpressions = () => {
         const getMembers = () =>
-            root.find(j.MemberExpression, {
-                property: {
-                    name: name => members.indexOf(name.toLowerCase()) !== -1,
-                },
-            });
+            root
+                .find(j.MemberExpression, {
+                    property: {
+                        name: name => members.indexOf(name.toLowerCase()) !== -1,
+                    },
+                })
+                .filter(p => findParentOfType(p, 'ExpressionStatement'));
 
         getMembers().forEach(p => {
             if (p.parentPath.value.type === j.CallExpression.name) {
