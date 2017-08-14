@@ -624,6 +624,14 @@ it('leaves code without should/expect', () => {
             i.have.a.dream();
             i.have.a.dream;
         }
+        const MESSAGES = {
+            Ok: 'x',
+            Cancel: 'y',
+        };
+
+        if (MESSAGES.Ok) {
+            //
+        };
         `
     );
 
