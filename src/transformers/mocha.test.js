@@ -53,8 +53,8 @@ describe('describe', () => {
   afterEach(() => {});
 
   describe('context', () => {
-    it('it', () => {});
-    it('specify', () => {})
+    test('it', () => {});
+    test('specify', () => {})
   })
 })
 `
@@ -85,13 +85,13 @@ describe('suite', () => {
   afterAll(() => {});
   beforeEach(() => {});
   afterEach(() => {});
-  it(() => {});
+  test(() => {});
 
   beforeAll(() => {});
   afterAll(() => {});
   beforeEach(() => {});
   afterEach(() => {});
-  it('description', () => {});
+  test('description', () => {});
 })
 `
 );
@@ -107,7 +107,7 @@ suite.only('only suite', () => {
     `
 // @flow
 describe.only('only suite', () => {
-  it.only('only test', () => {});
+  test.only('only test', () => {});
 });
 `
 );
@@ -124,8 +124,8 @@ suite.skip('skip suite', () => {
     `
 // @flow
 describe.skip('skip suite', () => {
-  it.skip('skip test', () => {});
-  it('test will be skipped');
+  test.skip('skip test', () => {});
+  test('test will be skipped');
 });
 `
 );
@@ -135,7 +135,7 @@ testChanged(
     `
 const setup = () => {};
 context('test suite', () => {
-    it('test', () => {
+    test('test', () => {
         const foo = setup();
     });
 });
@@ -143,7 +143,7 @@ context('test suite', () => {
     `
 const setup = () => {};
 describe('test suite', () => {
-    it('test', () => {
+    test('test', () => {
         const foo = setup();
     });
 });

@@ -4,8 +4,9 @@ import jasmineThisTransformer from './jasmine-this';
 const methodMap = {
     suite: 'describe',
     context: 'describe',
-    specify: 'it',
-    test: 'it',
+    specify: 'test',
+    test: 'test',
+    it: 'test',
     before: 'beforeAll',
     beforeEach: 'beforeEach',
     setup: 'beforeEach',
@@ -16,7 +17,7 @@ const methodMap = {
     suiteTeardown: 'afterAll',
 };
 
-const jestMethodsWithDescriptionsAllowed = new Set(['it', 'describe']);
+const jestMethodsWithDescriptionsAllowed = new Set(['test', 'describe']);
 
 const methodModifiers = ['only', 'skip'];
 
