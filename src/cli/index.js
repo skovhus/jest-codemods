@@ -42,6 +42,7 @@ const TRANSFORMER_CHAI_SHOULD = 'chai-should';
 const TRANSFORMER_MOCHA = 'mocha';
 const TRANSFORMER_SHOULD = 'should';
 const TRANSFORMER_TAPE = 'tape';
+const TRANSFORMER_EXPECT_JS = 'expect-js';
 const TRANSFORMER_JASMINE_THIS = 'jasmine-this';
 
 const ALL_TRANSFORMERS = [
@@ -51,6 +52,7 @@ const ALL_TRANSFORMERS = [
     // TODO: waiting for expect@20+ release: TRANSFORMER_EXPECT,
     TRANSFORMER_MOCHA,
     TRANSFORMER_TAPE,
+    TRANSFORMER_EXPECT_JS,
     TRANSFORMER_JASMINE_THIS,
 ];
 
@@ -79,6 +81,10 @@ inquirer
                 {
                     name: 'Chai: Should/Expect BDD Syntax',
                     value: TRANSFORMER_CHAI_SHOULD,
+                },
+                {
+                    name: 'Expect-js',
+                    value: TRANSFORMER_EXPECT_JS,
                 },
                 /*
                 // TODO: waiting for expect@20+ release
@@ -140,6 +146,10 @@ inquirer
                 {
                     name: 'Assert Syntax',
                     value: TRANSFORMER_CHAI_ASSERT,
+                },
+                {
+                    name: 'Expect-js',
+                    value: TRANSFORMER_EXPECT_JS,
                 },
                 {
                     name: 'Should/Expect BDD Syntax',
