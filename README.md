@@ -5,7 +5,8 @@ Codemods that simplify migrating JavaScript test files from
 [Chai](https://github.com/chaijs/chai),
 [Should.js](https://github.com/tj/should.js/),
 [proxyquire](https://github.com/thlorenz/proxyquire),
-[Tape](https://github.com/substack/tape)
+[Tape](https://github.com/substack/tape),
+[Expect.js](https://github.com/Automattic/expect.js),
 and [AVA](https://github.com/avajs/ava)
 to [Jest](https://facebook.github.io/jest/).
 
@@ -80,6 +81,7 @@ $ npm install jest-codemods
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/ava.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-assert.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-should.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/expect-js.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/should.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
