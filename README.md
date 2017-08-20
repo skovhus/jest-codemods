@@ -1,13 +1,14 @@
 # jest-codemods
 
 Codemods that simplify migrating JavaScript test files from
-[Mocha](https://github.com/mochajs/mocha),
+[AVA](https://github.com/avajs/ava),
 [Chai](https://github.com/chaijs/chai),
-[Should.js](https://github.com/tj/should.js/),
 [Expect.js (by Automattic)](https://github.com/Automattic/expect.js),
+[Jasmine](https://github.com/jasmine/jasmine),
+[Mocha](https://github.com/mochajs/mocha),
 [proxyquire](https://github.com/thlorenz/proxyquire),
-[Tape](https://github.com/substack/tape),
-and [AVA](https://github.com/avajs/ava)
+[Should.js](https://github.com/tj/should.js/)
+and [Tape](https://github.com/substack/tape)
 to [Jest](https://facebook.github.io/jest/).
 
 <img src="screenshot.gif" width="300" align="right" style="margin-bottom: 1em; margin-left: 1em">
