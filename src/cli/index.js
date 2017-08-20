@@ -39,20 +39,20 @@ updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
 const TRANSFORMER_CHAI_SHOULD = 'chai-should';
+const TRANSFORMER_EXPECT_JS = 'expect-js';
+const TRANSFORMER_JASMINE_THIS = 'jasmine-this';
 const TRANSFORMER_MOCHA = 'mocha';
 const TRANSFORMER_SHOULD = 'should';
 const TRANSFORMER_TAPE = 'tape';
-const TRANSFORMER_EXPECT_JS = 'expect-js';
-const TRANSFORMER_JASMINE_THIS = 'jasmine-this';
 
 const ALL_TRANSFORMERS = [
     TRANSFORMER_AVA,
     TRANSFORMER_CHAI_ASSERT,
     // TRANSFORMER_CHAI_SHOULD & TRANSFORMER_SHOULD doesn't have import detection
-    // TODO: waiting for expect@20+ release: TRANSFORMER_EXPECT,
+    // TODO: waiting for expect@20+ release: TRANSFORMER_EXPECT_1,
+    TRANSFORMER_EXPECT_JS,
     TRANSFORMER_MOCHA,
     TRANSFORMER_TAPE,
-    TRANSFORMER_EXPECT_JS,
     TRANSFORMER_JASMINE_THIS,
 ];
 
@@ -83,14 +83,14 @@ inquirer
                     value: TRANSFORMER_CHAI_SHOULD,
                 },
                 {
-                    name: 'Expect-js',
+                    name: 'Expect.js (by Automattic)',
                     value: TRANSFORMER_EXPECT_JS,
                 },
                 /*
                 // TODO: waiting for expect@20+ release
                 {
-                    name: 'Expect@1.x',
-                    value: TRANSFORMER_EXPECT,
+                    name: 'Expect@1.x (by mjackson)',
+                    value: TRANSFORMER_EXPECT_1,
                 },
                 */
                 {
@@ -144,16 +144,16 @@ inquirer
             when: ({ transformer }) => TRANSFORMER_MOCHA === transformer,
             choices: [
                 {
-                    name: 'Assert Syntax',
+                    name: 'Chai: Assert Syntax',
                     value: TRANSFORMER_CHAI_ASSERT,
                 },
                 {
-                    name: 'Expect-js',
-                    value: TRANSFORMER_EXPECT_JS,
+                    name: 'Chai: Should/Expect BDD Syntax',
+                    value: TRANSFORMER_CHAI_SHOULD,
                 },
                 {
-                    name: 'Should/Expect BDD Syntax',
-                    value: TRANSFORMER_CHAI_SHOULD,
+                    name: 'Expect.js (by Automattic)',
+                    value: TRANSFORMER_EXPECT_JS,
                 },
                 {
                     name: 'Should.js',
@@ -178,7 +178,7 @@ inquirer
         const { files, transformer, mochaAssertion, standaloneMode } = answers;
 
         if (transformer === 'other') {
-            return supportFailure('AVA, Tape, Chai and Mocha');
+            return supportFailure('AVA, Chai, Expect.js, Mocha, Should.js and Tape');
         }
 
         const transformers = transformer === 'all' ? ALL_TRANSFORMERS : [transformer];

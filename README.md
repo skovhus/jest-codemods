@@ -4,9 +4,9 @@ Codemods that simplify migrating JavaScript test files from
 [Mocha](https://github.com/mochajs/mocha),
 [Chai](https://github.com/chaijs/chai),
 [Should.js](https://github.com/tj/should.js/),
+[Expect.js (by Automattic)](https://github.com/Automattic/expect.js),
 [proxyquire](https://github.com/thlorenz/proxyquire),
 [Tape](https://github.com/substack/tape),
-[Expect.js](https://github.com/Automattic/expect.js),
 and [AVA](https://github.com/avajs/ava)
 to [Jest](https://facebook.github.io/jest/).
 
