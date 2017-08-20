@@ -23,11 +23,18 @@
     "check:bail": "eslint src && npm run test:cov",
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
+    "precommit": "lint-staged",
     "prepare": "npm run clean && npm run check:bail && npm run build",
     "ci": "npm run check:bail",
     "test:cov": "npm run test -- --coverage",
     "test:watch": "npm run test -- --watch",
     "test": "jest --runInBand"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "keywords": [
     "codemod",
@@ -63,8 +70,11 @@
     "eslint-config-prettier": "^1.6.0",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-prettier": "^2.0.1",
+    "husky": "^0.14.3",
     "jest": "^20.0.4",
-    "prettier": "^1.0.2"
+    "lint-staged": "^4.0.3",
+    "prettier": "^1.0.2",
+    "prettier-check": "^1.0.0"
   },
   "jest": {
     "collectCoverageFrom": [
