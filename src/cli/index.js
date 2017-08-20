@@ -56,6 +56,56 @@ const ALL_TRANSFORMERS = [
     TRANSFORMER_JASMINE_THIS,
 ];
 
+const TRANSFORMER_INQUIRER_CHOICES = [
+    {
+        name: 'AVA',
+        value: TRANSFORMER_AVA,
+    },
+    {
+        name: 'Chai: Assert Syntax',
+        value: TRANSFORMER_CHAI_ASSERT,
+    },
+    {
+        name: 'Chai: Should/Expect BDD Syntax',
+        value: TRANSFORMER_CHAI_SHOULD,
+    },
+    {
+        name: 'Expect.js (by Automattic)',
+        value: TRANSFORMER_EXPECT_JS,
+    },
+    /*
+    // TODO: waiting for expect@20+ release
+    {
+        name: 'Expect@1.x (by mjackson)',
+        value: TRANSFORMER_EXPECT_1,
+    },
+    */
+    {
+        name: 'Jasmine: this usage',
+        value: TRANSFORMER_JASMINE_THIS,
+    },
+    {
+        name: 'Mocha',
+        value: TRANSFORMER_MOCHA,
+    },
+    {
+        name: 'Should.js',
+        value: TRANSFORMER_SHOULD,
+    },
+    {
+        name: 'Tape',
+        value: TRANSFORMER_TAPE,
+    },
+    {
+        name: 'All of the above (by detecting usage)!',
+        value: 'all',
+    },
+    {
+        name: 'Other',
+        value: 'other',
+    },
+];
+
 function supportFailure(supportedItems) {
     console.log(`\nCurrently, jest-codemods only has support for ${supportedItems}.`);
     console.log(
@@ -69,55 +119,8 @@ inquirer
             type: 'list',
             name: 'transformer',
             message: 'Which test library would you like to migrate from?',
-            choices: [
-                {
-                    name: 'AVA',
-                    value: TRANSFORMER_AVA,
-                },
-                {
-                    name: 'Chai: Assert Syntax',
-                    value: TRANSFORMER_CHAI_ASSERT,
-                },
-                {
-                    name: 'Chai: Should/Expect BDD Syntax',
-                    value: TRANSFORMER_CHAI_SHOULD,
-                },
-                {
-                    name: 'Expect.js (by Automattic)',
-                    value: TRANSFORMER_EXPECT_JS,
-                },
-                /*
-                // TODO: waiting for expect@20+ release
-                {
-                    name: 'Expect@1.x (by mjackson)',
-                    value: TRANSFORMER_EXPECT_1,
-                },
-                */
-                {
-                    name: 'Jasmine: this usage',
-                    value: TRANSFORMER_JASMINE_THIS,
-                },
-                {
-                    name: 'Mocha',
-                    value: TRANSFORMER_MOCHA,
-                },
-                {
-                    name: 'Should.js',
-                    value: TRANSFORMER_SHOULD,
-                },
-                {
-                    name: 'Tape',
-                    value: TRANSFORMER_TAPE,
-                },
-                {
-                    name: 'All of the above (by detecting usage)!',
-                    value: 'all',
-                },
-                {
-                    name: 'Other',
-                    value: 'other',
-                },
-            ],
+            pageSize: TRANSFORMER_INQUIRER_CHOICES.length,
+            choices: TRANSFORMER_INQUIRER_CHOICES,
         },
         /*
         // TODO: waiting for expect@20+ release
