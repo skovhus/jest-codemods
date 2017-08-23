@@ -108,6 +108,13 @@ const mappings = [
     ['assert.notProperty(foo, bar, baz);', 'expect(bar in foo).toBeFalsy();'],
     ['assert.propertyVal(foo, bar, baz);', 'expect(foo.bar).toBe(baz);'],
     ['assert.propertyNotVal(foo, bar, baz);', 'expect(foo.bar).not.toBe(baz);'],
+    ['assert.nestedProperty(foo, bar);', 'expect(foo).toHaveProperty(bar);'],
+    ['assert.notNestedProperty(foo, bar);', 'expect(foo).not.toHaveProperty(bar);'],
+    ['assert.nestedPropertyVal(foo, bar, baz);', 'expect(foo).toHaveProperty(bar, baz);'],
+    [
+        'assert.notNestedPropertyVal(foo, bar, baz);',
+        'expect(foo).not.toHaveProperty(bar, baz);',
+    ],
     ['assert.lengthOf(foo, bar, baz);', 'expect(foo.length).toBe(bar);'],
     ['assert.throws(foo, bar, baz);', 'expect(foo).toThrow();'],
     ['assert.doesNotThrow(foo, bar, baz);', 'expect(foo).not.toThrow();'],
@@ -115,6 +122,7 @@ const mappings = [
     ['assert.approximately(foo, bar, baz);', 'expect(foo).toBeCloseTo(bar, baz);'],
     ['assert.sameMembers(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
     ['assert.sameDeepMembers(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
+    ['assert.ifError(foo);', 'expect(foo).not.toBeTruthy();'],
     ['assert.isExtensible(foo);', 'expect(Object.isExtensible(foo)).toBe(true);'],
     ['assert.isNotExtensible(foo);', 'expect(Object.isExtensible(foo)).not.toBe(true);'],
     ['assert.isSealed(foo);', 'expect(Object.isSealed(foo)).toBe(true);'],
@@ -160,7 +168,6 @@ test('not supported assertions', () => {
         'doesNotIncrease',
         'decreases',
         'doesNotDecrease',
-        'ifError',
     ];
 
     const fileInput = unsupportedAssertions.reduce(
@@ -186,6 +193,5 @@ assert.${assertion}(foo, bar, baz);`,
         'jest-codemods warning: (test.js line 12) Unsupported Chai Assertion "doesNotIncrease".',
         'jest-codemods warning: (test.js line 13) Unsupported Chai Assertion "decreases".',
         'jest-codemods warning: (test.js line 14) Unsupported Chai Assertion "doesNotDecrease".',
-        'jest-codemods warning: (test.js line 15) Unsupported Chai Assertion "ifError".',
     ]);
 });

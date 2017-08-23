@@ -129,6 +129,11 @@ const assertToExpectMapping = [
         assert: 'sameDeepMembers',
         expect: 'toEqual',
     },
+    {
+        assert: 'nestedProperty',
+        expect: 'toHaveProperty',
+        includeNegative: 'notNestedProperty',
+    },
 ];
 
 const objectChecks = [
@@ -173,7 +178,6 @@ const unsupportedAssertions = [
     'doesNotIncrease',
     'decreases',
     'doesNotDecrease',
-    'ifError',
 ];
 
 export default function transformer(fileInfo, api, options) {
@@ -210,40 +214,37 @@ export default function transformer(fileInfo, api, options) {
             Array.isArray(expectation) ? expectation : [expectation]
         );
 
-    assertToExpectMapping.forEach(({
-        assert,
-        expect,
-        ignoreExpectedValue,
-        includeNegative,
-        expectedOverride,
-    }) => {
-        let override;
-        if (typeof expectedOverride !== 'undefined') {
-            override = typeof expectedOverride === 'boolean'
-                ? j.literal(expectedOverride)
-                : j.identifier(expectedOverride);
-        }
+    assertToExpectMapping.forEach(
+        ({ assert, expect, ignoreExpectedValue, includeNegative, expectedOverride }) => {
+            let override;
+            if (typeof expectedOverride !== 'undefined') {
+                override =
+                    typeof expectedOverride === 'boolean'
+                        ? j.literal(expectedOverride)
+                        : j.identifier(expectedOverride);
+            }
 
-        ast
-            .find(j.CallExpression, getAssertionExpression(assert))
-            .replaceWith(path =>
-                makeExpectation(
-                    expect,
-                    ...getArguments(path, ignoreExpectedValue, override)
-                )
-            );
-
-        if (includeNegative) {
             ast
-                .find(j.CallExpression, getAssertionExpression(includeNegative))
+                .find(j.CallExpression, getAssertionExpression(assert))
                 .replaceWith(path =>
-                    makeNegativeExpectation(
+                    makeExpectation(
                         expect,
                         ...getArguments(path, ignoreExpectedValue, override)
                     )
                 );
+
+            if (includeNegative) {
+                ast
+                    .find(j.CallExpression, getAssertionExpression(includeNegative))
+                    .replaceWith(path =>
+                        makeNegativeExpectation(
+                            expect,
+                            ...getArguments(path, ignoreExpectedValue, override)
+                        )
+                    );
+            }
         }
-    });
+    );
 
     unsupportedAssertions.forEach(assertion => {
         ast.find(j.CallExpression, getAssertionExpression(assertion)).forEach(path => {
@@ -302,6 +303,26 @@ export default function transformer(fileInfo, api, options) {
                 'toBeFalsy',
                 j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0])
             )
+        );
+
+    // assert.nestedPropertyVal -> expect(obj).toHaveProperty()
+    ast
+        .find(j.CallExpression, getAssertionExpression('nestedPropertyVal'))
+        .replaceWith(path =>
+            makeExpectation('toHaveProperty', path.value.arguments[0], [
+                path.value.arguments[1],
+                path.value.arguments[2],
+            ])
+        );
+
+    // assert.notNestedPropertyVal -> expect(obj).not.toHaveProperty()
+    ast
+        .find(j.CallExpression, getAssertionExpression('notNestedPropertyVal'))
+        .replaceWith(path =>
+            makeNegativeExpectation('toHaveProperty', path.value.arguments[0], [
+                path.value.arguments[1],
+                path.value.arguments[2],
+            ])
         );
 
     // assert.isArray -> expect(Array.isArray).toBe(true)
@@ -388,6 +409,13 @@ export default function transformer(fileInfo, api, options) {
                 j.memberExpression(path.value.arguments[0], j.identifier('length')),
                 path.value.arguments[1]
             )
+        );
+
+    // assert.ifError -> expect(*).not.toBeTruthy()
+    ast
+        .find(j.CallExpression, getAssertionExpression('ifError'))
+        .replaceWith(path =>
+            makeNegativeExpectation('toBeTruthy', path.value.arguments[0])
         );
 
     // Object-specific boolean checks
