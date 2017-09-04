@@ -4,6 +4,7 @@ Codemods that simplify migrating JavaScript test files from
 [AVA](https://github.com/avajs/ava),
 [Chai](https://github.com/chaijs/chai),
 [Expect.js (by Automattic)](https://github.com/Automattic/expect.js),
+[Expect@1.x (by mjackson)](https://github.com/mjackson/expect),
 [Jasmine](https://github.com/jasmine/jasmine),
 [Mocha](https://github.com/mochajs/mocha),
 [proxyquire](https://github.com/thlorenz/proxyquire),
@@ -83,10 +84,23 @@ $ jscodeshift -t node_modules/jest-codemods/dist/transformers/ava.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-assert.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-should.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/expect-js.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/expect.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/should.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
 ```
+
+## Test environment: node.js or browser
+
+Normally Jest tests are running on node.js. But in some cases you might want to use execute
+your tests in a browser. In that case you can select the environment using the
+`jest-codemod` CLI.
+
+After running `jest-codemods` you might need to install a few dependencies:
+
+  yarn -D expect jest-mock
+
+  npm install expect jest-mock
 
 
 ## Transformations

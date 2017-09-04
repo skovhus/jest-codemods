@@ -40,17 +40,18 @@ const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
 const TRANSFORMER_CHAI_SHOULD = 'chai-should';
 const TRANSFORMER_EXPECT_JS = 'expect-js';
+const TRANSFORMER_EXPECT_1 = 'expect';
 const TRANSFORMER_JASMINE_THIS = 'jasmine-this';
 const TRANSFORMER_MOCHA = 'mocha';
 const TRANSFORMER_SHOULD = 'should';
 const TRANSFORMER_TAPE = 'tape';
 
 const ALL_TRANSFORMERS = [
+    // TRANSFORMER_CHAI_SHOULD & TRANSFORMER_SHOULD doesn't have import detection
     TRANSFORMER_AVA,
     TRANSFORMER_CHAI_ASSERT,
-    // TRANSFORMER_CHAI_SHOULD & TRANSFORMER_SHOULD doesn't have import detection
-    // TODO: waiting for expect@20+ release: TRANSFORMER_EXPECT_1,
     TRANSFORMER_EXPECT_JS,
+    TRANSFORMER_EXPECT_1,
     TRANSFORMER_MOCHA,
     TRANSFORMER_TAPE,
     TRANSFORMER_JASMINE_THIS,
@@ -73,13 +74,10 @@ const TRANSFORMER_INQUIRER_CHOICES = [
         name: 'Expect.js (by Automattic)',
         value: TRANSFORMER_EXPECT_JS,
     },
-    /*
-    // TODO: waiting for expect@20+ release
     {
         name: 'Expect@1.x (by mjackson)',
         value: TRANSFORMER_EXPECT_1,
     },
-    */
     {
         name: 'Jasmine: this usage',
         value: TRANSFORMER_JASMINE_THIS,
@@ -122,8 +120,6 @@ inquirer
             pageSize: TRANSFORMER_INQUIRER_CHOICES.length,
             choices: TRANSFORMER_INQUIRER_CHOICES,
         },
-        /*
-        // TODO: waiting for expect@20+ release
         {
             name: 'standaloneMode',
             type: 'list',
@@ -139,7 +135,6 @@ inquirer
                 },
             ],
         },
-        */
         {
             type: 'list',
             name: 'mochaAssertion',
@@ -157,6 +152,10 @@ inquirer
                 {
                     name: 'Expect.js (by Automattic)',
                     value: TRANSFORMER_EXPECT_JS,
+                },
+                {
+                    name: 'Expect@1.x (by mjackson)',
+                    value: TRANSFORMER_EXPECT_1,
                 },
                 {
                     name: 'Should.js',
@@ -181,7 +180,9 @@ inquirer
         const { files, transformer, mochaAssertion, standaloneMode } = answers;
 
         if (transformer === 'other') {
-            return supportFailure('AVA, Chai, Expect.js, Mocha, Should.js and Tape');
+            return supportFailure(
+                'AVA, Chai, Expect.js, Expect@1.x, Mocha, Should.js and Tape'
+            );
         }
 
         const transformers = transformer === 'all' ? ALL_TRANSFORMERS : [transformer];
@@ -205,7 +206,7 @@ inquirer
             transformerArgs.push('--standaloneMode=true');
             console.log(
                 chalk.yellow(
-                    '\nNOTICE: You need to manually install jest-matchers and jest-mock'
+                    '\nNOTICE: You need to manually install expect@21+ and jest-mock'
                 )
             );
         }
