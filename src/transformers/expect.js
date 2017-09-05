@@ -289,10 +289,9 @@ ${keys}.forEach(e => {
                 potentialArgumentsNode.property.name === 'arguments'
             ) {
                 const outherNode = path.parentPath.parentPath.parentPath;
-
                 const variableName = path.value.object.name;
-                const callsArg = path.parentPath.value.property.name;
-                const argumentsArg = outherNode.value.property.name;
+                const callsProperty = path.parentPath.value.property;
+                const argumentsProperty = outherNode.value.property;
 
                 outherNode.replace(
                     j.memberExpression(
@@ -301,10 +300,10 @@ ${keys}.forEach(e => {
                                 j.identifier(variableName),
                                 j.identifier('mock.calls')
                             ),
-                            j.identifier(callsArg),
+                            callsProperty,
                             true
                         ),
-                        j.identifier(argumentsArg),
+                        argumentsProperty,
                         true
                     )
                 );
