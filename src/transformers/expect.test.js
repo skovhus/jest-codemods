@@ -299,6 +299,58 @@ testChanged(
 
       expect(spy1.calls.length).toBe(2);
       expect(spy2.calls[i].arguments[j]).toBe('yes');
+      expect(spy2.calls[0].arguments[3]).toBe('yes');
+
+      spy1.restore();
+      spy2.reset();
+    });
+    `,
+    `
+    test(() => {
+      var spy1 = jest.fn();
+      var spy2 = jest.spyOn(video, 'play');
+      var spy3 = jest.spyOn(video, 'play');
+
+      spy1.mockImplementation(fn);
+      spy2.mockImplementation(() => 42);
+      spy3.mockImplementation(() => {
+        throw new Error('bum');
+      });
+
+      not.a.spy.andCall(fn);
+      not.a.spy.andReturn(fn);
+      not.a.spy.andThrow(fn);
+
+      expect(spy1.mock.calls.length).toBe(2);
+      expect(spy2.mock.calls[i][j]).toBe('yes');
+      expect(spy2.mock.calls[0][3]).toBe('yes');
+
+      spy1.mockReset();
+      spy2.mockClear();
+    });
+    `
+);
+
+testChanged(
+    'maps spy methods on intitialized spies (spread import)',
+    `
+    import expect, { createSpy, spyOn } from 'expect';
+
+    test(() => {
+      var spy1 = createSpy();
+      var spy2 = spyOn(video, 'play');
+      var spy3 = spyOn(video, 'play');
+
+      spy1.andCall(fn);
+      spy2.andReturn(42);
+      spy3.andThrow(new Error('bum'));
+
+      not.a.spy.andCall(fn);
+      not.a.spy.andReturn(fn);
+      not.a.spy.andThrow(fn);
+
+      expect(spy1.calls.length).toBe(2);
+      expect(spy2.calls[i].arguments[j]).toBe('yes');
 
       spy1.restore();
       spy2.reset();
@@ -465,25 +517,6 @@ test('warns about unsupported spy features', () => {
     ]);
 });
 
-test('warns about spy features without expect', () => {
-    wrappedPlugin(
-        `
-        import expect, { createSpy, spyOn } from 'expect'
-
-        test(() => {
-          var spy1 = createSpy();
-          var spy2 = spyOn(video, 'play');
-        });
-    `
-    );
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) "createSpy" is currently not supported ' +
-            '(use "expect.createSpy" instead for transformation to work)',
-        'jest-codemods warning: (test.js line 6) "spyOn" is currently not supported ' +
-            '(use "expect.spyOn" instead for transformation to work)',
-    ]);
-});
-
 test('warns about creating spies without assigning it to a variable', () => {
     wrappedPlugin(
         `
@@ -497,6 +530,35 @@ test('warns about creating spies without assigning it to a variable', () => {
     );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 5) "spyOn" without variable assignment might not work as expected (see https://facebook.github.io/jest/docs/jest-object.html#jestspyonobject-methodname)',
+    ]);
+});
+
+test('warns about expect.extend usage', () => {
+    wrappedPlugin(
+        `
+        import expect from 'expect'
+        import expectElement from 'expect-element'
+
+        expect.extend(expectElement);
+    `
+    );
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 5) "extend" is currently not supported',
+    ]);
+});
+
+test('warns about unknown matchers', () => {
+    wrappedPlugin(
+        `
+        import expect from 'expect';
+
+        test(() => {
+            expect(age).toPass(n => n >= 18);
+        });
+    `
+    );
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 5) Unknown matcher "toPass"',
     ]);
 });
 

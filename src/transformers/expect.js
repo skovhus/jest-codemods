@@ -50,6 +50,7 @@ const matchersWithKeys = new Set([
 
 const expectSpyFunctions = new Set(['createSpy', 'spyOn', 'isSpy', 'restoreSpies']);
 const unsupportedSpyFunctions = new Set(['isSpy', 'restoreSpies']);
+const unsupportedExpectProperties = new Set(['extend']);
 
 export default function expectTransformer(fileInfo, api, options) {
     const j = api.jscodeshift;
@@ -73,9 +74,8 @@ export default function expectTransformer(fileInfo, api, options) {
         const newJestMatcherName = matcher.name.replace('not.', '');
         const maxArgs = JEST_MATCHER_TO_MAX_ARGS[newJestMatcherName];
         if (typeof maxArgs === 'undefined') {
-            throw new Error(
-                `Unknown matcher "${newJestMatcherName}" (JEST_MATCHER_TO_MAX_ARGS)`
-            );
+            logWarning(`Unknown matcher "${newJestMatcherName}"`, path);
+            return;
         }
 
         if (matcherNode.arguments.length > maxArgs) {
@@ -183,11 +183,10 @@ ${keys}.forEach(e => {
                     name: name => expectSpyFunctions.has(name),
                 },
             })
-            .forEach(path => {
-                logWarning(
-                    `"${path.value.callee.name}" is currently not supported ` +
-                        `(use "expect.${path.value.callee.name}" instead for transformation to work)`,
-                    path
+            .forEach(({ value }) => {
+                value.callee = j.memberExpression(
+                    j.identifier('expect'),
+                    j.identifier(value.callee.name)
                 );
             });
 
@@ -290,10 +289,9 @@ ${keys}.forEach(e => {
                 potentialArgumentsNode.property.name === 'arguments'
             ) {
                 const outherNode = path.parentPath.parentPath.parentPath;
-
                 const variableName = path.value.object.name;
-                const callsArg = path.parentPath.value.property.name;
-                const argumentsArg = outherNode.value.property.name;
+                const callsProperty = path.parentPath.value.property;
+                const argumentsProperty = outherNode.value.property;
 
                 outherNode.replace(
                     j.memberExpression(
@@ -302,10 +300,10 @@ ${keys}.forEach(e => {
                                 j.identifier(variableName),
                                 j.identifier('mock.calls')
                             ),
-                            j.identifier(callsArg),
+                            callsProperty,
                             true
                         ),
-                        j.identifier(argumentsArg),
+                        argumentsProperty,
                         true
                     )
                 );
@@ -350,8 +348,26 @@ ${keys}.forEach(e => {
             });
     };
 
+    const checkForUnsupportedFeatures = () =>
+        ast
+            .find(j.MemberExpression, {
+                object: {
+                    name: expectFunctionName,
+                },
+                property: {
+                    name: name => unsupportedExpectProperties.has(name),
+                },
+            })
+            .forEach(path => {
+                logWarning(
+                    `"${path.value.property.name}" is currently not supported`,
+                    path
+                );
+            });
+
     updateMatchers();
     updateSpies();
+    checkForUnsupportedFeatures();
 
     return finale(fileInfo, j, ast, options, expectFunctionName);
 }
