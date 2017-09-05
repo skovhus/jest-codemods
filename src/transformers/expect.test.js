@@ -539,6 +539,20 @@ test('warns about creating spies without assigning it to a variable', () => {
     ]);
 });
 
+test('warns about expect.extend usage', () => {
+    wrappedPlugin(
+        `
+        import expect from 'expect'
+        import expectElement from 'expect-element'
+
+        expect.extend(expectElement);
+    `
+    );
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 5) "extend" is currently not supported',
+    ]);
+});
+
 test('warns about toMatch usage on variables', () => {
     const result = wrappedPlugin(
         `

@@ -50,6 +50,7 @@ const matchersWithKeys = new Set([
 
 const expectSpyFunctions = new Set(['createSpy', 'spyOn', 'isSpy', 'restoreSpies']);
 const unsupportedSpyFunctions = new Set(['isSpy', 'restoreSpies']);
+const unsupportedExpectProperties = new Set(['extend']);
 
 export default function expectTransformer(fileInfo, api, options) {
     const j = api.jscodeshift;
@@ -349,8 +350,26 @@ ${keys}.forEach(e => {
             });
     };
 
+    const checkForUnsupportedFeatures = () =>
+        ast
+            .find(j.MemberExpression, {
+                object: {
+                    name: expectFunctionName,
+                },
+                property: {
+                    name: name => unsupportedExpectProperties.has(name),
+                },
+            })
+            .forEach(path => {
+                logWarning(
+                    `"${path.value.property.name}" is currently not supported`,
+                    path
+                );
+            });
+
     updateMatchers();
     updateSpies();
+    checkForUnsupportedFeatures();
 
     return finale(fileInfo, j, ast, options, expectFunctionName);
 }
