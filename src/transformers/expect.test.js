@@ -330,6 +330,56 @@ testChanged(
 );
 
 testChanged(
+    'maps spy methods on intitialized spies (spread import)',
+    `
+    import expect, { createSpy, spyOn } from 'expect';
+
+    test(() => {
+      var spy1 = createSpy();
+      var spy2 = spyOn(video, 'play');
+      var spy3 = spyOn(video, 'play');
+
+      spy1.andCall(fn);
+      spy2.andReturn(42);
+      spy3.andThrow(new Error('bum'));
+
+      not.a.spy.andCall(fn);
+      not.a.spy.andReturn(fn);
+      not.a.spy.andThrow(fn);
+
+      expect(spy1.calls.length).toBe(2);
+      expect(spy2.calls[i].arguments[j]).toBe('yes');
+
+      spy1.restore();
+      spy2.reset();
+    });
+    `,
+    `
+    test(() => {
+      var spy1 = jest.fn();
+      var spy2 = jest.spyOn(video, 'play');
+      var spy3 = jest.spyOn(video, 'play');
+
+      spy1.mockImplementation(fn);
+      spy2.mockImplementation(() => 42);
+      spy3.mockImplementation(() => {
+        throw new Error('bum');
+      });
+
+      not.a.spy.andCall(fn);
+      not.a.spy.andReturn(fn);
+      not.a.spy.andThrow(fn);
+
+      expect(spy1.mock.calls.length).toBe(2);
+      expect(spy2.mock.calls[i][j]).toBe('yes');
+
+      spy1.mockReset();
+      spy2.mockClear();
+    });
+    `
+);
+
+testChanged(
     'renames non standard expect import name',
     `
     import exp from 'expect';
@@ -368,6 +418,14 @@ testChanged(
     {
         standaloneMode: true,
     }
+);
+
+testChanged(
+    'not sure what this is',
+    `
+    `,
+    `
+    `
 );
 
 testChanged(
@@ -462,25 +520,6 @@ test('warns about unsupported spy features', () => {
         'jest-codemods warning: (test.js line 5) "restoreSpies" is currently not supported',
         'jest-codemods warning: (test.js line 7) "isSpy" is currently not supported',
         'jest-codemods warning: (test.js line 6) "andCallThrough" is currently not supported',
-    ]);
-});
-
-test('warns about spy features without expect', () => {
-    wrappedPlugin(
-        `
-        import expect, { createSpy, spyOn } from 'expect'
-
-        test(() => {
-          var spy1 = createSpy();
-          var spy2 = spyOn(video, 'play');
-        });
-    `
-    );
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) "createSpy" is currently not supported ' +
-            '(use "expect.createSpy" instead for transformation to work)',
-        'jest-codemods warning: (test.js line 6) "spyOn" is currently not supported ' +
-            '(use "expect.spyOn" instead for transformation to work)',
     ]);
 });
 

@@ -183,11 +183,10 @@ ${keys}.forEach(e => {
                     name: name => expectSpyFunctions.has(name),
                 },
             })
-            .forEach(path => {
-                logWarning(
-                    `"${path.value.callee.name}" is currently not supported ` +
-                        `(use "expect.${path.value.callee.name}" instead for transformation to work)`,
-                    path
+            .forEach(({ value }) => {
+                value.callee = j.memberExpression(
+                    j.identifier('expect'),
+                    j.identifier(value.callee.name)
                 );
             });
 
