@@ -185,11 +185,11 @@ module.exports = function transformer(fileInfo, api, options) {
             .closest(j.ExpressionStatement)
             .insertBefore(
                 j.expressionStatement(
-                    createCall('toBeLessThanOrEqual', [args[0]], rest, containsNot)
+                    createCall('toBeGreaterThanOrEqual', [args[0]], rest, containsNot)
                 )
             );
 
-        return createCall('toBeGreaterThanOrEqual', [args[1]], rest, containsNot);
+        return createCall('toBeLessThanOrEqual', [args[1]], rest, containsNot);
     }
 
     const shouldChainedToExpect = () =>

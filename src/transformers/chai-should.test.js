@@ -546,30 +546,38 @@ testChanged(
     `
         expect(7).to.be.within(5, 10);
 
-        expect('foo').to.have.length.within(2, 4);
-        expect([1, 2, 3]).to.have.length.within(2, 4);
-
-        expect('foo').to.have.length.within(2, 4, 'error message');
-
         (5).should.be.within(2, 4);
     `,
     `
-        expect(7).toBeLessThanOrEqual(5);
-        expect(7).toBeGreaterThanOrEqual(10);
+        expect(7).toBeGreaterThanOrEqual(5);
+        expect(7).toBeLessThanOrEqual(10);
 
-        expect('foo'.length).toBeLessThanOrEqual(2);
+        expect(5).toBeGreaterThanOrEqual(2);
 
-        expect('foo'.length).toBeGreaterThanOrEqual(4);
-        expect([1, 2, 3].length).toBeLessThanOrEqual(2);
-        expect([1, 2, 3].length).toBeGreaterThanOrEqual(4);
+        expect(5).toBeLessThanOrEqual(4);
+    `
+);
 
-        expect('foo'.length).toBeLessThanOrEqual(2);
+testChanged(
+    'converts "within" with length',
+    `
+        expect('foo').to.have.length.within(2, 4);
 
-        expect('foo'.length).toBeGreaterThanOrEqual(4);
+        expect([1, 2, 3]).to.have.length.within(2, 4);
 
-        expect(5).toBeLessThanOrEqual(2);
+        expect('foo').to.have.length.within(2, 4, 'error message');
+    `,
+    `
+        expect('foo'.length).toBeGreaterThanOrEqual(2);
+        expect('foo'.length).toBeLessThanOrEqual(4);
 
-        expect(5).toBeGreaterThanOrEqual(4);
+        expect([1, 2, 3].length).toBeGreaterThanOrEqual(2);
+
+        expect([1, 2, 3].length).toBeLessThanOrEqual(4);
+
+        expect('foo'.length).toBeGreaterThanOrEqual(2);
+
+        expect('foo'.length).toBeLessThanOrEqual(4);
     `
 );
 
