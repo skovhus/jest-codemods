@@ -74,9 +74,8 @@ export default function expectTransformer(fileInfo, api, options) {
         const newJestMatcherName = matcher.name.replace('not.', '');
         const maxArgs = JEST_MATCHER_TO_MAX_ARGS[newJestMatcherName];
         if (typeof maxArgs === 'undefined') {
-            throw new Error(
-                `Unknown matcher "${newJestMatcherName}" (JEST_MATCHER_TO_MAX_ARGS)`
-            );
+            logWarning(`Unknown matcher "${newJestMatcherName}"`, path);
+            return;
         }
 
         if (matcherNode.arguments.length > maxArgs) {

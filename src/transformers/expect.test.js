@@ -421,14 +421,6 @@ testChanged(
 );
 
 testChanged(
-    'not sure what this is',
-    `
-    `,
-    `
-    `
-);
-
-testChanged(
     'standaloneMode: rewrites expect.spyOn (import)',
     `
     import expect from 'expect';
@@ -550,6 +542,21 @@ test('warns about expect.extend usage', () => {
     );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 5) "extend" is currently not supported',
+    ]);
+});
+
+test('warns about unknown matchers', () => {
+    wrappedPlugin(
+        `
+        import expect from 'expect';
+
+        test(() => {
+            expect(age).toPass(n => n >= 18);
+        });
+    `
+    );
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 5) Unknown matcher "toPass"',
     ]);
 });
 
