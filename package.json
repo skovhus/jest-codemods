@@ -1,6 +1,6 @@
 {
   "name": "jest-codemods",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "description": "Codemods for migrating test files to Jest",
   "license": "MIT",
   "repository": "skovhus/jest-codemods",
