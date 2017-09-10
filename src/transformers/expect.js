@@ -1,5 +1,9 @@
 import { JEST_MATCHER_TO_MAX_ARGS, JEST_MOCK_PROPERTIES } from '../utils/consts';
-import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports';
+import {
+    hasRequireOrImport,
+    getRequireOrImportName,
+    removeRequireAndImport,
+} from '../utils/imports';
 import {
     findParentCallExpression,
     findParentOfType,
@@ -51,21 +55,22 @@ const matchersWithKeys = new Set([
 const expectSpyFunctions = new Set(['createSpy', 'spyOn', 'isSpy', 'restoreSpies']);
 const unsupportedSpyFunctions = new Set(['isSpy', 'restoreSpies']);
 const unsupportedExpectProperties = new Set(['extend']);
+const EXPECT = 'expect';
 
 export default function expectTransformer(fileInfo, api, options) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
     const { standaloneMode } = options;
 
-    const expectFunctionName = getRequireOrImportName(j, ast, 'expect');
-
-    if (!expectFunctionName) {
+    if (!hasRequireOrImport(j, ast, EXPECT)) {
         // No expect require/import were found
         return fileInfo.source;
     }
 
+    const expectFunctionName = getRequireOrImportName(j, ast, EXPECT) || EXPECT;
+
     if (!standaloneMode) {
-        removeRequireAndImport(j, ast, 'expect');
+        removeRequireAndImport(j, ast, EXPECT);
     }
 
     const logWarning = (msg, node) => logger(fileInfo, msg, node);
@@ -115,7 +120,7 @@ export default function expectTransformer(fileInfo, api, options) {
                 }
 
                 if (!standaloneMode) {
-                    path.parentPath.node.callee.object.callee.name = 'expect';
+                    path.parentPath.node.callee.object.callee.name = EXPECT;
                 }
 
                 const matcherNode = path.parentPath.node;
@@ -185,7 +190,7 @@ ${keys}.forEach(e => {
             })
             .forEach(({ value }) => {
                 value.callee = j.memberExpression(
-                    j.identifier('expect'),
+                    j.identifier(expectFunctionName),
                     j.identifier(value.callee.name)
                 );
             });
@@ -264,7 +269,9 @@ ${keys}.forEach(e => {
             }
 
             if (property.name === 'andCallThrough') {
-                logWarning(`"${property.name}" is currently not supported`, path);
+                const callExpression = findParentCallExpression(path, property.name);
+                const innerCallExpression = callExpression.value.callee.object;
+                j(callExpression).replaceWith(innerCallExpression);
             }
 
             const propertyNameMap = {
