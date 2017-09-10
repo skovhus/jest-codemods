@@ -364,11 +364,23 @@ ${keys}.forEach(e => {
                     type: 'Identifier',
                     name: name => spyVariables.indexOf(name) >= 0,
                 },
-                property: { type: 'Identifier' },
             })
             .forEach(path => {
                 const { property } = path.value;
-                updateSpyProperty(path, property);
+                let spyProperty = null;
+                if (property.type === 'Identifier') {
+                    // spy.calls.length
+                    spyProperty = property;
+                }
+
+                if (property.type === 'Literal') {
+                    // spies[0].calls.length
+                    spyProperty = path.parentPath.value.property;
+                }
+
+                if (spyProperty) {
+                    updateSpyProperty(path, spyProperty);
+                }
             });
     };
 

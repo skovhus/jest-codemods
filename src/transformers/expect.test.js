@@ -362,6 +362,36 @@ testChanged(
 );
 
 testChanged(
+    'maps spy array',
+    `
+    import { createSpy, spyOn } from 'expect'
+
+    test(() => {
+      const inputs = [
+        createSpy(props => <input {...props.input} />).andCallThrough(),
+        createSpy(props => <input {...props.input} />).andCallThrough(),
+        createSpy(props => <input {...props.input} />).andCallThrough()
+      ]
+      expect(inputs[0]).toNotHaveBeenCalled()
+      expect(inputs[1]).toHaveBeenCalled()
+      expect(inputs[1].calls.length).toEqual(1)
+    });
+    `,
+    `
+    test(() => {
+      const inputs = [
+        jest.fn(props => <input {...props.input} />),
+        jest.fn(props => <input {...props.input} />),
+        jest.fn(props => <input {...props.input} />)
+      ]
+      expect(inputs[0]).not.toHaveBeenCalled()
+      expect(inputs[1]).toHaveBeenCalled()
+      expect(inputs[1].mock.calls.length).toEqual(1)
+    });
+    `
+);
+
+testChanged(
     'renames non standard expect import name',
     `
     import exp from 'expect';
