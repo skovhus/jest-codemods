@@ -288,6 +288,7 @@ testChanged(
       var spy1 = expect.createSpy();
       var spy2 = expect.spyOn(video, 'play');
       var spy3 = expect.spyOn(video, 'play');
+      const parse = expect.createSpy(value => 'parsed-' + value).andCallThrough();
 
       spy1.andCall(fn);
       spy2.andReturn(42);
@@ -300,6 +301,7 @@ testChanged(
       expect(spy1.calls.length).toBe(2);
       expect(spy2.calls[i].arguments[j]).toBe('yes');
       expect(spy2.calls[0].arguments[3]).toBe('yes');
+      expect(spy2.calls[2].arguments).toEqual(1);
 
       spy1.restore();
       spy2.reset();
@@ -310,6 +312,7 @@ testChanged(
       var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
       var spy3 = jest.spyOn(video, 'play');
+      const parse = jest.fn(value => 'parsed-' + value);
 
       spy1.mockImplementation(fn);
       spy2.mockImplementation(() => 42);
@@ -324,6 +327,7 @@ testChanged(
       expect(spy1.mock.calls.length).toBe(2);
       expect(spy2.mock.calls[i][j]).toBe('yes');
       expect(spy2.mock.calls[0][3]).toBe('yes');
+      expect(spy2.mock.calls[2]).toEqual(1);
 
       spy1.mockReset();
       spy2.mockClear();
@@ -334,23 +338,12 @@ testChanged(
 testChanged(
     'maps spy methods on intitialized spies (spread import)',
     `
-    import expect, { createSpy, spyOn } from 'expect';
+    import { createSpy, spyOn } from 'expect'
 
     test(() => {
       var spy1 = createSpy();
       var spy2 = spyOn(video, 'play');
-      var spy3 = spyOn(video, 'play');
-
-      spy1.andCall(fn);
-      spy2.andReturn(42);
-      spy3.andThrow(new Error('bum'));
-
-      not.a.spy.andCall(fn);
-      not.a.spy.andReturn(fn);
-      not.a.spy.andThrow(fn);
-
-      expect(spy1.calls.length).toBe(2);
-      expect(spy2.calls[i].arguments[j]).toBe('yes');
+      const parse = createSpy(value => 'parsed-' + value).andCallThrough();
 
       spy1.restore();
       spy2.reset();
@@ -360,20 +353,7 @@ testChanged(
     test(() => {
       var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
-      var spy3 = jest.spyOn(video, 'play');
-
-      spy1.mockImplementation(fn);
-      spy2.mockImplementation(() => 42);
-      spy3.mockImplementation(() => {
-        throw new Error('bum');
-      });
-
-      not.a.spy.andCall(fn);
-      not.a.spy.andReturn(fn);
-      not.a.spy.andThrow(fn);
-
-      expect(spy1.mock.calls.length).toBe(2);
-      expect(spy2.mock.calls[i][j]).toBe('yes');
+      const parse = jest.fn(value => 'parsed-' + value);
 
       spy1.mockReset();
       spy2.mockClear();
@@ -505,15 +485,13 @@ test('warns about unsupported spy features', () => {
 
         test(() => {
           expect.restoreSpies();
-          const spy = expect.spyOn(video, 'play').andCallThrough(fn);
           expect(expect.isSpy(spy)).toBe(true);
         });
     `
     );
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 5) "restoreSpies" is currently not supported',
-        'jest-codemods warning: (test.js line 7) "isSpy" is currently not supported',
-        'jest-codemods warning: (test.js line 6) "andCallThrough" is currently not supported',
+        'jest-codemods warning: (test.js line 6) "isSpy" is currently not supported',
     ]);
 });
 

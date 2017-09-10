@@ -79,7 +79,7 @@ export function getRequireOrImportName(j, ast, pkg) {
 
     findImports(j, ast, pkg).forEach(p => {
         const pathSpecifier = p.value.specifiers[0];
-        if (pathSpecifier) {
+        if (pathSpecifier && pathSpecifier.type === 'ImportDefaultSpecifier') {
             localName = pathSpecifier.local.name;
         }
     });

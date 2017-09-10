@@ -1,7 +1,11 @@
 /* eslint-env jest */
 import jscodeshift from 'jscodeshift';
 
-import { hasRequireOrImport, removeRequireAndImport } from './imports';
+import {
+    getRequireOrImportName,
+    hasRequireOrImport,
+    removeRequireAndImport,
+} from './imports';
 
 const j = jscodeshift;
 
@@ -204,22 +208,39 @@ describe('removeRequireAndImport', () => {
     });
 });
 
-describe('hasRequireOrImport', () => {
+describe('hasRequireOrImport and getRequireOrImportName', () => {
     it('detects requires', () => {
         const ast = j('const xx = require("bar")');
         const hasImport = hasRequireOrImport(j, ast, 'bar');
         expect(hasImport).toBe(true);
+        expect(getRequireOrImportName(j, ast, 'bar')).toBe('xx');
+    });
+
+    it('detects requires spreads', () => {
+        const ast = j('const { xx } = require("baz")');
+        const hasImport = hasRequireOrImport(j, ast, 'baz');
+        expect(hasImport).toBe(true);
+        expect(getRequireOrImportName(j, ast, 'baz')).toBe(undefined);
     });
 
     it('detects imports', () => {
         const ast = j('import xx from "baz"');
         const hasImport = hasRequireOrImport(j, ast, 'baz');
         expect(hasImport).toBe(true);
+        expect(getRequireOrImportName(j, ast, 'baz')).toBe('xx');
+    });
+
+    it('detects imports spreads', () => {
+        const ast = j('import { xx } from "baz"');
+        const hasImport = hasRequireOrImport(j, ast, 'baz');
+        expect(hasImport).toBe(true);
+        expect(getRequireOrImportName(j, ast, 'baz')).toBe(null);
     });
 
     it('detects no imports', () => {
         const ast = j('import xx from "baz"');
         const hasImport = hasRequireOrImport(j, ast, 'xxx');
         expect(hasImport).toBe(false);
+        expect(getRequireOrImportName(j, ast, 'xxx')).toBeNull();
     });
 });
