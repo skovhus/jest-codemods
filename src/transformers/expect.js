@@ -288,18 +288,35 @@ ${keys}.forEach(e => {
                 property.name = newPropertyName;
             }
 
-            // Remap mock.calls[x].arguments[y] to mock.calls[x][y]
-            const potentialArgumentsNode = path.parentPath.parentPath.value;
+            // Remap spy.calls[x].arguments
+            const potentialArgumentsPath = path.parentPath.parentPath;
+            const potentialArgumentsNode = potentialArgumentsPath.value;
             if (
                 property.name === 'mock.calls' &&
                 potentialArgumentsNode.property &&
                 potentialArgumentsNode.property.name === 'arguments'
             ) {
-                const outherNode = path.parentPath.parentPath.parentPath;
                 const variableName = path.value.object.name;
                 const callsProperty = path.parentPath.value.property;
-                const argumentsProperty = outherNode.value.property;
 
+                if (potentialArgumentsPath.parentPath.value.type !== 'MemberExpression') {
+                    //  spy.calls[x].arguments =>  spy.mock.calls[x]
+                    potentialArgumentsPath.replace(
+                        j.memberExpression(
+                            j.memberExpression(
+                                j.identifier(variableName),
+                                j.identifier('mock.calls')
+                            ),
+                            callsProperty,
+                            true
+                        )
+                    );
+                    return;
+                }
+
+                // spy.calls[x].arguments[y] => spy.mock.calls[x][y]
+                const outherNode = path.parentPath.parentPath.parentPath;
+                const argumentsProperty = outherNode.value.property;
                 outherNode.replace(
                     j.memberExpression(
                         j.memberExpression(

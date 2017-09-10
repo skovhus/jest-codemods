@@ -301,6 +301,7 @@ testChanged(
       expect(spy1.calls.length).toBe(2);
       expect(spy2.calls[i].arguments[j]).toBe('yes');
       expect(spy2.calls[0].arguments[3]).toBe('yes');
+      expect(spy2.calls[2].arguments).toEqual(1);
 
       spy1.restore();
       spy2.reset();
@@ -326,6 +327,7 @@ testChanged(
       expect(spy1.mock.calls.length).toBe(2);
       expect(spy2.mock.calls[i][j]).toBe('yes');
       expect(spy2.mock.calls[0][3]).toBe('yes');
+      expect(spy2.mock.calls[2]).toEqual(1);
 
       spy1.mockReset();
       spy2.mockClear();
