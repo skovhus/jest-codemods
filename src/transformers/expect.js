@@ -57,6 +57,44 @@ const unsupportedSpyFunctions = new Set(['isSpy', 'restoreSpies']);
 const unsupportedExpectProperties = new Set(['extend']);
 const EXPECT = 'expect';
 
+function splitChainedMatchers(j, path) {
+    if (path.parentPath.parentPath.node.type !== 'MemberExpression') {
+        return;
+    }
+
+    // FIXME: if expect is not a value, it should probably be saved...
+
+    const pStatement = findParentOfType(path, 'ExpressionStatement');
+    const pStatementNode = pStatement.node.original;
+
+    function splitChain(callExpression) {
+        const next = callExpression.callee.object;
+        if (!next) {
+            return;
+        }
+
+        j(path)
+            .closest(j.ExpressionStatement)
+            .insertAfter(
+                j.expressionStatement(
+                    j.callExpression(
+                        j.memberExpression(
+                            path.node.object,
+                            callExpression.callee.property
+                        ),
+                        callExpression.arguments
+                    )
+                )
+            );
+
+        splitChain(next);
+    }
+
+    splitChain(pStatementNode.expression);
+
+    pStatement.prune();
+}
+
 export default function expectTransformer(fileInfo, api, options) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
@@ -111,13 +149,7 @@ export default function expectTransformer(fileInfo, api, options) {
                 property: { type: 'Identifier' },
             })
             .forEach(path => {
-                if (path.parentPath.parentPath.node.type === 'MemberExpression') {
-                    logWarning(
-                        'Chaining expect matchers is currently not supported',
-                        path
-                    );
-                    return;
-                }
+                splitChainedMatchers(j, path);
 
                 if (!standaloneMode) {
                     path.parentPath.node.callee.object.callee.name = EXPECT;
