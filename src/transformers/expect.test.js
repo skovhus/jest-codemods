@@ -412,6 +412,29 @@ testChanged(
 );
 
 testChanged(
+    'support chaining',
+    `
+    import expect from 'expect';
+
+    test(() => {
+       expect(stuff)
+         .toExist()
+         .toBeA('number')
+         .toNotBe(4)
+         .toBeMoreThan(42);
+    });
+    `,
+    `
+    test(() => {
+      expect(stuff).toBeTruthy();
+      expect(typeof stuff).toBe('number');
+      expect(stuff).not.toBe(4);
+      expect(stuff).toBeGreaterThan(42);
+    });
+    `
+);
+
+testChanged(
     'standaloneMode: keeps expect import',
     `
     import exp from 'expect';
@@ -489,24 +512,6 @@ testChanged(
         standaloneMode: true,
     }
 );
-
-test('warns about chaining', () => {
-    wrappedPlugin(
-        `
-        import expect from 'expect';
-
-        test(() => {
-          expect(3.14)
-            .toExist()
-            .toBeLessThan(4)
-            .toBeGreaterThan(3);
-        });
-    `
-    );
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) Chaining expect matchers is currently not supported',
-    ]);
-});
 
 test('warns about unsupported spy features', () => {
     wrappedPlugin(
