@@ -57,15 +57,14 @@ const unsupportedSpyFunctions = new Set(['isSpy', 'restoreSpies']);
 const unsupportedExpectProperties = new Set(['extend']);
 const EXPECT = 'expect';
 
-function splitChainedMatchers(j, path) {
+function splitChainedMatcherPath(j, path) {
     if (path.parentPath.parentPath.node.type !== 'MemberExpression') {
         return;
     }
 
-    // FIXME: if expect is not a value, it should probably be saved...
-
     const pStatement = findParentOfType(path, 'ExpressionStatement');
     const pStatementNode = pStatement.node.original;
+    const expectCallExpression = path.node.object;
 
     function splitChain(callExpression) {
         const next = callExpression.callee.object;
@@ -79,7 +78,9 @@ function splitChainedMatchers(j, path) {
                 j.expressionStatement(
                     j.callExpression(
                         j.memberExpression(
-                            path.node.object,
+                            j.callExpression(expectCallExpression.callee, [
+                                ...expectCallExpression.arguments,
+                            ]),
                             callExpression.callee.property
                         ),
                         callExpression.arguments
@@ -139,78 +140,79 @@ export default function expectTransformer(fileInfo, api, options) {
         );
     }
 
+    const getMatchers = () =>
+        ast.find(j.MemberExpression, {
+            object: {
+                type: 'CallExpression',
+                callee: { type: 'Identifier', name: expectFunctionName },
+            },
+            property: { type: 'Identifier' },
+        });
+
+    const splitChainedMatchers = () =>
+        getMatchers().forEach(path => {
+            splitChainedMatcherPath(j, path);
+        });
+
     const updateMatchers = () =>
-        ast
-            .find(j.MemberExpression, {
-                object: {
-                    type: 'CallExpression',
-                    callee: { type: 'Identifier', name: expectFunctionName },
-                },
-                property: { type: 'Identifier' },
-            })
-            .forEach(path => {
-                splitChainedMatchers(j, path);
+        getMatchers().forEach(path => {
+            if (!standaloneMode) {
+                path.parentPath.node.callee.object.callee.name = EXPECT;
+            }
 
-                if (!standaloneMode) {
-                    path.parentPath.node.callee.object.callee.name = EXPECT;
+            const matcherNode = path.parentPath.node;
+            const matcher = path.node.property;
+            const matcherName = matcher.name;
+
+            const matcherArgs = matcherNode.arguments;
+            const expectArgs = path.node.object.arguments;
+
+            const isNot =
+                matcherName.indexOf('Not') !== -1 ||
+                matcherName.indexOf('Exclude') !== -1;
+
+            if (matcherRenaming[matcherName]) {
+                matcher.name = matcherRenaming[matcherName];
+            }
+
+            if (matchersToBe.has(matcherName)) {
+                if (matcherArgs[0].type === 'Literal') {
+                    expectArgs[0] = j.unaryExpression('typeof', expectArgs[0]);
+                    matcher.name = isNot ? 'not.toBe' : 'toBe';
                 }
+            }
 
-                const matcherNode = path.parentPath.node;
-                const matcher = path.node.property;
-                const matcherName = matcher.name;
+            if (matchersWithKey.has(matcherName)) {
+                expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`;
+                matcher.name = isNot ? 'not.toContain' : 'toContain';
+            }
 
-                const matcherArgs = matcherNode.arguments;
-                const expectArgs = path.node.object.arguments;
-
-                const isNot =
-                    matcherName.indexOf('Not') !== -1 ||
-                    matcherName.indexOf('Exclude') !== -1;
-
-                if (matcherRenaming[matcherName]) {
-                    matcher.name = matcherRenaming[matcherName];
-                }
-
-                if (matchersToBe.has(matcherName)) {
-                    if (matcherArgs[0].type === 'Literal') {
-                        expectArgs[0] = j.unaryExpression('typeof', expectArgs[0]);
-                        matcher.name = isNot ? 'not.toBe' : 'toBe';
-                    }
-                }
-
-                if (matchersWithKey.has(matcherName)) {
-                    expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`;
-                    matcher.name = isNot ? 'not.toContain' : 'toContain';
-                }
-
-                if (matchersWithKeys.has(matcherName)) {
-                    const keys = matcherArgs[0];
-                    matcherArgs[0] = j.identifier('e');
-                    matcher.name = isNot ? 'not.toContain' : 'toContain';
-                    j(path.parentPath).replaceWith(
-                        j.template.expression`\
+            if (matchersWithKeys.has(matcherName)) {
+                const keys = matcherArgs[0];
+                matcherArgs[0] = j.identifier('e');
+                matcher.name = isNot ? 'not.toContain' : 'toContain';
+                j(path.parentPath).replaceWith(
+                    j.template.expression`\
 ${keys}.forEach(e => {
   ${matcherNode}
 })`
-                    );
-                }
+                );
+            }
 
-                if (matcherName === 'toMatch' || matcherName === 'toNotMatch') {
-                    // expect toMatch handles string, reg exp and object.
-                    const { name, type } = matcherArgs[0];
-                    if (type === 'ObjectExpression' || type === 'Identifier') {
-                        matcher.name = isNot ? 'not.toMatchObject' : 'toMatchObject';
+            if (matcherName === 'toMatch' || matcherName === 'toNotMatch') {
+                // expect toMatch handles string, reg exp and object.
+                const { name, type } = matcherArgs[0];
+                if (type === 'ObjectExpression' || type === 'Identifier') {
+                    matcher.name = isNot ? 'not.toMatchObject' : 'toMatchObject';
 
-                        if (type === 'Identifier') {
-                            logWarning(
-                                `Use "toMatch" if "${name}" is not an object`,
-                                path
-                            );
-                        }
+                    if (type === 'Identifier') {
+                        logWarning(`Use "toMatch" if "${name}" is not an object`, path);
                     }
                 }
+            }
 
-                balanceMatcherNodeArguments(matcherNode, matcher, path);
-            });
+            balanceMatcherNodeArguments(matcherNode, matcher, path);
+        });
 
     const updateSpies = () => {
         ast
@@ -433,6 +435,7 @@ ${keys}.forEach(e => {
                 );
             });
 
+    splitChainedMatchers();
     updateMatchers();
     updateSpies();
     checkForUnsupportedFeatures();
