@@ -1,4 +1,5 @@
-# jest-codemods
+<div align="center">
+<h1> jest-codemods 👾</h1>
 
 Codemods that simplify migrating JavaScript test files from
 [AVA](https://github.com/avajs/ava),
@@ -12,11 +13,17 @@ Codemods that simplify migrating JavaScript test files from
 and [Tape](https://github.com/substack/tape)
 to [Jest](https://facebook.github.io/jest/).
 
-<img src="screenshot.gif" width="300" align="right" style="margin-bottom: 1em; margin-left: 1em">
-
 [![Build Status](https://travis-ci.org/skovhus/jest-codemods.svg?branch=master)](https://travis-ci.org/skovhus/jest-codemods)
 [![version][version-badge]][package]
+[![downloads](https://img.shields.io/npm/dm/jest-codemods.svg?style=flat-square)](http://npm-stat.com/charts.html?package=jest-codemods&from=2017-07-17)
+[![Code Coverage](https://img.shields.io/codecov/c/github/skovhus/jest-codemods.svg?style=flat-square)](https://codecov.io/github/skovhus/jest-codemods)
+[![MIT License](https://img.shields.io/npm/l/jest-codemods.svg?style=flat-square)](https://github.com/skovhus/jest-codemods/blob/master/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 [![Tweet][twitter-badge]][twitter]
+
+</div>
+
+<img src="screenshot.gif" width="300" align="right" style="margin-bottom: 1em; margin-left: 1em">
 
 Codemods are small programs that help you automate changes to your codebase.
 Think of them as search and replace on steroids.
@@ -58,7 +65,7 @@ $ jest-codemods --help
     Usage
       $ jest-codemods <path> [options]
 
-    path	Files or directory to transform. Can be a glob like src/**.test.js
+    path	        Files or directory to transform. Can be a glob like src/**.test.js
 
     Options
       --force, -f	Bypass Git safety checks and forcibly run codemods
@@ -108,26 +115,6 @@ After running `jest-codemods` you might need to install a few dependencies:
 If possible `import` / `require` statements determine if any transformation are carried out.
 The original code quoting style is preserved.
 Warnings are made if packages are used that are incompatible with Jest.
-
-Usage of `proxyquire` is replaced with Jest mocks.
-
-
-#### Warnings for unsupported features
-
-Warnings for unsupported AVA features:
- - `t.skip`
-
-Warnings for unsupported Tape features:
- - `t.timeoutAfter`
- - `t.deepLooseEqual`
- - `t.looseEqual`
- - `t.looseEquals`
- - `t.notDeepLooseEqual`
- - `t.notLooseEqual`
- - `t.notLooseEquals`
- - `t.skip`
- - `test.createStream`
- - `test.onFinish`
 
 
 ## Inspiration
