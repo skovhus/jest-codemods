@@ -5,3 +5,7 @@ node_js:
 script:
   - yarn run ci
 cache: yarn
+notifications:
+  email:
+    on_failure: always
+    on_success: never
