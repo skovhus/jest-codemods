@@ -105,9 +105,9 @@ your tests in a browser. In that case you can select the environment using the
 
 After running `jest-codemods` you might need to install a few dependencies:
 
-  yarn -D expect jest-mock
+    yarn -D expect jest-mock
 
-  npm install expect jest-mock
+    npm install expect jest-mock
 
 
 ## Transformations
