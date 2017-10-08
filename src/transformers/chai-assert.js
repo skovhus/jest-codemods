@@ -210,40 +210,37 @@ export default function transformer(fileInfo, api, options) {
             Array.isArray(expectation) ? expectation : [expectation]
         );
 
-    assertToExpectMapping.forEach(({
-        assert,
-        expect,
-        ignoreExpectedValue,
-        includeNegative,
-        expectedOverride,
-    }) => {
-        let override;
-        if (typeof expectedOverride !== 'undefined') {
-            override = typeof expectedOverride === 'boolean'
-                ? j.literal(expectedOverride)
-                : j.identifier(expectedOverride);
-        }
+    assertToExpectMapping.forEach(
+        ({ assert, expect, ignoreExpectedValue, includeNegative, expectedOverride }) => {
+            let override;
+            if (typeof expectedOverride !== 'undefined') {
+                override =
+                    typeof expectedOverride === 'boolean'
+                        ? j.literal(expectedOverride)
+                        : j.identifier(expectedOverride);
+            }
 
-        ast
-            .find(j.CallExpression, getAssertionExpression(assert))
-            .replaceWith(path =>
-                makeExpectation(
-                    expect,
-                    ...getArguments(path, ignoreExpectedValue, override)
-                )
-            );
-
-        if (includeNegative) {
             ast
-                .find(j.CallExpression, getAssertionExpression(includeNegative))
+                .find(j.CallExpression, getAssertionExpression(assert))
                 .replaceWith(path =>
-                    makeNegativeExpectation(
+                    makeExpectation(
                         expect,
                         ...getArguments(path, ignoreExpectedValue, override)
                     )
                 );
+
+            if (includeNegative) {
+                ast
+                    .find(j.CallExpression, getAssertionExpression(includeNegative))
+                    .replaceWith(path =>
+                        makeNegativeExpectation(
+                            expect,
+                            ...getArguments(path, ignoreExpectedValue, override)
+                        )
+                    );
+            }
         }
-    });
+    );
 
     unsupportedAssertions.forEach(assertion => {
         ast.find(j.CallExpression, getAssertionExpression(assertion)).forEach(path => {

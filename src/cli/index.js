@@ -173,7 +173,11 @@ inquirer
             message: 'On which files or directory should the codemods be applied?',
             when: () => !cli.input.length,
             default: 'src test/**/*.js',
-            filter: files => files.trim().split(/\s+/).filter(v => v),
+            filter: files =>
+                files
+                    .trim()
+                    .split(/\s+/)
+                    .filter(v => v),
         },
     ])
     .then(answers => {

@@ -192,9 +192,10 @@ function makeTransformApi(j) {
 
     function makeThrowExpect(expectCall, negation, matcherArg) {
         if (matcherArg && matcherArg.type === 'FunctionExpression') {
-            let expectFn = expectCall.arguments[0].type === 'Identifier'
-                ? j.identifier(expectCall.arguments[0].name)
-                : expectCall.arguments[0];
+            let expectFn =
+                expectCall.arguments[0].type === 'Identifier'
+                    ? j.identifier(expectCall.arguments[0].name)
+                    : expectCall.arguments[0];
             return j.tryStatement(
                 j.blockStatement([
                     j.expressionStatement(j.callExpression(expectFn, [])),

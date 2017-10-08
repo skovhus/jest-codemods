@@ -26,7 +26,10 @@ it('runs jscodeshift for the given transformer', () => {
     console.log = jest.fn();
     executeTransformations('src', {}, ['tape']);
     expect(console.log).toBeCalledWith(
-        `Executing command: jscodeshift -t ${path.join(transformerDirectory, 'tape.js')} src`
+        `Executing command: jscodeshift -t ${path.join(
+            transformerDirectory,
+            'tape.js'
+        )} src`
     );
 });
 
@@ -35,7 +38,10 @@ it('supports jscodeshift flags', () => {
     console.log = jest.fn();
     executeTransformations('folder', { dry: true, parser: 'flow' }, ['ava']);
     expect(console.log).toBeCalledWith(
-        `Executing command: jscodeshift -t ${path.join(transformerDirectory, 'ava.js')} folder --dry --parser flow`
+        `Executing command: jscodeshift -t ${path.join(
+            transformerDirectory,
+            'ava.js'
+        )} folder --dry --parser flow`
     );
 });
 
@@ -49,7 +55,10 @@ it('supports jscodeshift custom arguments', () => {
         ['--standaloneMode']
     );
     expect(console.log).toBeCalledWith(
-        `Executing command: jscodeshift -t ${path.join(transformerDirectory, 'ava.js')} folder --dry --parser flow --standaloneMode`
+        `Executing command: jscodeshift -t ${path.join(
+            transformerDirectory,
+            'ava.js'
+        )} folder --dry --parser flow --standaloneMode`
     );
 });
 

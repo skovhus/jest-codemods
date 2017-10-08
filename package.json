@@ -62,20 +62,19 @@
     "update-notifier": "^2.2.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.14.0",
-    "babel-eslint": "^7.2.2",
-    "babel-jest": "^16.0.0",
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^8.0.1",
+    "babel-jest": "^21.2.0",
     "babel-preset-es2015-node4": "^2.1.0",
     "codecov": "^2.3.0",
-    "eslint": "^3.19.0",
-    "eslint-config-prettier": "^1.6.0",
-    "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-prettier": "^2.0.1",
+    "eslint": "^4.8.0",
+    "eslint-config-prettier": "^2.6.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-prettier": "^2.3.1",
     "husky": "^0.14.3",
-    "jest": "^20.0.4",
-    "lint-staged": "^4.0.3",
-    "prettier": "^1.0.2",
-    "prettier-check": "^1.0.0"
+    "jest": "^21.2.1",
+    "lint-staged": "^4.2.3",
+    "prettier": "^1.7.4"
   },
   "jest": {
     "collectCoverageFrom": [

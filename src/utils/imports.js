@@ -17,7 +17,10 @@ export function addRequireOrImport(j, ast, localName, pkg) {
         );
     }
 
-    ast.find(j.Program).get('body', 0).insertBefore(requireStatement);
+    ast
+        .find(j.Program)
+        .get('body', 0)
+        .insertBefore(requireStatement);
 }
 
 export function addRequireOrImportOnceFactory(j, ast) {

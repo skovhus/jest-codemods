@@ -626,7 +626,8 @@ test('warns about unsupported number of arguments (comparator)', () => {
     expect(consoleWarnings).toEqual(
         [...Array(numberOfErrors).keys()].map(
             e =>
-                `jest-codemods warning: (test.js line ${e + firstErrorLine}) Too many arguments given to "toContain". Expected max 1 but got 2`
+                `jest-codemods warning: (test.js line ${e +
+                    firstErrorLine}) Too many arguments given to "toContain". Expected max 1 but got 2`
         )
     );
 });
