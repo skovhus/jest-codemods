@@ -155,8 +155,9 @@ export default function avaToJest(fileInfo, api, options) {
                     rewriteAssertionsAndTestArgument(j, p);
                 });
 
-            function mapPathToJestMethod(p) {
+            function mapPathToJestCallExpression(p) {
                 let jestMethod = 'test';
+                let jestMethodArgs = p.node.arguments;
 
                 // List like ['test', 'serial', 'cb']
                 const avaMethods = getMemberExpressionElements(p.node.callee).filter(
@@ -165,7 +166,12 @@ export default function avaToJest(fileInfo, api, options) {
 
                 if (avaMethods.length === 1) {
                     const avaMethod = avaMethods[0];
-                    if (avaMethod in avaToJestMethods) {
+                    if (avaMethod === 'todo') {
+                        const firstArg = jestMethodArgs && jestMethodArgs[0];
+                        if (firstArg.type === 'Literal') {
+                            jestMethodArgs = [j.literal('TODO: ' + firstArg.value)];
+                        }
+                    } else if (avaMethod in avaToJestMethods) {
                         jestMethod = avaToJestMethods[avaMethod];
                     } else {
                         jestMethod = avaMethod;
@@ -178,7 +184,7 @@ export default function avaToJest(fileInfo, api, options) {
                     );
                 }
 
-                return jestMethod;
+                return j.callExpression(j.identifier(jestMethod), jestMethodArgs);
             }
 
             ast
@@ -200,12 +206,7 @@ export default function avaToJest(fileInfo, api, options) {
                 .forEach(p => {
                     rewriteAssertionsAndTestArgument(j, p);
                 })
-                .replaceWith(p =>
-                    j.callExpression(
-                        j.identifier(mapPathToJestMethod(p)),
-                        p.node.arguments
-                    )
-                );
+                .replaceWith(mapPathToJestCallExpression);
         },
     ];
 
