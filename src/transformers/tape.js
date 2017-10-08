@@ -228,7 +228,8 @@ export default function tapeToJest(fileInfo, api, options) {
                                 const tapeOptionKey = tapeOption.key.name;
                                 const tapeOptionValue = tapeOption.value.value;
                                 if (
-                                    tapeOptionKey === 'skip' && tapeOptionValue === true
+                                    tapeOptionKey === 'skip' &&
+                                    tapeOptionValue === true
                                 ) {
                                     p.value.callee.name = 'test.skip';
                                 }

@@ -367,7 +367,8 @@ module.exports = function transformer(fileInfo, api, options) {
                     case 'string':
                     case 'contain':
                         if (
-                            args.length === 1 && args[0].type === j.ObjectExpression.name
+                            args.length === 1 &&
+                            args[0].type === j.ObjectExpression.name
                         ) {
                             return createCall('toMatchObject', args, rest, containsNot);
                         }
