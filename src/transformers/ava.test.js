@@ -391,6 +391,20 @@ test('warns about unknown AVA functions', () => {
     ]);
 });
 
+test('warns about too few AVA arguments', () => {
+    wrappedPlugin(
+        `
+        import test from 'ava';
+        test(t => {
+          t.is(1);
+        });
+    `
+    );
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) "t.is" should have 2 arguments',
+    ]);
+});
+
 testChanged(
     'supports renaming non standard import name',
     `
