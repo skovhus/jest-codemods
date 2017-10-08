@@ -295,6 +295,17 @@ test('my test', () => {
 `
 );
 
+testChanged(
+    'converts test.todo',
+    `
+import test from 'ava';
+test.todo('this should be a test some day');
+`,
+    `
+test('TODO: this should be a test some day');
+`
+);
+
 test('not supported warnings: skipping test setup/teardown hooks', () => {
     wrappedPlugin(
         `
@@ -372,13 +383,11 @@ test('warns about unknown AVA functions', () => {
     wrappedPlugin(
         `
         import test from 'ava';
-        test.todo(t => {});
         test.failing(t => {});
     `
     );
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) Unknown AVA method "todo"',
-        'jest-codemods warning: (test.js line 4) Unknown AVA method "failing"',
+        'jest-codemods warning: (test.js line 3) Unknown AVA method "failing"',
     ]);
 });
 
