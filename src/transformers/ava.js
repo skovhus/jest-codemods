@@ -126,6 +126,15 @@ export default function avaToJest(fileInfo, api, options) {
                     } else {
                         const hasSecondArgument =
                             PROP_WITH_SECONDS_ARGS.indexOf(newPropertyName) >= 0;
+
+                        if (hasSecondArgument && args.length < 2) {
+                            logWarning(
+                                `"t.${oldPropertyName}" should have 2 arguments`,
+                                p
+                            );
+                            return;
+                        }
+
                         const conditionArgs = hasSecondArgument ? [args[1]] : [];
                         newCondition = j.callExpression(
                             j.identifier(newPropertyName),
