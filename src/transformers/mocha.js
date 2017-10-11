@@ -1,3 +1,4 @@
+import { removeRequireAndImport } from '../utils/imports';
 import finale from '../utils/finale';
 import jasmineThisTransformer from './jasmine-this';
 
@@ -37,6 +38,8 @@ function hasBinding(name, scope) {
 export default function mochaToJest(fileInfo, api, options) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
+
+    removeRequireAndImport(j, ast, 'mocha');
 
     Object.keys(methodMap).forEach(mochaMethod => {
         const jestMethod = methodMap[mochaMethod];
