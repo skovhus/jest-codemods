@@ -149,3 +149,16 @@ describe('test suite', () => {
 });
 `
 );
+
+testChanged(
+    'removes mocha import',
+    `
+import { describe, it } from 'mocha';
+suite('suite', () => {
+})
+    `,
+    `
+describe('suite', () => {
+})
+    `
+);
