@@ -135,6 +135,13 @@ module.exports = function transformer(fileInfo, api, options) {
                         )
                     )
                 );
+            case 'error':
+                return createCall(
+                    'toBeInstanceOf',
+                    [j.identifier('Error')],
+                    updateExpect(value, node => node),
+                    containsNot
+                );
             default:
                 return createCall(
                     'toBe',

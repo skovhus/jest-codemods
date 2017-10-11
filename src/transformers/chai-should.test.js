@@ -94,7 +94,7 @@ testChanged(
         expect('xyz').toBeInstanceOf(String);
         expect(null).toBeNull();
         expect(undefined).toBeUndefined();
-        expect(typeof new Error()).toBe('error');
+        expect(new Error()).toBeInstanceOf(Error);
         expect(typeof new Promise()).toBe('promise');
         expect(typeof new Float32Array()).toBe('float32array');
         expect(typeof Symbol()).toBe('symbol');
