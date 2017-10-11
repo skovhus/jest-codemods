@@ -84,9 +84,11 @@ module.exports = function transformer(fileInfo, api, options) {
     const updateExpect = updateExpectUtil(j);
     const createCallChain = createCallChainUtil(j);
 
-    removeRequireAndImport(j, root, 'chai', 'expect');
-    removeRequireAndImport(j, root, 'chai', 'should');
-    // Not sure if expect is always imported... So we continue with the transformation:
+    const chaiExpectRemoved = removeRequireAndImport(j, root, 'chai', 'expect');
+    const chaiShouldRemoved = removeRequireAndImport(j, root, 'chai', 'should');
+    if (chaiExpectRemoved || chaiShouldRemoved) {
+        mutations += 1;
+    }
 
     const isExpectCall = node =>
         node.name === 'expect' ||
