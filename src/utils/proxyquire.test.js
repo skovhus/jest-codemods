@@ -8,6 +8,8 @@ jest.mock('./logger', () => () => mockedLogger(...arguments));
 const j = jscodeshift;
 const fileInfo = { path: 'a.test.js' };
 
+const getOptions = () => ({ quote: 'single', lineTerminator: '\n' });
+
 it('rewrites proxyquire without noCallThru', () => {
     const ast = j(
         `
@@ -19,7 +21,7 @@ it('rewrites proxyquire without noCallThru', () => {
     `
     );
     proxyquireTransformer(fileInfo, j, ast);
-    expect(ast.toSource({ quote: 'single' })).toEqual(
+    expect(ast.toSource(getOptions())).toEqual(
         `
         jest.mock('./features/baz', () => () => <div />);
         jest.mock('common/Foo', () => () => <div />);
@@ -39,7 +41,7 @@ it('rewrites proxyquire with noCallThru', () => {
     `
     );
     proxyquireTransformer(fileInfo, j, ast);
-    expect(ast.toSource({ quote: 'single' })).toEqual(
+    expect(ast.toSource(getOptions())).toEqual(
         `
         jest.mock('common/Foo', () => () => <div />);
         const Page = require('./PageContainer');
@@ -58,7 +60,7 @@ it('rewrites proxyquire with require statement noCallThru', () => {
     `
     );
     proxyquireTransformer(fileInfo, j, ast);
-    expect(ast.toSource({ quote: 'single' })).toEqual(
+    expect(ast.toSource(getOptions())).toEqual(
         `
         jest.mock('lib', () => () => {});
         const tracking = require('./tracking');
@@ -88,7 +90,7 @@ it('supports variable reference object', () => {
     `
     );
     proxyquireTransformer(fileInfo, j, ast);
-    expect(ast.toSource({ quote: 'single' })).toEqual(
+    expect(ast.toSource(getOptions())).toEqual(
         `
         import sinon from 'sinon';
 
@@ -120,7 +122,7 @@ it('supports empty noCallThru', () => {
     `
     );
     proxyquireTransformer(fileInfo, j, ast);
-    expect(ast.toSource({ quote: 'single' })).toEqual(
+    expect(ast.toSource(getOptions())).toEqual(
         `
         jest.mock('b', () => 'c');
         const a = require('a');
@@ -137,7 +139,7 @@ it('supports the `load` method', () => {
     `
     );
     proxyquireTransformer(fileInfo, j, ast);
-    expect(ast.toSource({ quote: 'single' })).toEqual(
+    expect(ast.toSource(getOptions())).toEqual(
         `
         jest.mock('b', () => 'c');
         const a = require('a');
@@ -154,7 +156,7 @@ it('supports a chained `noCallThru().load()` call', () => {
     `
     );
     proxyquireTransformer(fileInfo, j, ast);
-    expect(ast.toSource({ quote: 'single' })).toEqual(
+    expect(ast.toSource(getOptions())).toEqual(
         `
         jest.mock('b', () => 'c');
         const a = require('a');
@@ -173,7 +175,7 @@ it('logs error when proxyquire mocks are not defined in the file', () => {
     `
     );
     proxyquireTransformer(fileInfo, j, ast);
-    expect(ast.toSource({ quote: 'single' })).toEqual(
+    expect(ast.toSource(getOptions())).toEqual(
         `
         import mockedDeps from './someFile';
         proxyquire.noCallThru()('./index', mockedDeps);
@@ -206,7 +208,7 @@ it('logs error with multiple proxyquire to same file', () => {
     `
     );
     proxyquireTransformer(fileInfo, j, ast);
-    expect(ast.toSource({ quote: 'single' })).toEqual(
+    expect(ast.toSource(getOptions())).toEqual(
         `
         jest.mock('../page', () => mockedRender);
         const routeHandler = require('./handler');

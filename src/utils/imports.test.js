@@ -9,6 +9,8 @@ import {
 
 const j = jscodeshift;
 
+const getOptions = () => ({ lineTerminator: '\n' });
+
 describe('removeRequireAndImport', () => {
     it('removes require statements', () => {
         const ast = j(
@@ -19,7 +21,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'foo');
         expect(removedVariableName).toBe('x');
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             x();
         `
@@ -35,7 +37,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'foo');
         expect(removedVariableName).toBeNull();
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             console.log('yes');
         `
@@ -51,7 +53,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'foo');
         expect(removedVariableName).toBe('x');
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             x();
         `
@@ -67,7 +69,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'foo', 'bar');
         expect(removedVariableName).toBe('x');
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             x();
         `
@@ -84,7 +86,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'foo', 'bop');
         expect(removedVariableName).toBeNull();
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             const x = require('foo').bar;
             require('foo').baz();
@@ -102,7 +104,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'baz');
         expect(removedVariableName).toBe('xx');
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             xx();
         `
@@ -118,7 +120,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'baz');
         expect(removedVariableName).toBeNull();
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             console.log('yes');
         `
@@ -134,7 +136,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'baz', 'xx');
         expect(removedVariableName).toBe('xx');
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             xx();
         `
@@ -150,7 +152,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'baz', 'xx');
         expect(removedVariableName).toBe('foo');
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             xx();
         `
@@ -166,7 +168,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'baz', 'yy');
         expect(removedVariableName).toBeNull();
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             import { xx } from 'baz';
             xx();
@@ -185,7 +187,7 @@ describe('removeRequireAndImport', () => {
         );
         const removedVariableName = removeRequireAndImport(j, ast, 'baz');
         expect(removedVariableName).toBe('xx');
-        expect(ast.toSource()).toEqual(
+        expect(ast.toSource(getOptions())).toEqual(
             `
             // @flow
             /* eslint... */
@@ -204,7 +206,7 @@ describe('removeRequireAndImport', () => {
         const ast = j(inputSource);
         const removedVariableName = removeRequireAndImport(j, ast, 'foo');
         expect(removedVariableName).toBe(null);
-        expect(ast.toSource()).toEqual(inputSource);
+        expect(ast.toSource(getOptions())).toEqual(inputSource);
     });
 });
 
