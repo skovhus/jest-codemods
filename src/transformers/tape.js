@@ -45,6 +45,7 @@ const tPropertiesMap = {
     isInequal: 'not.toBe',
 
     deepEqual: 'toEqual',
+    deepEquals: 'toEqual',
     isEquivalent: 'toEqual',
     same: 'toEqual',
 
