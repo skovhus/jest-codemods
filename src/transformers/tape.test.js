@@ -83,6 +83,7 @@ test((t) => {
     t.strictEquals(1, 2, 'msg');
 
     t.notEqual(1, 2, 'msg');
+    t.notEquals(1, 2, 'msg');
     t.notStrictEqual(1, 2, 'msg');
     t.notStrictEquals(1, 2, 'msg');
     t.isNotEqual(1, 2, 'msg');
@@ -102,6 +103,7 @@ test((t) => {
     t.notDeeply(1, 2, 'msg');
     t.notSame(1, 2, 'msg');
     t.isNotDeepEqual(1, 2, 'msg');
+    t.isNotDeeply(1, 2, 'msg');
     t.isNotEquivalent(1, 2, 'msg');
     t.isInequivalent(1, 2, 'msg');
 
@@ -140,6 +142,7 @@ test(done => {
     expect(1).not.toBe(2);
     expect(1).not.toBe(2);
     expect(1).not.toBe(2);
+    expect(1).not.toBe(2);
 
     expect(1).not.toBe(2);
     expect(1).not.toBe(2);
@@ -149,6 +152,7 @@ test(done => {
     expect(1).toEqual(2);
     expect(1).toEqual(2);
 
+    expect(1).not.toEqual(2);
     expect(1).not.toEqual(2);
     expect(1).not.toEqual(2);
     expect(1).not.toEqual(2);
