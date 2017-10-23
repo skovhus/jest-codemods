@@ -93,6 +93,7 @@ test((t) => {
     t.isInequal(1, 2, 'msg');
 
     t.deepEqual(app.x, {foo: 2}, 'msg');
+    t.deepEquals(app.x, {foo: 2}, 'msg');
     t.isEquivalent(1, 2, 'msg');
     t.same(1, 2, 'msg');
 
@@ -143,6 +144,7 @@ test(done => {
     expect(1).not.toBe(2);
     expect(1).not.toBe(2);
 
+    expect(app.x).toEqual({foo: 2});
     expect(app.x).toEqual({foo: 2});
     expect(1).toEqual(2);
     expect(1).toEqual(2);
