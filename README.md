@@ -97,13 +97,16 @@ $ jscodeshift -t node_modules/jest-codemods/dist/transformers/should.js test-fol
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
 ```
 
-## Test environment: node.js or browser
+## Test environment: Jest on Node.js or other
 
-Normally Jest tests are running on node.js. But in some cases you might want to use execute
-your tests in a browser. In that case you can select the environment using the
-`jest-codemod` CLI.
+If you're using Jest as your test runner and executing tests on Node.js, you'll want to use
+the default option when prompted. In this case, `jest-codemods` assumes that global values
+such as `expect` and `jest` are provided and will not `require()` them explicitly.
 
-After running `jest-codemods` you might need to install a few dependencies:
+If, however, you are using a different test runner or executing Jest tests in a browser,
+you may need to choose the option with explicit `require()` calls.
+
+In the second case, after running `jest-codemods`, you might need to install a few dependencies:
 
     yarn -D expect jest-mock
 
