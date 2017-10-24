@@ -123,14 +123,14 @@ inquirer
         {
             name: 'standaloneMode',
             type: 'list',
-            message: 'Should the tests be able to run in a browser?',
+            message: 'Will you be using Jest on Node.js as your test runner?',
             choices: [
                 {
-                    name: 'The tests should run on node.js (recommended)',
+                    name: 'Yes, use the globals provided by Jest (recommended)',
                     value: false,
                 },
                 {
-                    name: 'The tests should run in a browser',
+                    name: 'No, use explicit require() calls instead of globals',
                     value: true,
                 },
             ],
