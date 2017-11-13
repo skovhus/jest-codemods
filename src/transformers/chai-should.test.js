@@ -86,6 +86,7 @@ testChanged(
         expect(baz).to.not.be.an('array');
 
         'test'.should.be.a('string');
+        expect({objectProperty: {}}).to.have.property('objectProperty').to.be.an('object');
     `,
     `
         expect(typeof 'test').toBe('string');
@@ -104,6 +105,7 @@ testChanged(
         expect(Array.isArray(baz)).toBe(false);
 
         expect(typeof 'test').toBe('string');
+        expect({objectProperty: {}}).toMatchObject({objectProperty: expect.any(Object)});
     `
 );
 
