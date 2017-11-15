@@ -36,6 +36,7 @@ const tPropertiesMap = {
     strictEquals: 'toBe',
 
     notEqual: 'not.toBe',
+    notEquals: 'not.toBe',
     notStrictEqual: 'not.toBe',
     notStrictEquals: 'not.toBe',
     isNotEqual: 'not.toBe',
@@ -45,6 +46,7 @@ const tPropertiesMap = {
     isInequal: 'not.toBe',
 
     deepEqual: 'toEqual',
+    deepEquals: 'toEqual',
     isEquivalent: 'toEqual',
     same: 'toEqual',
 
@@ -53,6 +55,7 @@ const tPropertiesMap = {
     notDeeply: 'not.toEqual',
     notSame: 'not.toEqual',
     isNotDeepEqual: 'not.toEqual',
+    isNotDeeply: 'not.toEqual',
     isNotEquivalent: 'not.toEqual',
     isInequivalent: 'not.toEqual',
 

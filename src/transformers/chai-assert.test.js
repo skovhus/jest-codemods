@@ -111,8 +111,14 @@ const mappings = [
     ['assert.lengthOf(foo, bar, baz);', 'expect(foo.length).toBe(bar);'],
     ['assert.throws(foo, bar, baz);', 'expect(foo).toThrow();'],
     ['assert.doesNotThrow(foo, bar, baz);', 'expect(foo).not.toThrow();'],
-    ['assert.closeTo(foo, bar, baz, msg);', 'expect(foo).toBeCloseTo(bar, baz);'],
-    ['assert.approximately(foo, bar, baz);', 'expect(foo).toBeCloseTo(bar, baz);'],
+    [
+        'assert.closeTo(foo, bar, baz, msg);',
+        'expect(Math.abs(foo - bar)).toBeLessThanOrEqual(baz);',
+    ],
+    [
+        'assert.approximately(foo, bar, baz);',
+        'expect(Math.abs(foo - bar)).toBeLessThanOrEqual(baz);',
+    ],
     ['assert.sameMembers(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
     ['assert.sameDeepMembers(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
     ['assert.isExtensible(foo);', 'expect(Object.isExtensible(foo)).toBe(true);'],
