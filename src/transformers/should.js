@@ -1,6 +1,7 @@
 import { removeRequireAndImport } from '../utils/imports';
 import { traverseMemberExpressionUtil } from '../utils/recast-helpers';
 import detectQuoteStyle from '../utils/quote-style';
+import detectLineTerminator from '../utils/line-terminator';
 
 import chaiShouldTransformer from './chai-should';
 
@@ -84,7 +85,8 @@ module.exports = function transformer(fileInfo, api, options) {
     remapAssertions();
 
     const quote = detectQuoteStyle(j, root) || 'single';
-    fileInfo.source = root.toSource({ quote });
+    const lineTerminator = detectLineTerminator(fileInfo.source);
+    fileInfo.source = root.toSource({ quote, lineTerminator });
 
     return chaiShouldTransformer(fileInfo, api, options);
 };

@@ -3,6 +3,7 @@ import { addRequireOrImportOnceFactory, hasRequireOrImport } from './imports';
 import logger from './logger';
 import proxyquireTransformer from './proxyquire';
 import detectQuoteStyle from './quote-style';
+import detectLineTerminator from './line-terminator';
 
 function detectIncompatiblePackages(fileInfo, j, ast) {
     ['sinon', 'testdouble'].forEach(pkg => {
@@ -53,5 +54,6 @@ export default function finale(fileInfo, j, ast, transformerOptions, testFunctio
     // As Recast is not preserving original quoting, we try to detect it,
     // and default to something sane.
     const quote = detectQuoteStyle(j, ast) || 'single';
-    return ast.toSource({ quote });
+    const lineTerminator = detectLineTerminator(fileInfo.source);
+    return ast.toSource({ quote, lineTerminator });
 }
