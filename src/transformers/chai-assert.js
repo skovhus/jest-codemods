@@ -253,9 +253,18 @@ export default function transformer(fileInfo, api, options) {
             .find(j.CallExpression, getAssertionExpression(assertion))
             .replaceWith(path =>
                 makeExpectation(
-                    'toBeCloseTo',
-                    path.value.arguments[0],
-                    path.value.arguments.slice(1, 3)
+                    'toBeLessThanOrEqual',
+                    j.callExpression(
+                        j.memberExpression(j.identifier('Math'), j.identifier('abs')),
+                        [
+                            j.binaryExpression(
+                                '-',
+                                path.value.arguments[0],
+                                path.value.arguments[1]
+                            ),
+                        ]
+                    ),
+                    [path.value.arguments[2]]
                 )
             );
     });
