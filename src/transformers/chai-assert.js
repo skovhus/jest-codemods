@@ -1,18 +1,15 @@
 import logger from '../utils/logger';
-import { removeRequireAndImport } from '../utils/imports';
+import { removeRequireAndImport, removeDefaultImport } from '../utils/imports';
 import finale from '../utils/finale';
 
-const getAssertionExpression = identifier => ({
+const getAssertionExpression = (chaiAssertExpression, assertionName) => ({
     type: 'CallExpression',
     callee: {
         type: 'MemberExpression',
-        object: {
-            type: 'Identifier',
-            name: 'assert',
-        },
+        object: chaiAssertExpression,
         property: {
             type: 'Identifier',
-            name: identifier,
+            name: assertionName,
         },
     },
 });
@@ -180,9 +177,30 @@ export default function transformer(fileInfo, api, options) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
 
-    const testFunctionName = removeRequireAndImport(j, ast, 'chai', 'assert');
+    let chaiAssertExpression;
 
-    if (!testFunctionName) {
+    const assertLocalName = removeRequireAndImport(j, ast, 'chai', 'assert');
+    const defaultImportLocalName = removeDefaultImport(j, ast, 'chai');
+    if (assertLocalName) {
+        chaiAssertExpression = {
+            type: 'Identifier',
+            name: assertLocalName,
+        };
+    } else if (defaultImportLocalName) {
+        chaiAssertExpression = {
+            type: 'MemberExpression',
+            object: {
+                type: 'Identifier',
+                name: defaultImportLocalName,
+            },
+            property: {
+                type: 'Identifier',
+                name: 'assert',
+            },
+        };
+    }
+
+    if (!chaiAssertExpression) {
         // No Chai require/import were found
         return fileInfo.source;
     }
@@ -221,7 +239,10 @@ export default function transformer(fileInfo, api, options) {
             }
 
             ast
-                .find(j.CallExpression, getAssertionExpression(assert))
+                .find(
+                    j.CallExpression,
+                    getAssertionExpression(chaiAssertExpression, assert)
+                )
                 .replaceWith(path =>
                     makeExpectation(
                         expect,
@@ -231,7 +252,10 @@ export default function transformer(fileInfo, api, options) {
 
             if (includeNegative) {
                 ast
-                    .find(j.CallExpression, getAssertionExpression(includeNegative))
+                    .find(
+                        j.CallExpression,
+                        getAssertionExpression(chaiAssertExpression, includeNegative)
+                    )
                     .replaceWith(path =>
                         makeNegativeExpectation(
                             expect,
@@ -243,14 +267,22 @@ export default function transformer(fileInfo, api, options) {
     );
 
     unsupportedAssertions.forEach(assertion => {
-        ast.find(j.CallExpression, getAssertionExpression(assertion)).forEach(path => {
-            logWarning(`Unsupported Chai Assertion "${assertion}".`, path);
-        });
+        ast
+            .find(
+                j.CallExpression,
+                getAssertionExpression(chaiAssertExpression, assertion)
+            )
+            .forEach(path => {
+                logWarning(`Unsupported Chai Assertion "${assertion}".`, path);
+            });
     });
 
     ['approximately', 'closeTo'].forEach(assertion => {
         ast
-            .find(j.CallExpression, getAssertionExpression(assertion))
+            .find(
+                j.CallExpression,
+                getAssertionExpression(chaiAssertExpression, assertion)
+            )
             .replaceWith(path =>
                 makeExpectation(
                     'toBeLessThanOrEqual',
@@ -271,12 +303,15 @@ export default function transformer(fileInfo, api, options) {
 
     // assert.fail -> expect(false).toBeTruthy()
     ast
-        .find(j.CallExpression, getAssertionExpression('fail'))
+        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'fail'))
         .replaceWith(path => makeExpectation('toBe', j.literal(false), j.literal(true)));
 
     // assert.propertyVal -> expect(*.[prop]).toBe()
     ast
-        .find(j.CallExpression, getAssertionExpression('propertyVal'))
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'propertyVal')
+        )
         .replaceWith(path => {
             const [obj, prop, value] = path.value.arguments;
             return makeExpectation('toBe', j.memberExpression(obj, prop), value);
@@ -284,7 +319,10 @@ export default function transformer(fileInfo, api, options) {
 
     // assert.propertyNotVal -> expect(*.[prop]).not.toBe()
     ast
-        .find(j.CallExpression, getAssertionExpression('propertyNotVal'))
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'propertyNotVal')
+        )
         .replaceWith(path => {
             const [obj, prop, value] = path.value.arguments;
             return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
@@ -292,7 +330,7 @@ export default function transformer(fileInfo, api, options) {
 
     // assert.property -> expect(prop in obj).toBeTruthy()
     ast
-        .find(j.CallExpression, getAssertionExpression('property'))
+        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'property'))
         .replaceWith(path =>
             makeExpectation(
                 'toBeTruthy',
@@ -302,7 +340,10 @@ export default function transformer(fileInfo, api, options) {
 
     // assert.notProperty -> expect(prop in obj).toBeFalsy()
     ast
-        .find(j.CallExpression, getAssertionExpression('notProperty'))
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'notProperty')
+        )
         .replaceWith(path =>
             makeExpectation(
                 'toBeFalsy',
@@ -312,7 +353,7 @@ export default function transformer(fileInfo, api, options) {
 
     // assert.isArray -> expect(Array.isArray).toBe(true)
     ast
-        .find(j.CallExpression, getAssertionExpression('isArray'))
+        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'isArray'))
         .replaceWith(path =>
             makeExpectation(
                 'toBe',
@@ -326,7 +367,10 @@ export default function transformer(fileInfo, api, options) {
 
     // assert.isArray -> expect(Array.isArray).toBe(false)
     ast
-        .find(j.CallExpression, getAssertionExpression('isNotArray'))
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'isNotArray')
+        )
         .replaceWith(path =>
             makeNegativeExpectation(
                 'toBe',
@@ -340,7 +384,7 @@ export default function transformer(fileInfo, api, options) {
 
     // assert.typeOf(foo, Bar) -> expect(typeof foo).toBe(Bar)
     ast
-        .find(j.CallExpression, getAssertionExpression('typeOf'))
+        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'typeOf'))
         .replaceWith(path =>
             makeExpectation(
                 'toBe',
@@ -351,7 +395,7 @@ export default function transformer(fileInfo, api, options) {
 
     // assert.notTypeOf(foo, Bar) -> expect(typeof foo).not.toBe(Bar)
     ast
-        .find(j.CallExpression, getAssertionExpression('notTypeOf'))
+        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'notTypeOf'))
         .replaceWith(path =>
             makeNegativeExpectation(
                 'toBe',
@@ -362,7 +406,7 @@ export default function transformer(fileInfo, api, options) {
 
     chaiAssertTypeofs.forEach(({ assert, type }) => {
         ast
-            .find(j.CallExpression, getAssertionExpression(assert))
+            .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, assert))
             .replaceWith(path =>
                 makeExpectation(
                     'toBe',
@@ -374,7 +418,10 @@ export default function transformer(fileInfo, api, options) {
         ast
             .find(
                 j.CallExpression,
-                getAssertionExpression(assert.replace(/^is/, 'isNot'))
+                getAssertionExpression(
+                    chaiAssertExpression,
+                    assert.replace(/^is/, 'isNot')
+                )
             )
             .replaceWith(path =>
                 makeNegativeExpectation(
@@ -387,7 +434,7 @@ export default function transformer(fileInfo, api, options) {
 
     // assert.lengthOf -> expect(*.length).toBe()
     ast
-        .find(j.CallExpression, getAssertionExpression('lengthOf'))
+        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'lengthOf'))
         .replaceWith(path =>
             makeExpectation(
                 'toBe',
@@ -401,7 +448,7 @@ export default function transformer(fileInfo, api, options) {
         const isNegative = check.indexOf('isNot') === 0;
         const expectation = check.replace('isNot', 'is');
         ast
-            .find(j.CallExpression, getAssertionExpression(check))
+            .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, check))
             .replaceWith(path =>
                 (isNegative ? makeNegativeExpectation : makeExpectation)(
                     'toBe',
@@ -420,7 +467,7 @@ export default function transformer(fileInfo, api, options) {
     // assert -> expect().toBeTruthy()
     ast
         .find(j.CallExpression, {
-            callee: { type: 'Identifier', name: 'assert' },
+            callee: { type: 'Identifier', name: assertLocalName },
         })
         .replaceWith(path => makeExpectation('toBeTruthy', path.value.arguments[0]));
 

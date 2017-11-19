@@ -91,6 +91,28 @@ export function getRequireOrImportName(j, ast, pkg) {
 }
 
 /**
+ * Detects and removes default import statements for given package.
+ * @return the local name for the default import or null
+ */
+export function removeDefaultImport(j, ast, pkg) {
+    const getBodyNode = () => ast.find(j.Program).get('body', 0).node;
+    const { comments } = getBodyNode(j, ast);
+
+    let localName = null;
+    findImports(j, ast, pkg).forEach(p => {
+        const pathSpecifier = p.value.specifiers[0];
+        if (pathSpecifier && pathSpecifier.type === 'ImportDefaultSpecifier') {
+            localName = pathSpecifier.local.name;
+            p.prune();
+        }
+    });
+
+    getBodyNode(j, ast).comments = comments;
+
+    return localName;
+}
+
+/**
  * Detects and removes CommonJS and import statements for given package.
  * @return the import variable name or null if no import were found.
  */

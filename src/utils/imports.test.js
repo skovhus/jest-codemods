@@ -4,6 +4,7 @@ import jscodeshift from 'jscodeshift';
 import {
     getRequireOrImportName,
     hasRequireOrImport,
+    removeDefaultImport,
     removeRequireAndImport,
 } from './imports';
 
@@ -244,5 +245,49 @@ describe('hasRequireOrImport and getRequireOrImportName', () => {
         const hasImport = hasRequireOrImport(j, ast, 'xxx');
         expect(hasImport).toBe(false);
         expect(getRequireOrImportName(j, ast, 'xxx')).toBeNull();
+    });
+});
+
+describe('removeDefaultImport', () => {
+    it('removes default import statements', () => {
+        const ast = j(
+            `
+            import foo from 'bar';
+
+            foo(42);
+        `
+        );
+        const removedVariableName = removeDefaultImport(j, ast, 'bar');
+        expect(removedVariableName).toBe('foo');
+        expect(ast.toSource()).toEqual(
+            `
+            foo(42);
+        `
+        );
+    });
+
+    it('does not touch code with a named import', () => {
+        const inputSource = `
+            // @flow
+            import { other } from 'bar';
+            other();
+        `;
+        const ast = j(inputSource);
+        const removedVariableName = removeDefaultImport(j, ast, 'bar');
+        expect(removedVariableName).toBe(null);
+        expect(ast.toSource()).toEqual(inputSource);
+    });
+
+    it('does not touch code without the default import', () => {
+        const inputSource = `
+            // @flow
+            /* eslint... */
+            import xx from 'baz';
+            xx();
+        `;
+        const ast = j(inputSource);
+        const removedVariableName = removeDefaultImport(j, ast, 'bar');
+        expect(removedVariableName).toBe(null);
+        expect(ast.toSource()).toEqual(inputSource);
     });
 });

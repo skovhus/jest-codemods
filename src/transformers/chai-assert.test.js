@@ -195,3 +195,29 @@ assert.${assertion}(foo, bar, baz);`,
         'jest-codemods warning: (test.js line 15) Unsupported Chai Assertion "ifError".',
     ]);
 });
+
+testChanged(
+    'applies when chai default import used',
+    `
+// @flow
+import chai from 'chai';
+chai.assert.equal(foo, bar, baz);
+`,
+    `
+// @flow
+expect(foo).toEqual(bar);
+`
+);
+
+testChanged(
+    'transforms renamed imports',
+    `
+// @flow
+import { assert as myCoolAssert } from 'chai';
+myCoolAssert.equal(foo, bar, baz);
+`,
+    `
+// @flow
+expect(foo).toEqual(bar);
+`
+);
