@@ -191,6 +191,7 @@ export default function expectTransformer(fileInfo, api, options) {
             if (matchersWithKeys.has(matcherName)) {
                 const keys = matcherArgs[0];
                 matcherArgs[0] = j.identifier('e');
+                expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`;
                 matcher.name = isNot ? 'not.toContain' : 'toContain';
                 j(path.parentPath).replaceWith(
                     j.template.expression`\

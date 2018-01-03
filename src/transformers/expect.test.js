@@ -208,10 +208,10 @@ testChanged(
       expect(Object.keys({ a: 1 })).not.toContain('b');
 
       [ 'a', 'b' ].forEach(e => {
-        expect({ a: 1, b: 2 }).toContain(e);
+        expect(Object.keys({ a: 1, b: 2 })).toContain(e);
       });
       [ 'c', 'd' ].forEach(e => {
-        expect({ a: 1, b: 2 }).not.toContain(e);
+        expect(Object.keys({ a: 1, b: 2 })).not.toContain(e);
       });
     });
     `
