@@ -70,6 +70,7 @@ test('mapping', (t) => {
   t.error(abc)
   t.plan(3)
   t.snapshot(abc)
+  t.snapshot(abc, "msg")
 })
 `,
     `
@@ -99,6 +100,7 @@ test('mapping', () => {
   expect(abc).toBeFalsy()
   expect.assertions(3)
   expect(abc).toMatchSnapshot()
+  expect(abc).toMatchSnapshot("msg")
 });
 `
 );
@@ -302,7 +304,7 @@ import test from 'ava';
 test.todo('this should be a test some day');
 `,
     `
-test('TODO: this should be a test some day');
+test.skip('this should be a test some day', () => {}); // TODO
 `
 );
 
