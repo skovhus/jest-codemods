@@ -135,7 +135,18 @@ export default function avaToJest(fileInfo, api, options) {
                             return;
                         }
 
-                        const conditionArgs = hasSecondArgument ? [args[1]] : [];
+                        const [_arg0, arg1, arg2] = args;
+                        let conditionArgs = hasSecondArgument ? [arg1] : [];
+
+                        if (newPropertyName === 'toMatchSnapshot') {
+                            // Can take an optional message argument
+                            if (arg1 && arg1.type === 'Literal') {
+                                conditionArgs = [arg1];
+                            } else if (arg2 && arg2.type === 'Literal') {
+                                conditionArgs = [arg2];
+                            }
+                        }
+
                         newCondition = j.callExpression(
                             j.identifier(newPropertyName),
                             conditionArgs
