@@ -17,11 +17,13 @@ export default function checkGitStatus(force) {
         if (force) {
             console.log(`WARNING: ${errorMessage}. Forcibly continuing.`);
         } else {
-            console.log(chalk.red(`\nERROR: ${errorMessage}. Refusing to continue.`));
+            console.log('Thank you for using jest-codemods!');
             console.log(
-                'Ensure you have a backup of your tests or commit the latest changes before continuing.'
+                chalk.yellow(
+                    '\nBut before we continue, please stash or commit your git changes.'
+                )
             );
-            console.log('You may use the --force flag to override this safety check.');
+            console.log('\nYou may use the --force flag to override this safety check.');
             process.exit(1);
         }
     }
