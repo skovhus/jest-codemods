@@ -36,6 +36,10 @@ const cli = meow(
 
 updateNotifier({ pkg: cli.pkg }).notify({ defer: false });
 
+if (!cli.flags.dry) {
+    checkGitStatus(cli.flags.force);
+}
+
 const TRANSFORMER_AVA = 'ava';
 const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
 const TRANSFORMER_CHAI_SHOULD = 'chai-should';
@@ -199,10 +203,6 @@ inquirer
         if (!filesExpanded.length) {
             console.log(`No files found matching ${files.join(' ')}`);
             return;
-        }
-
-        if (!cli.flags.dry) {
-            checkGitStatus(cli.flags.force);
         }
 
         const transformerArgs = [];
