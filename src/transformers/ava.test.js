@@ -70,6 +70,9 @@ test('mapping', (t) => {
   t.error(abc)
   t.plan(3)
   t.snapshot(abc)
+  t.snapshot(abc, "msg")
+  t.snapshot(abc, {id: 'foo'})
+  t.snapshot(abc, {}, "msg")
 })
 `,
     `
@@ -99,6 +102,9 @@ test('mapping', () => {
   expect(abc).toBeFalsy()
   expect.assertions(3)
   expect(abc).toMatchSnapshot()
+  expect(abc).toMatchSnapshot("msg")
+  expect(abc).toMatchSnapshot()
+  expect(abc).toMatchSnapshot("msg")
 });
 `
 );
