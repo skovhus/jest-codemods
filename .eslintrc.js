@@ -19,7 +19,10 @@ module.exports = {
                 groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
             },
         ],
-        'no-unused-vars': ['error', { vars: 'all', args: 'none' }],
+        'no-unused-vars': [
+            'error',
+            { vars: 'all', args: 'none', varsIgnorePattern: '^_' },
+        ],
         'no-underscore-dangle': 'off',
         'no-param-reassign': 'off',
         'no-console': 'off',
