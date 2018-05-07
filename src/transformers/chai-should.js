@@ -179,9 +179,13 @@ module.exports = function transformer(fileInfo, api, options) {
 
     function getRestWithLengthHandled(p, rest) {
         const containsLength = chainContains('length', p.value.callee, isPrefix);
-        return containsLength
+        const newRest = containsLength
             ? updateExpect(rest, node => j.memberExpression(node, j.identifier('length')))
             : rest;
+        if (newRest.arguments) {
+            newRest.arguments = newRest.arguments.slice(0, 1);
+        }
+        return newRest;
     }
 
     function withIn(p, rest, args, containsNot) {
