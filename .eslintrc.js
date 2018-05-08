@@ -8,10 +8,7 @@ module.exports = {
     },
     root: true,
     rules: {
-        'prettier/prettier': [
-            'error',
-            { trailingComma: 'es5', singleQuote: true, printWidth: 90, tabWidth: 4 },
-        ],
+        'prettier/prettier': 'error',
 
         'import/order': [
             'error',
