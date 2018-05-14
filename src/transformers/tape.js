@@ -176,7 +176,11 @@ export default function tapeToJest(fileInfo, api, options) {
                             );
                         } else {
                             newCondition = j.callExpression(
-                                j.identifier('toThrowError'),
+                                j.identifier(
+                                    oldPropertyName === 'throws'
+                                        ? 'toThrowError'
+                                        : 'not.toThrowError'
+                                ),
                                 [args[1]]
                             );
                         }

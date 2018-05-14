@@ -489,3 +489,18 @@ foo(() => {});
 test(() => {});
 `
 );
+
+testChanged(
+    'doesNotThrow works with `expected` argument',
+    `
+import test from 'tape';
+test('foo', t => {
+    t.doesNotThrow(() => {}, TypeError, 'foo');
+});
+`,
+    `
+test('foo', () => {
+    expect(() => {}).not.toThrowError(TypeError);
+});
+`
+);
