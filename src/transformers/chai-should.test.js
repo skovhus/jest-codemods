@@ -155,6 +155,7 @@ testChanged(
     'converts "equal"',
     `
         expect('hello').to.equal('hello');
+        expect('hello', 'some message here explaining hello').to.equal('hello');
         expect(42).to.equal(42);
         expect(1).to.not.equal(true);
         expect({ foo: 'bar' }).to.not.equal({ foo: 'bar' });
@@ -164,6 +165,7 @@ testChanged(
         should.not.equal('foo', 'bar');
     `,
     `
+        expect('hello').toBe('hello');
         expect('hello').toBe('hello');
         expect(42).toBe(42);
         expect(1).not.toBe(true);
