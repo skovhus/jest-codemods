@@ -36,12 +36,16 @@ it('runs jscodeshift for the given transformer', () => {
 it('supports jscodeshift flags', () => {
     execaReturnValue = { error: null };
     console.log = jest.fn();
-    executeTransformations('folder', { dry: true, parser: 'flow' }, ['ava']);
+    executeTransformations(
+        'folder',
+        { dry: true, ignorePattern: '/node_modules/', parser: 'flow' },
+        ['ava']
+    );
     expect(console.log).toBeCalledWith(
         `Executing command: jscodeshift -t ${path.join(
             transformerDirectory,
             'ava.js'
-        )} folder --dry --parser flow`
+        )} folder --dry --ignore-pattern /node_modules/ --parser flow`
     );
 });
 

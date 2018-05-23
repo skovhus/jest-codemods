@@ -8,9 +8,15 @@ function executeTransformation(files, flags, transformer, transformerArgs) {
     const transformerPath = path.join(transformerDirectory, `${transformer}.js`);
 
     let args = ['-t', transformerPath].concat(files);
+
     if (flags.dry) {
         args.push('--dry');
     }
+
+    if (flags.ignorePattern) {
+        args.push('--ignore-pattern', flags.ignorePattern);
+    }
+
     if (['babel', 'babylon', 'flow'].indexOf(flags.parser) >= 0) {
         args.push('--parser', flags.parser);
     }
