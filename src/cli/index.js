@@ -18,15 +18,17 @@ const cli = meow(
     path    Files or directory to transform. Can be a glob like src/**.test.js
 
     Options
-      --force, -f   Bypass Git safety checks and forcibly run codemods
-      --dry, -d     Dry run (no changes are made to files)
-      --parser      The parser to use for parsing your source files (babel | babylon | flow)  [babel]
+      --ignore-pattern, -i  Ignore files that match a provided glob expression
+      --force, -f           Bypass Git safety checks and forcibly run codemods
+      --dry, -d             Dry run (no changes are made to files)
+      --parser              The parser to use for parsing your source files (babel | babylon | flow)  [babel]
     `,
     },
     {
         boolean: ['force', 'dry'],
         string: ['_'],
         alias: {
+            i: 'ignorePattern',
             f: 'force',
             h: 'help',
             d: 'dry',
