@@ -11,6 +11,30 @@ export default function jasmineGlobals(fileInfo, api, options) {
     const emptyArrowFn = j('() => {}').__paths[0].value.program.body[0].expression;
 
     root
+        // find all `jasmine.createSpy('stuff')
+        .find(j.CallExpression, {
+            callee: {
+                type: 'MemberExpression',
+                property: {
+                    type: 'Identifier',
+                    name: 'createSpy',
+                },
+                object: {
+                    type: 'Identifier',
+                    name: 'jasmine',
+                },
+            },
+        })
+        .forEach(path => {
+            // make it `jest.fn()`
+            path.node.callee = j.memberExpression(
+                j.identifier('jest'),
+                j.identifier('fn')
+            );
+            path.node.arguments = [];
+        });
+
+    root
         // find all global `spyOn` calls that are standalone expressions.
         // e.g.
         // spyOn(stuff)

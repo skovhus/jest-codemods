@@ -23,6 +23,8 @@ testChanged(
     jest.spyOn();
     spyOn(stuff);
     jest.spyOn().mockImplementation();
+    jasmine.createSpy();
+    jasmine.createSpy('lmao');
     `,
     `
     jest.spyOn().mockReturnValue();
@@ -32,6 +34,8 @@ testChanged(
     jest.spyOn();
     jest.spyOn(stuff).mockImplementation(() => {});
     jest.spyOn().mockImplementation();
+    jest.fn();
+    jest.fn();
     `
 );
 
