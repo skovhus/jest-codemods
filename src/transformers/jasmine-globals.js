@@ -147,5 +147,125 @@ export default function jasmineGlobals(fileInfo, api, options) {
             j(path).replaceWith(path.node.callee);
         });
 
+    root
+        // find all `stuff.callCount`
+        .find(j.MemberExpression, {
+            property: {
+                type: 'Identifier',
+                name: 'callCount',
+            },
+        })
+        .forEach(path => {
+            // and make them `stuff.mock.calls.length`
+            path.node.property.name = 'length';
+            path.node.object = j.memberExpression(path.node.object, j.identifier('mock'));
+            path.node.object = j.memberExpression(
+                path.node.object,
+                j.identifier('calls')
+            );
+        });
+
+    root
+        // find `stuff.mostRecentCall`
+        .find(j.MemberExpression, {
+            property: {
+                type: 'Identifier',
+                name: 'mostRecentCall',
+            },
+        })
+        .forEach(path => {
+            // turn it into `stuff.mock.calls[stuff.mock.calls.length - 1]
+            path.node.object = j.memberExpression(path.node.object, j.identifier('mock'));
+            path.node.object = j.memberExpression(
+                path.node.object,
+                j.identifier('calls')
+            );
+            path.node.property = j.binaryExpression(
+                '-',
+                j.memberExpression(path.node.object, j.identifier('length')),
+                j.literal(1)
+            );
+            path.node.computed = true;
+        });
+
+    root
+        // find anything that accesses property on `args`
+        // like `stuff.mostRecentCall.args[0]`
+        .find(j.MemberExpression, {
+            object: {
+                type: 'MemberExpression',
+                property: {
+                    type: 'Identifier',
+                    name: 'args',
+                },
+            },
+        })
+        .forEach(path => {
+            // remove args, since jest calls are array of arrays
+            // `stuff.mostRecentCall[0]`
+            path.node.object.object && (path.node.object = path.node.object.object);
+        });
+
+    root
+        // find `stuff.argsForCall[*]`
+        .find(j.MemberExpression, {
+            object: {
+                type: 'MemberExpression',
+                property: {
+                    type: 'Identifier',
+                    name: 'argsForCall',
+                },
+            },
+        })
+        .forEach(path => {
+            // make them `stuff.mock.calls[*]
+            path.node.object.object && (path.node.object = path.node.object.object);
+            path.node.object = j.memberExpression(path.node.object, j.identifier('mock'));
+            path.node.object = j.memberExpression(
+                path.node.object,
+                j.identifier('calls')
+            );
+        });
+
+    root
+        // replace `andCallFake` with `mockImplementation`
+        .find(j.MemberExpression, {
+            property: {
+                type: 'Identifier',
+                name: 'andCallFake',
+            },
+        })
+        .forEach(path => {
+            path.node.property.name = 'mockImplementation';
+        });
+
+    root
+        // replace `andReturn` with `mockReturnValue`
+        .find(j.MemberExpression, {
+            property: {
+                type: 'Identifier',
+                name: 'andReturn',
+            },
+        })
+        .forEach(path => {
+            path.node.property.name = 'mockReturnValue';
+        });
+
+    root
+        // fin all `andCallThrough` and delete them since
+        // jest mocks call through by default
+        .find(j.CallExpression, {
+            callee: {
+                type: 'MemberExpression',
+                property: {
+                    type: 'Identifier',
+                    name: 'andCallThrough',
+                },
+            },
+        })
+        .forEach(path => {
+            j(path).replaceWith(path.node.callee.object);
+        });
+
     return finale(fileInfo, j, root, options);
 }
