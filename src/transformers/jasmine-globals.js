@@ -1,5 +1,5 @@
 /**
- * Codemod for transforming Jasmine `this` context into Jest v20+ compatible syntax.
+ * Codemod for transforming Jasmine globals into Jest.
  */
 
 import finale from '../utils/finale';

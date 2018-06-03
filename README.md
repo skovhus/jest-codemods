@@ -92,6 +92,8 @@ $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-assert.js tes
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/chai-should.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/expect-js.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/expect.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/jasmine-globals.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/jasmine-this.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/should.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
