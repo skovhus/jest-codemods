@@ -47,6 +47,7 @@ const TRANSFORMER_CHAI_ASSERT = 'chai-assert';
 const TRANSFORMER_CHAI_SHOULD = 'chai-should';
 const TRANSFORMER_EXPECT_JS = 'expect-js';
 const TRANSFORMER_EXPECT_1 = 'expect';
+const TRANSFORMER_JASMINE_GLOBALS = 'jasmine-globals';
 const TRANSFORMER_JASMINE_THIS = 'jasmine-this';
 const TRANSFORMER_MOCHA = 'mocha';
 const TRANSFORMER_SHOULD = 'should';
@@ -83,6 +84,10 @@ const TRANSFORMER_INQUIRER_CHOICES = [
     {
         name: 'Expect@1.x (by mjackson)',
         value: TRANSFORMER_EXPECT_1,
+    },
+    {
+        name: 'Jasmine: globals',
+        value: TRANSFORMER_JASMINE_GLOBALS,
     },
     {
         name: 'Jasmine: this usage',
