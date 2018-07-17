@@ -151,14 +151,18 @@ testChanged(
     test(() => {
       expect(stuff).to.be.lessThan(42);
       expect(stuff).to.be.below(42);
+      expect(stuff).to.be.lt(42);
       expect(stuff).to.be.greaterThan(42);
       expect(stuff).to.be.above(42);
+      expect(stuff).to.be.gt(42);
     });
     `,
     `
     test(() => {
       expect(stuff).toBeLessThan(42);
       expect(stuff).toBeLessThan(42);
+      expect(stuff).toBeLessThan(42);
+      expect(stuff).toBeGreaterThan(42);
       expect(stuff).toBeGreaterThan(42);
       expect(stuff).toBeGreaterThan(42);
     });
