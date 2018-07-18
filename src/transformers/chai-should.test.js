@@ -109,8 +109,16 @@ testChanged(
 
 testChanged(
     'converts "above"',
-    `expect(10).to.be.above(5);`,
-    `expect(10).toBeGreaterThan(5);`
+    `
+        expect(10).to.be.above(5);
+        expect(10).to.be.gt(5);
+        expect(10).to.be.greaterThan(5);
+    `,
+    `
+        expect(10).toBeGreaterThan(5);
+        expect(10).toBeGreaterThan(5);
+        expect(10).toBeGreaterThan(5);
+    `
 );
 
 testChanged(
@@ -120,13 +128,17 @@ testChanged(
         expect(5).to.be.below(10, 'error message');
         expect(3).to.be.at.below(5);
         expect(2).to.be.lessThan(5);
+        expect(2).to.be.lt(5);
         (1).should.be.lessThan(5);
+        (1).should.be.lt(5);
     `,
     `
         expect(5).toBeLessThan(10);
         expect(5).toBeLessThan(10);
         expect(3).toBeLessThan(5);
         expect(2).toBeLessThan(5);
+        expect(2).toBeLessThan(5);
+        expect(1).toBeLessThan(5);
         expect(1).toBeLessThan(5);
     `
 );

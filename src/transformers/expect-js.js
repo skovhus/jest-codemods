@@ -21,8 +21,10 @@ const MATCHES = {
     key: 'toHaveProperty',
     above: 'toBeGreaterThan',
     greaterThan: 'toBeGreaterThan',
+    gt: 'toBeGreaterThan',
     below: 'toBeLessThan',
     lessThan: 'toBeLessThan',
+    lt: 'toBeLessThan',
     match: 'toMatch',
 };
 

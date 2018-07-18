@@ -23,9 +23,12 @@ const fns = [
     'contain',
     'eql',
     'above',
+    'gt',
+    'greaterthan',
     'least',
     'below',
     'lessthan',
+    'lt',
     'most',
     'match',
     'string',
@@ -389,6 +392,8 @@ module.exports = function transformer(fileInfo, api, options) {
                     case 'eql':
                         return createCall('toEqual', args, rest, containsNot);
                     case 'above':
+                    case 'greaterthan':
+                    case 'gt':
                         return createCall('toBeGreaterThan', args, rest, containsNot);
                     case 'least':
                     case 'gte':
@@ -400,6 +405,7 @@ module.exports = function transformer(fileInfo, api, options) {
                         );
                     case 'below':
                     case 'lessthan':
+                    case 'lt':
                         return createCall('toBeLessThan', args, rest, containsNot);
                     case 'most':
                     case 'lte':
