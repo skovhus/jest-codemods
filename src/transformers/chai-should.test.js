@@ -23,7 +23,7 @@ function testChanged(msg, source, expectedOutput) {
 testChanged(
     'removes imports and does basic conversions of should and expect',
     `
-        var expect = require('chai').expect;
+        const { expect } = require('chai');
         var should = require('chai').should();
 
         describe('Instantiating TextField', () => {

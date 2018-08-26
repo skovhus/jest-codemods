@@ -123,6 +123,7 @@ export function removeRequireAndImport(j, ast, pkg, specifier) {
     let localName = null;
     let importName = null;
     findRequires(j, ast, pkg).forEach(p => {
+        console.log('foo', p);
         const variableDeclarationPath = findParentVariableDeclaration(p);
         const parentMember = findParentPathMemberRequire(p);
         if (!specifier || (parentMember && parentMember.name === specifier)) {

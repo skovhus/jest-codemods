@@ -29,6 +29,22 @@ describe('removeRequireAndImport', () => {
         );
     });
 
+    it('removes destructured require statements', () => {
+        const ast = j(
+            `
+            const { expect } = require('chai');
+            expect();
+        `
+        );
+        const removedVariableName = removeRequireAndImport(j, ast, 'chai', 'expect');
+        expect(removedVariableName).toBe('expect');
+        expect(ast.toSource(getOptions())).toEqual(
+            `
+            expect();
+        `
+        );
+    });
+
     it('removes require statements without local name', () => {
         const ast = j(
             `
