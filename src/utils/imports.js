@@ -123,15 +123,54 @@ export function removeRequireAndImport(j, ast, pkg, specifier) {
     let localName = null;
     let importName = null;
     findRequires(j, ast, pkg).forEach(p => {
-        console.log('foo', p);
         const variableDeclarationPath = findParentVariableDeclaration(p);
         const parentMember = findParentPathMemberRequire(p);
+
+        // Examples:
+        //   const chai = require('chai');
+        //   const expect = require('chai').expect;
         if (!specifier || (parentMember && parentMember.name === specifier)) {
             if (variableDeclarationPath) {
                 localName = variableDeclarationPath.value.id.name;
                 variableDeclarationPath.prune();
             } else {
                 p.prune();
+            }
+        }
+
+        // Examples:
+        //   const { expect } = require('chai');
+        //   const { expect: expct } = require('chai');
+        if (
+            specifier &&
+            variableDeclarationPath &&
+            variableDeclarationPath.value &&
+            variableDeclarationPath.value.id.type === 'ObjectPattern'
+        ) {
+            const { properties } = variableDeclarationPath.value.id;
+
+            const index = properties.findIndex(prop => {
+                return prop.key.type === 'Identifier' && prop.key.name === specifier;
+            });
+
+            if (index !== undefined) {
+                const propertyPath = variableDeclarationPath.get(
+                    'id',
+                    'properties',
+                    index
+                );
+
+                localName = propertyPath.value.value.name;
+
+                if (properties.length === 1) {
+                    // Remove the variable declaration if there's only one property
+                    // e.g. const { expect } = require('chai');
+                    variableDeclarationPath.prune();
+                } else {
+                    // Only remove the property if other properties exist
+                    // e.g. const { expect, other } = require('chai');
+                    propertyPath.prune();
+                }
             }
         }
     });
