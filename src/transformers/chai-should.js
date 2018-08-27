@@ -135,10 +135,6 @@ module.exports = function transformer(fileInfo, api, options) {
         mutations += 1;
     }
 
-    // if (!chaiExpectRemoved && !chaiShouldRemoved) {
-    //     return;
-    // }
-
     const isExpectCall = node =>
         node.name === 'expect' ||
         (node.type === j.MemberExpression.name && isExpectCall(node.object)) ||
