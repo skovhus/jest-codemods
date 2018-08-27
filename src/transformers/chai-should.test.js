@@ -68,6 +68,19 @@ testChanged(
 );
 
 testChanged(
+    'Removes complicated import',
+    `
+        const chai = require('chai');
+        const expect = chai.expect;
+
+        expect(foo).to.be.true;
+    `,
+    `
+        expect(foo).toBe(true);
+    `
+);
+
+testChanged(
     'converts "a-an"',
     `
         expect('test').to.be.a('string', 'error message');
@@ -158,8 +171,8 @@ testChanged(
         expect([1, 2, 3]).toEqual([1, 2, 3]);
         expect(a).toEqual(a);
 
-        expect("123").toEqual("123");
-        expect("123").not.toEqual("123");
+        expect("123").toBe("123");
+        expect("123").not.toBe("123");
     `
 );
 
@@ -178,6 +191,7 @@ testChanged(
     `,
     `
         expect('hello').toBe('hello');
+        // some message here explaining hello
         expect('hello').toBe('hello');
         expect(42).toBe(42);
         expect(1).not.toBe(true);
@@ -545,13 +559,77 @@ testChanged(
     'converts "undefined"',
     `
         expect(undefined).to.be.undefined;
+        expect(undefined).to.equal(undefined);
         expect(null).to.not.be.undefined;
         expect(null).to.not.be.undefined();
+        expect(null).to.not.equal(undefined);
     `,
     `
         expect(undefined).toBeUndefined();
+        expect(undefined).toBeUndefined();
         expect(null).toBeDefined();
         expect(null).toBeDefined();
+        expect(null).toBeDefined();
+    `
+);
+
+testChanged(
+    'converts "function"',
+    `
+        expect(foo).to.be.a.function;
+    `,
+    `
+        expect(typeof foo).toBe('function');
+    `
+);
+
+it('warns about using chai extensions', () => {
+    wrappedPlugin(
+        `
+        const chai = require('chai');
+        const sinonChai = require('sinon-chai');
+        chai.use(sinonChai);
+        `
+    );
+
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 4) Unsupported Chai Extension "chai.use()"',
+    ]);
+});
+
+testChanged(
+    'does not convert "empty"',
+    `
+        expect(foo.empty).to.be.undefined;
+        const foo = rx.Observable.empty;
+    `,
+    `
+        expect(foo.empty).toBeUndefined();
+        const foo = rx.Observable.empty;
+    `
+);
+
+testChanged(
+    'removes params to expect() except for the first',
+    `
+        expect(foo, 'Expected foo to be defined').to.exist;
+        expect(foo, 'Expected foo to be defined').to.equal(true);
+    `,
+    `
+        // Expected foo to be defined
+        expect(foo).toBeDefined();
+        // Expected foo to be defined
+        expect(foo).toBe(true);
+    `
+);
+
+testChanged(
+    'converts equal(null) to toBeNull()',
+    `
+        expect(actual).to.equal(null);
+    `,
+    `
+        expect(actual).toBeNull();
     `
 );
 
