@@ -165,6 +165,27 @@ it('supports a chained `noCallThru().load()` call', () => {
     expect(mockedLogger).not.toBeCalled();
 });
 
+it('supports named imports scoped to the variable name', () => {
+    const ast = j(
+        `
+        import pq from 'proxyquire';
+        beforeEach( function(){
+            const something = pq( 'a', {'b': 'c'});
+        });
+    `
+    );
+    proxyquireTransformer(fileInfo, j, ast);
+    expect(ast.toSource(getOptions())).toEqual(
+        `
+        jest.mock('b', () => 'c');
+        beforeEach( function(){
+            const something = require('a');
+        });
+    `
+    );
+    expect(mockedLogger).not.toBeCalled();
+});
+
 it('logs error when proxyquire mocks are not defined in the file', () => {
     // TODO: this is kind of a bad state, but also a funny usage of proxyquire
     const ast = j(
