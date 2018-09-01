@@ -23,6 +23,28 @@ function testChanged(msg, source, expectedOutput) {
 testChanged(
     'removes imports and does basic conversions of should and expect',
     `
+        var expect = require('chai').expect;
+
+        describe('Instantiating TextField', () => {
+            it('should set the placeholder correctly', () => {
+                expect(textField.props.placeholder).to.equal(PLACEHOLDER);
+                expect(textField.props.placeholder).to.not.equal(PLACEHOLDER);
+            });
+        });
+    `,
+    `
+        describe('Instantiating TextField', () => {
+            it('should set the placeholder correctly', () => {
+                expect(textField.props.placeholder).toBe(PLACEHOLDER);
+                expect(textField.props.placeholder).not.toBe(PLACEHOLDER);
+            });
+        });
+    `
+);
+
+testChanged(
+    'removes imports and does basic conversions of should and expect',
+    `
         const { expect } = require('chai');
         var should = require('chai').should();
 
