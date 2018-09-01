@@ -23,6 +23,7 @@
     "check:bail": "eslint src && npm run test:cov",
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
+    "format": "prettier --ignore-path .gitignore --write './**/*.js'",
     "precommit": "lint-staged",
     "prepare": "npm run clean && npm run check:bail && npm run build",
     "ci": "npm run check:bail && codecov",
