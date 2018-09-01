@@ -7,7 +7,7 @@
   "author": {
     "name": "Kenneth Skovhus",
     "email": "kenneth.skovhus@gmail.com",
-    "url": "github.com/skovhus"
+    "url": "https://github.com/skovhus"
   },
   "bin": "bin/jest-codemods.js",
   "engines": {
