@@ -8,16 +8,6 @@ function findChildOfProgram(path, childPath) {
     return findChildOfProgram(path.parent, path);
 }
 
-function findFirstParentCallExpression(path) {
-    if (!path) {
-        return null;
-    }
-    if (path.node.type === 'CallExpression') {
-        return findFirstParentCallExpression(path.parentPath) || path;
-    }
-    return findFirstParentCallExpression(path.parentPath);
-}
-
 const getJestMockStatement = ({ j, mockName, mockBody }) =>
     j.expressionStatement(
         j.callExpression(j.identifier('jest.mock'), [
@@ -26,21 +16,47 @@ const getJestMockStatement = ({ j, mockName, mockBody }) =>
         ])
     );
 
+function getIdentifierValue(ast, name) {
+    const varDec = ast.findVariableDeclarators(name).get(0);
+
+    if (varDec && 'value' in varDec.node.init) {
+        return varDec.node.init.value;
+    }
+
+    return null;
+}
+
 export default function proxyquireTransformer(fileInfo, j, ast) {
     const importVariableName = removeRequireAndImport(j, ast, 'proxyquire');
     if (importVariableName) {
         const mocks = new Set();
 
         ast
-            .find(j.Identifier, {
-                name: importVariableName,
-            })
-            .forEach(p => {
-                const outerCallExpression = findFirstParentCallExpression(p);
-                if (!outerCallExpression) {
-                    return;
+            .find(j.CallExpression, match => {
+                if (
+                    match.callee.type === 'CallExpression' &&
+                    match.callee.callee.type === 'MemberExpression'
+                ) {
+                    return match.callee.callee.object.name === importVariableName;
+                } else if (
+                    match.callee.type === 'MemberExpression' &&
+                    match.callee.object.type === 'CallExpression' &&
+                    match.callee.object.callee.type === 'MemberExpression'
+                ) {
+                    return match.callee.object.callee.object.name === importVariableName;
+                } else if (
+                    match.callee.type === 'MemberExpression' &&
+                    match.callee.object.name === importVariableName
+                ) {
+                    const parentFind = ast.find(j.CallExpression, { callee: match });
+                    const parent = parentFind.size() && parentFind.get();
+
+                    return !parent || parent.node.type !== 'CallExpression';
                 }
 
+                return match.callee.name === importVariableName;
+            })
+            .forEach(outerCallExpression => {
                 const args = outerCallExpression.node.arguments;
                 if (args.length === 0) {
                     // proxyquire is called with no arguments
@@ -48,11 +64,20 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
                     return;
                 }
 
-                const requireFile = args[0].value;
+                const pathArg = args[0];
+                const requireFile =
+                    pathArg.type === 'Identifier'
+                        ? getIdentifierValue(ast, pathArg.name)
+                        : pathArg.value;
+
                 const mocksNode = args[1];
 
                 if (mocks.has(requireFile)) {
-                    logger(fileInfo, 'Multiple mocks of same file is not supported', p);
+                    logger(
+                        fileInfo,
+                        'Multiple mocks of same file is not supported',
+                        outerCallExpression
+                    );
                     return;
                 }
                 mocks.add(requireFile);
@@ -84,7 +109,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
                         logger(
                             fileInfo,
                             'proxyrequire mocks not transformed due to missing declaration',
-                            p
+                            outerCallExpression
                         );
                         return;
                     }
