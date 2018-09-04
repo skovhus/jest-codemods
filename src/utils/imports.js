@@ -112,6 +112,14 @@ export function removeDefaultImport(j, ast, pkg) {
     return localName;
 }
 
+function findVariableDeclarator(p) {
+    if (p.value.type === 'VariableDeclarator') {
+        return p;
+    }
+
+    return p.parentPath ? findVariableDeclarator(p.parentPath) : null;
+}
+
 /**
  * Detects and removes CommonJS and import statements for given package.
  * @return the import variable name or null if no import were found.
@@ -125,6 +133,10 @@ export function removeRequireAndImport(j, ast, pkg, specifier) {
     findRequires(j, ast, pkg).forEach(p => {
         const variableDeclarationPath = findParentVariableDeclaration(p);
         const parentMember = findParentPathMemberRequire(p);
+
+        // Examples:
+        //   const chai = require('chai');
+        //   const expect = require('chai').expect;
         if (!specifier || (parentMember && parentMember.name === specifier)) {
             if (variableDeclarationPath) {
                 localName = variableDeclarationPath.value.id.name;
@@ -132,6 +144,121 @@ export function removeRequireAndImport(j, ast, pkg, specifier) {
             } else {
                 p.prune();
             }
+            return;
+        }
+
+        // Examples:
+        //   const { expect } = require('chai');
+        //   const { expect: expct } = require('chai');
+        if (
+            specifier &&
+            variableDeclarationPath &&
+            variableDeclarationPath.value &&
+            variableDeclarationPath.value.id.type === 'ObjectPattern'
+        ) {
+            const { properties } = variableDeclarationPath.value.id;
+
+            const index = properties.findIndex(prop => {
+                return prop.key.type === 'Identifier' && prop.key.name === specifier;
+            });
+
+            if (index !== undefined) {
+                const propertyPath = variableDeclarationPath.get(
+                    'id',
+                    'properties',
+                    index
+                );
+
+                localName = propertyPath.value.value.name;
+
+                if (properties.length === 1) {
+                    // Remove the variable declaration if there's only one property
+                    // e.g. const { expect } = require('chai');
+                    variableDeclarationPath.prune();
+                } else {
+                    // Only remove the property if other properties exist
+                    // e.g. const { expect, other } = require('chai');
+                    propertyPath.prune();
+                }
+                return;
+            }
+        }
+
+        /**
+         * Examples:
+         *   const chai = require('chai');
+         *   const expect = chai.expect;
+         *
+         *   const chai = require('chai');
+         *   const { expect } = chai;
+         */
+        if (variableDeclarationPath && specifier) {
+            const memberUsagesOfPkg = ast.find(j.MemberExpression, {
+                object: node =>
+                    node &&
+                    node.type === 'Identifier' &&
+                    node.name === variableDeclarationPath.value.id.name,
+            });
+
+            const initUsagesOfPkg = ast.find(j.VariableDeclarator, {
+                init: node =>
+                    node &&
+                    node.type === 'Identifier' &&
+                    node.name === variableDeclarationPath.value.id.name,
+            });
+
+            const usagesOfPkg = memberUsagesOfPkg.length + initUsagesOfPkg.length;
+
+            // const chai = require('chai');
+            // const { expect } = chai;
+            ast
+                .find(j.VariableDeclarator, {
+                    id: node => node.type === 'ObjectPattern',
+                    init: node =>
+                        node &&
+                        node.type === 'Identifier' &&
+                        node.name === variableDeclarationPath.value.id.name,
+                })
+                .forEach(p => {
+                    const index = p.value.id.properties.findIndex(
+                        prop =>
+                            prop.key.type === 'Identifier' && prop.key.name === specifier
+                    );
+
+                    if (index >= 0) {
+                        const property = p.get('id', 'properties', index);
+                        localName = property.value.value.name;
+                        if (p.value.id.properties.length === 1) {
+                            p.prune();
+                            if (usagesOfPkg <= 1) {
+                                variableDeclarationPath.prune();
+                            }
+                        } else {
+                            property.prune();
+                        }
+                    }
+                });
+
+            // const chai = require('chai');
+            // const expect = chai.expect;
+            ast
+                .find(j.MemberExpression, {
+                    object: node =>
+                        variableDeclarationPath.value &&
+                        node.type === 'Identifier' &&
+                        node.name === variableDeclarationPath.value.id.name,
+                    property: node =>
+                        node.type === 'Identifier' && node.name === specifier,
+                })
+                .map(p => findVariableDeclarator(p))
+                .filter(Boolean)
+                .forEach(p => {
+                    localName = p.value.id.name;
+                    p.prune();
+                    if (usagesOfPkg <= 1) {
+                        variableDeclarationPath.prune();
+                    }
+                });
         }
     });
 

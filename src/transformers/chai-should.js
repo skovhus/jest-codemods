@@ -6,9 +6,20 @@ import {
     createCallChainUtil,
 } from '../utils/chai-chain-utils';
 import logger from '../utils/logger';
-import { removeRequireAndImport } from '../utils/imports';
+import { removeRequireAndImport, getRequireOrImportName } from '../utils/imports';
 import { findParentOfType, traverseMemberExpressionUtil } from '../utils/recast-helpers';
 import finale from '../utils/finale';
+
+function addCommentHelper(node, comment) {
+    var comments = node.comments || (node.comments = []);
+    comments.push(comment);
+}
+
+function addLeadingComment(node, comment) {
+    comment.leading = true;
+    comment.trailing = false;
+    addCommentHelper(node, comment);
+}
 
 const fns = [
     'keys',
@@ -18,10 +29,12 @@ const fns = [
     'lengthof',
     'length',
     'equal',
+    'equals',
     'throw',
     'include',
     'contain',
     'eql',
+    'eq',
     'above',
     'gt',
     'greaterthan',
@@ -47,6 +60,7 @@ const members = [
     'false',
     'extensible',
     'finite',
+    'function',
     'frozen',
     'sealed',
     'null',
@@ -87,17 +101,6 @@ module.exports = function transformer(fileInfo, api, options) {
     const updateExpect = updateExpectUtil(j);
     const createCallChain = createCallChainUtil(j);
 
-    const chaiExpectRemoved = removeRequireAndImport(j, root, 'chai', 'expect');
-    const chaiShouldRemoved = removeRequireAndImport(j, root, 'chai', 'should');
-    if (chaiExpectRemoved || chaiShouldRemoved) {
-        mutations += 1;
-    }
-
-    const isExpectCall = node =>
-        node.name === 'expect' ||
-        (node.type === j.MemberExpression.name && isExpectCall(node.object)) ||
-        (node.type === j.CallExpression.name && isExpectCall(node.callee));
-
     const isShouldMemberExpression = traverseMemberExpressionUtil(
         j,
         node => node.type === 'Identifier' && node.name === 'should'
@@ -109,6 +112,33 @@ module.exports = function transformer(fileInfo, api, options) {
     );
 
     const logWarning = (msg, node) => logger(fileInfo, msg, node);
+
+    const chai = getRequireOrImportName(j, root, 'chai');
+
+    const chaiExtensionUsage = root.find(j.CallExpression, {
+        callee: {
+            object: node => node.type === 'Identifier' && node.name === chai,
+            property: node => node.type === 'Identifier' && node.name === 'use',
+        },
+    });
+
+    if (chaiExtensionUsage.length > 0) {
+        chaiExtensionUsage.forEach(node => {
+            logWarning('Unsupported Chai Extension "chai.use()"', node);
+        });
+        return;
+    }
+
+    const chaiExpectRemoved = removeRequireAndImport(j, root, 'chai', 'expect');
+    const chaiShouldRemoved = removeRequireAndImport(j, root, 'chai', 'should');
+    if (chaiExpectRemoved || chaiShouldRemoved) {
+        mutations += 1;
+    }
+
+    const isExpectCall = node =>
+        node.name === 'expect' ||
+        (node.type === j.MemberExpression.name && isExpectCall(node.object)) ||
+        (node.type === j.CallExpression.name && isExpectCall(node.callee));
 
     const typeOf = (value, args, containsNot) => {
         switch (args[0].value) {
@@ -186,6 +216,13 @@ module.exports = function transformer(fileInfo, api, options) {
             ? updateExpect(rest, node => j.memberExpression(node, j.identifier('length')))
             : rest;
         if (newRest.arguments) {
+            // Add expect's second argument as a comment (if one exists)
+            const comments = newRest.arguments.slice(1, 2);
+            comments.forEach(comment => {
+                addLeadingComment(newRest, j.commentLine(` ${comment.value}`));
+            });
+
+            // Jest's expect only allows one argument
             newRest.arguments = newRest.arguments.slice(0, 1);
         }
         return newRest;
@@ -272,6 +309,18 @@ module.exports = function transformer(fileInfo, api, options) {
             .replaceWith(p => {
                 const { value } = p;
                 const rest = getAllBefore(isPrefix, value, 'should');
+
+                if (rest.arguments !== undefined) {
+                    // Add expect's second argument as a comment (if one exists)
+                    const comments = rest.arguments.slice(1, 2);
+                    comments.forEach(comment => {
+                        addLeadingComment(rest, j.commentLine(` ${comment.value}`));
+                    });
+
+                    // Jest's expect only allows one argument
+                    rest.arguments = rest.arguments.slice(0, 1);
+                }
+
                 const containsNot = chainContains('not', value, 'to');
 
                 const propertyName = value.property.name.toLowerCase();
@@ -325,25 +374,38 @@ module.exports = function transformer(fileInfo, api, options) {
                             ? createCall('toBeDefined', [], rest)
                             : createCall('toBeUndefined', [], rest);
                     case 'empty':
-                        return createCall(
-                            'toHaveLength',
-                            [j.literal(0)],
-                            updateExpect(value, node => {
-                                if (
-                                    node.type === j.ObjectExpression.name ||
-                                    node.type === j.Identifier.name
-                                ) {
-                                    return createCallChain(['Object', 'keys'], [node]);
-                                }
-                                return node;
-                            }),
-                            containsNot
-                        );
+                        if (
+                            p.parentPath.parentPath.value.type === 'CallExpression' ||
+                            !chainContains('be', value, 'to')
+                        ) {
+                            return value;
+                        } else {
+                            return createCall(
+                                'toHaveLength',
+                                [j.literal(0)],
+                                updateExpect(value, node => {
+                                    if (
+                                        node.type === j.ObjectExpression.name ||
+                                        node.type === j.Identifier.name
+                                    ) {
+                                        return createCallChain(
+                                            ['Object', 'keys'],
+                                            [node]
+                                        );
+                                    }
+                                    return node;
+                                }),
+                                containsNot
+                            );
+                        }
                     case 'exist':
-                    case 'defined':
+                    case 'defined': {
                         return containsNot
                             ? createCall('toBeFalsy', [], rest)
                             : createCall('toBeDefined', [], rest);
+                    }
+                    case 'function':
+                        return typeOf(value, [j.literal('function')], containsNot);
                     default:
                         return value;
                 }
@@ -371,12 +433,34 @@ module.exports = function transformer(fileInfo, api, options) {
                 const containsDeep = chainContains('deep', value.callee, isPrefix);
                 const containsAny = chainContains('any', value.callee, isPrefix);
                 const args = value.arguments;
+                const numberOfArgs = args.length;
+                const [firstArg] = args;
 
                 switch (p.value.callee.property.name.toLowerCase()) {
+                    case 'eq':
                     case 'equal':
-                        return containsDeep
-                            ? createCall('toEqual', args, rest, containsNot)
-                            : createCall('toBe', args, rest, containsNot);
+                    case 'equals':
+                        if (containsDeep) {
+                            return createCall('toEqual', args, rest, containsNot);
+                        }
+
+                        if (numberOfArgs === 1) {
+                            const { type } = firstArg;
+
+                            if (type === 'Literal' && firstArg.value === null) {
+                                return createCall('toBeNull', [], rest, containsNot);
+                            }
+
+                            if (type === 'Identifier' && firstArg.name === 'undefined') {
+                                if (containsNot) {
+                                    return createCall('toBeDefined', [], rest, false);
+                                } else {
+                                    return createCall('toBeUndefined', [], rest, false);
+                                }
+                            }
+                        }
+
+                        return createCall('toBe', args, rest, containsNot);
                     case 'throw':
                         return createCall('toThrowError', args, rest, containsNot);
                     case 'include':
@@ -390,7 +474,11 @@ module.exports = function transformer(fileInfo, api, options) {
                         }
                         return createCall('toContain', args, rest, containsNot);
                     case 'eql':
-                        return createCall('toEqual', args, rest, containsNot);
+                        if (numberOfArgs === 1 && args[0].type === 'Literal') {
+                            return createCall('toBe', args, rest, containsNot);
+                        } else {
+                            return createCall('toEqual', args, rest, containsNot);
+                        }
                     case 'above':
                     case 'greaterthan':
                     case 'gt':

@@ -29,6 +29,56 @@ describe('removeRequireAndImport', () => {
         );
     });
 
+    it('removes destructured require statements', () => {
+        const ast = j(
+            `
+            const { expect } = require('chai');
+            expect();
+        `
+        );
+        const removedVariableName = removeRequireAndImport(j, ast, 'chai', 'expect');
+        expect(removedVariableName).toBe('expect');
+        expect(ast.toSource(getOptions())).toEqual(
+            `
+            expect();
+        `
+        );
+    });
+
+    it('removes require statements with member expressions', () => {
+        const ast = j(
+            `
+            const chai = require('chai');
+            const expect = chai.expect;
+            expect();
+        `
+        );
+        const removedVariableName = removeRequireAndImport(j, ast, 'chai', 'expect');
+        expect(removedVariableName).toBe('expect');
+        expect(ast.toSource(getOptions())).toEqual(
+            `
+            expect();
+        `
+        );
+    });
+
+    it('removes require statements with destructured members', () => {
+        const ast = j(
+            `
+            const chai = require('chai');
+            const { expect } = chai;
+            expect();
+        `
+        );
+        const removedVariableName = removeRequireAndImport(j, ast, 'chai', 'expect');
+        expect(removedVariableName).toBe('expect');
+        expect(ast.toSource(getOptions())).toEqual(
+            `
+            expect();
+        `
+        );
+    });
+
     it('removes require statements without local name', () => {
         const ast = j(
             `

@@ -7,7 +7,7 @@
   "author": {
     "name": "Kenneth Skovhus",
     "email": "kenneth.skovhus@gmail.com",
-    "url": "github.com/skovhus"
+    "url": "https://github.com/skovhus"
   },
   "bin": "bin/jest-codemods.js",
   "engines": {
@@ -23,6 +23,7 @@
     "check:bail": "eslint src && npm run test:cov",
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
+    "format": "prettier --ignore-path .gitignore --write './**/*.js'",
     "precommit": "lint-staged",
     "prepare": "npm run clean && npm run check:bail && npm run build",
     "ci": "npm run check:bail && codecov",
@@ -71,7 +72,7 @@
     "eslint-plugin-import": "^2.7.0",
     "eslint-plugin-prettier": "^2.3.1",
     "husky": "^0.14.3",
-    "jest": "^21.2.1",
+    "jest": "^23.5.0",
     "lint-staged": "^4.2.3",
     "prettier": "^1.7.4"
   },
