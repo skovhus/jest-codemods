@@ -213,6 +213,7 @@ module.exports = function transformer(fileInfo, api, options) {
     const createLeadingComments = rest => comment => {
         if (comment.type === 'Literal') {
             addLeadingComment(rest, j.commentLine(` ${comment.value}`));
+            return;
         }
 
         if (comment.type === 'TemplateLiteral') {
@@ -224,7 +225,10 @@ module.exports = function transformer(fileInfo, api, options) {
                         .replace(/`/g, '')}`
                 )
             );
+            return;
         }
+
+        addLeadingComment(rest, j.commentLine(` ${j(comment).toSource()}`));
     };
 
     function getRestWithLengthHandled(p, rest) {

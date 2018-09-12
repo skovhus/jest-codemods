@@ -637,6 +637,7 @@ testChanged(
         expect(foo, 'Expected foo to be defined').to.exist;
         expect(foo, 'Expected foo to be defined').to.equal(true);
         expect(foo, \`Expected foo to be defined for \${id}\`).to.be.defined;
+        expect(foo, 'Expected ' + foo + ' to be defined').to.equal(true);
     `,
     `
         // Expected foo to be defined
@@ -645,6 +646,8 @@ testChanged(
         expect(foo).toBe(true);
         // Expected foo to be defined for \${id}
         expect(foo).toBeDefined();
+        // 'Expected ' + foo + ' to be defined'
+        expect(foo).toBe(true);
     `
 );
 
