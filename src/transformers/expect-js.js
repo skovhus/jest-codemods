@@ -62,7 +62,7 @@ export default function expectJsTransfomer(fileInfo, api, options) {
     const expectImport = getRequireOrImportName(j, ast, EXPECT_JS);
     const logWarning = (msg, node) => logger(fileInfo, msg, node);
 
-    if (!expectImport) {
+    if (!expectImport && !options.skipImportDetection) {
         // No expect.js require/import were found
         return fileInfo.source;
     }

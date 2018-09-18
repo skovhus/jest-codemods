@@ -60,7 +60,7 @@ export default function avaToJest(fileInfo, api, options) {
 
     const testFunctionName = removeRequireAndImport(j, ast, 'ava');
 
-    if (!testFunctionName) {
+    if (!testFunctionName && !options.skipImportDetection) {
         // No AVA require/import were found
         return fileInfo.source;
     }

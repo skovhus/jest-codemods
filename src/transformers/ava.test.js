@@ -12,9 +12,9 @@ beforeEach(() => {
     console.warn = v => consoleWarnings.push(v);
 });
 
-function testChanged(msg, source, expectedOutput) {
+function testChanged(msg, source, expectedOutput, options = {}) {
     test(msg, () => {
-        const result = wrappedPlugin(source);
+        const result = wrappedPlugin(source, options);
         expect(result).toBe(expectedOutput);
         expect(consoleWarnings).toEqual([]);
     });
@@ -36,6 +36,23 @@ test(t => {
     t.notOk(1);
 })
 `
+);
+
+testChanged(
+    'changes code without require/import if skipImportDetection is set',
+    `
+// @flow
+test(t => {
+    t.notOk(1);
+})
+`,
+    `
+// @flow
+test(t => {
+    expect(1).toBeFalsy();
+})
+`,
+    { skipImportDetection: true }
 );
 
 // TODO: jscodeshift adds semi colon when preserving first line comments :/

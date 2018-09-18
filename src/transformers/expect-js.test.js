@@ -40,6 +40,21 @@ testChanged(
 );
 
 testChanged(
+    'changes code without expect require/import if skipImportDetection is set',
+    `
+    test(t => {
+      expect(stuff).to.be.ok();
+    })
+    `,
+    `
+    test(t => {
+      expect(stuff).toBeTruthy();
+    })
+    `,
+    { skipImportDetection: true }
+);
+
+testChanged(
     'maps expect matchers',
     `
     import expect from 'expect.js';
