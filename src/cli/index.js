@@ -106,7 +106,7 @@ const TRANSFORMER_INQUIRER_CHOICES = [
         value: TRANSFORMER_TAPE,
     },
     {
-        name: 'All of the above (by detecting usage)!',
+        name: 'All of the above (use with care)!',
         value: 'all',
     },
     {
@@ -130,6 +130,22 @@ inquirer
             message: 'Which test library would you like to migrate from?',
             pageSize: TRANSFORMER_INQUIRER_CHOICES.length,
             choices: TRANSFORMER_INQUIRER_CHOICES,
+        },
+        {
+            name: 'skipImportDetection',
+            type: 'list',
+            message:
+                'Are you using the global object for assertions (i.e. without requiring them)',
+            choices: [
+                {
+                    name: `No, I use import/require statements for my current assertion library`,
+                    value: false,
+                },
+                {
+                    name: `Yes, and I'm not afraid of false positive transformations`,
+                    value: true,
+                },
+            ],
         },
         {
             name: 'standaloneMode',
@@ -192,7 +208,13 @@ inquirer
         },
     ])
     .then(answers => {
-        const { files, transformer, mochaAssertion, standaloneMode } = answers;
+        const {
+            files,
+            transformer,
+            mochaAssertion,
+            skipImportDetection,
+            standaloneMode,
+        } = answers;
 
         if (transformer === 'other') {
             return supportFailure(
@@ -218,6 +240,15 @@ inquirer
             console.log(
                 chalk.yellow(
                     '\nNOTICE: You need to manually install expect@21+ and jest-mock'
+                )
+            );
+        }
+
+        if (skipImportDetection) {
+            transformerArgs.push('--skipImportDetection=true');
+            console.log(
+                chalk.yellow(
+                    '\nNOTICE: Skipping import detection, you might get false positives'
                 )
             );
         }

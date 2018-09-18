@@ -179,7 +179,7 @@ export default function transformer(fileInfo, api, options) {
 
     let chaiAssertExpression;
 
-    const assertLocalName = removeRequireAndImport(j, ast, 'chai', 'assert');
+    let assertLocalName = removeRequireAndImport(j, ast, 'chai', 'assert');
     const defaultImportLocalName = removeDefaultImport(j, ast, 'chai');
     if (assertLocalName) {
         chaiAssertExpression = {
@@ -201,8 +201,15 @@ export default function transformer(fileInfo, api, options) {
     }
 
     if (!chaiAssertExpression) {
-        // No Chai require/import were found
-        return fileInfo.source;
+        if (!options.skipImportDetection) {
+            // No Chai require/import were found
+            return fileInfo.source;
+        }
+        assertLocalName = 'assert';
+        chaiAssertExpression = {
+            type: 'Identifier',
+            name: 'assert',
+        };
     }
 
     const logWarning = (msg, path) => logger(fileInfo, msg, path);

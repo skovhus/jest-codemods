@@ -85,11 +85,15 @@ export default function tapeToJest(fileInfo, api, options) {
     const j = api.jscodeshift;
     const ast = j(fileInfo.source);
 
-    const testFunctionName = removeRequireAndImport(j, ast, 'tape');
+    let testFunctionName = removeRequireAndImport(j, ast, 'tape');
 
     if (!testFunctionName) {
         // No Tape require/import were found
-        return fileInfo.source;
+        if (!options.skipImportDetection) {
+            return fileInfo.source;
+        }
+
+        testFunctionName = 'tape';
     }
 
     const logWarning = (msg, node) => logger(fileInfo, msg, node);

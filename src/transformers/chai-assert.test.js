@@ -12,9 +12,9 @@ beforeEach(() => {
     console.warn = v => consoleWarnings.push(v);
 });
 
-function testChanged(msg, source, expectedOutput) {
+function testChanged(msg, source, expectedOutput, options) {
     test(msg, () => {
-        const result = wrappedPlugin(source);
+        const result = wrappedPlugin(source, options);
         expect(result).toBe(expectedOutput);
         expect(consoleWarnings).toEqual([]);
     });
@@ -150,6 +150,13 @@ import { assert } from 'chai';`,
 );
 
 testChanged('mappings', mappingTest.input, mappingTest.output);
+
+testChanged(
+    'mapping without import if skipImportDetection is set',
+    mappingTest.input.replace("import { assert } from 'chai';\n", ''),
+    mappingTest.output,
+    { skipImportDetection: true }
+);
 
 test('not supported assertions', () => {
     const unsupportedAssertions = [

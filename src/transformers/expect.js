@@ -101,7 +101,7 @@ export default function expectTransformer(fileInfo, api, options) {
     const ast = j(fileInfo.source);
     const { standaloneMode } = options;
 
-    if (!hasRequireOrImport(j, ast, EXPECT)) {
+    if (!hasRequireOrImport(j, ast, EXPECT) && !options.skipImportDetection) {
         // No expect require/import were found
         return fileInfo.source;
     }
