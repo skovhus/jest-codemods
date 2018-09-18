@@ -210,6 +210,27 @@ module.exports = function transformer(fileInfo, api, options) {
         }
     }
 
+    const createLeadingComments = rest => comment => {
+        if (comment.type === 'Literal') {
+            addLeadingComment(rest, j.commentLine(` ${comment.value}`));
+            return;
+        }
+
+        if (comment.type === 'TemplateLiteral') {
+            addLeadingComment(
+                rest,
+                j.commentLine(
+                    ` ${j(comment)
+                        .toSource()
+                        .replace(/`/g, '')}`
+                )
+            );
+            return;
+        }
+
+        addLeadingComment(rest, j.commentLine(` ${j(comment).toSource()}`));
+    };
+
     function getRestWithLengthHandled(p, rest) {
         const containsLength = chainContains('length', p.value.callee, isPrefix);
         const newRest = containsLength
@@ -218,9 +239,7 @@ module.exports = function transformer(fileInfo, api, options) {
         if (newRest.arguments) {
             // Add expect's second argument as a comment (if one exists)
             const comments = newRest.arguments.slice(1, 2);
-            comments.forEach(comment => {
-                addLeadingComment(newRest, j.commentLine(` ${comment.value}`));
-            });
+            comments.forEach(createLeadingComments(newRest));
 
             // Jest's expect only allows one argument
             newRest.arguments = newRest.arguments.slice(0, 1);
@@ -313,9 +332,7 @@ module.exports = function transformer(fileInfo, api, options) {
                 if (rest.arguments !== undefined) {
                     // Add expect's second argument as a comment (if one exists)
                     const comments = rest.arguments.slice(1, 2);
-                    comments.forEach(comment => {
-                        addLeadingComment(rest, j.commentLine(` ${comment.value}`));
-                    });
+                    comments.forEach(createLeadingComments(rest));
 
                     // Jest's expect only allows one argument
                     rest.arguments = rest.arguments.slice(0, 1);
