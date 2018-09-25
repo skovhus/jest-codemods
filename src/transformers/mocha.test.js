@@ -125,7 +125,7 @@ suite.skip('skip suite', () => {
 // @flow
 describe.skip('skip suite', () => {
   test.skip('skip test', () => {});
-  test('test will be skipped');
+  test.skip('test will be skipped', () => {});
 });
 `
 );
