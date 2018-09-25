@@ -54,6 +54,18 @@ export default function mochaToJest(fileInfo, api, options) {
                 let args = path.value.arguments;
                 if (!jestMethodsWithDescriptionsAllowed.has(jestMethod)) {
                     args = args.filter(a => a.type !== 'Literal');
+                } else if (args.length === 1 && args[0].type === 'Literal') {
+                    const emptyArrowFunction = j.arrowFunctionExpression(
+                        [],
+                        j.blockStatement([j.emptyStatement()])
+                    );
+                    return j.callExpression(
+                        j.memberExpression(
+                            j.identifier(jestMethod),
+                            j.identifier('skip')
+                        ),
+                        args.concat([emptyArrowFunction])
+                    );
                 }
                 return j.callExpression(j.identifier(jestMethod), args);
             });
