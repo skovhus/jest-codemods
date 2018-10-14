@@ -5,3 +5,4 @@ coverage
 dist
 .vscode/
 yarn-error.log
+.idea/

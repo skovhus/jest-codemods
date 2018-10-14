@@ -19,6 +19,7 @@ function isFunctionExpressionWithinSpecificFunctions(path, acceptedFunctionNames
     return (
         !!callExpressionPath &&
         !!callExpressionPath.value &&
+        callExpressionPath.value.callee &&
         callExpressionPath.value.callee.type === 'Identifier' &&
         acceptedFunctionNames.indexOf(callExpressionPath.value.callee.name) > -1
     );
