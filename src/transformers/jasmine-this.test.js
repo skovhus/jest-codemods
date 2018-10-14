@@ -390,3 +390,29 @@ describe('foo', () => {
 });
 `
 );
+
+testChanged(
+    'ignores a function in an array',
+    `
+describe('foo', function() {
+    it('should tolerate an array of functions', function() {
+        foo.apply(model, [
+            function() {
+                bar();
+            }
+        ]);
+    });
+});
+`,
+    `
+describe('foo', () => {
+    it('should tolerate an array of functions', () => {
+        foo.apply(model, [
+            function() {
+                bar();
+            }
+        ]);
+    });
+});
+`
+);
