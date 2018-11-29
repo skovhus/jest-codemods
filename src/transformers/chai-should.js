@@ -2,6 +2,7 @@ import {
     createCallUtil,
     chainContainsUtil,
     getNodeBeforeMemberExpressionUtil,
+    getExpectNodeUtil,
     updateExpectUtil,
     createCallChainUtil,
 } from '../utils/chai-chain-utils';
@@ -32,7 +33,9 @@ const fns = [
     'equals',
     'throw',
     'include',
+    'includes',
     'contain',
+    'contains',
     'eql',
     'eq',
     'above',
@@ -98,6 +101,7 @@ module.exports = function transformer(fileInfo, api, options) {
     const createCall = createCallUtil(j);
     const chainContains = chainContainsUtil(j);
     const getAllBefore = getNodeBeforeMemberExpressionUtil(j);
+    const getExpectNode = getExpectNodeUtil(j);
     const updateExpect = updateExpectUtil(j);
     const createCallChain = createCallChainUtil(j);
 
@@ -480,16 +484,41 @@ module.exports = function transformer(fileInfo, api, options) {
                         return createCall('toBe', args, rest, containsNot);
                     case 'throw':
                         return createCall('toThrowError', args, rest, containsNot);
-                    case 'include':
                     case 'string':
+                    case 'include':
+                    case 'includes':
                     case 'contain':
+                    case 'contains': {
                         if (
                             args.length === 1 &&
                             args[0].type === j.ObjectExpression.name
                         ) {
                             return createCall('toMatchObject', args, rest, containsNot);
                         }
-                        return createCall('toContain', args, rest, containsNot);
+
+                        const expectNode = getExpectNode(value);
+                        if (expectNode != null) {
+                            const isExpectParamStringLiteral =
+                                expectNode.arguments[0].type === j.Literal.name;
+                            if (isExpectParamStringLiteral) {
+                                return createCall('toContain', args, rest, containsNot);
+                            }
+                        }
+
+                        return createCall(
+                            'toEqual',
+                            [
+                                createCallChain(
+                                    containsNot
+                                        ? ['expect', 'not', 'arrayContaining']
+                                        : ['expect', 'arrayContaining'],
+                                    [j.arrayExpression(args)]
+                                ),
+                            ],
+                            updateExpect(value, node => node),
+                            false
+                        );
+                    }
                     case 'eql':
                         if (numberOfArgs === 1 && args[0].type === 'Literal') {
                             return createCall('toBe', args, rest, containsNot);
