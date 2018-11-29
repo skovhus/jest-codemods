@@ -51,25 +51,25 @@ export const getNodeBeforeMemberExpressionUtil = j => (equalsMemberName, node, e
     return rest;
 };
 
-export const updateExpectUtil = j => (node, fn) => {
-    const getExpectNode = n => {
-        let curr = n;
+export const getExpectNodeUtil = j => node => {
+    let curr = node;
 
-        while (
-            curr.type === j.MemberExpression.name ||
-            (curr.type === j.CallExpression.name && curr.callee.name !== 'expect')
-        ) {
-            if (curr.type === j.MemberExpression.name) {
-                curr = curr.object;
-            } else if (curr.type === j.CallExpression.name) {
-                curr = curr.callee;
-            }
+    while (
+        curr.type === j.MemberExpression.name ||
+        (curr.type === j.CallExpression.name && curr.callee.name !== 'expect')
+    ) {
+        if (curr.type === j.MemberExpression.name) {
+            curr = curr.object;
+        } else if (curr.type === j.CallExpression.name) {
+            curr = curr.callee;
         }
+    }
 
-        return curr;
-    };
+    return curr;
+};
 
-    const expectNode = getExpectNode(node);
+export const updateExpectUtil = j => (node, fn) => {
+    const expectNode = getExpectNodeUtil(j)(node);
 
     if (expectNode == null || expectNode.arguments == null) {
         return node;

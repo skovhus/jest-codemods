@@ -326,18 +326,54 @@ testChanged(
 );
 
 testChanged(
-    'converts "include-contain"',
+    'converts "string"',
     `
         expect('foobar').to.have.string('bar');
-        expect([1, 2, 3]).to.include(2);
-        expect('foobar').to.contain('foo');
-        expect({ foo: 1, bar: 2 }).to.contain({ bar: 2 });
+        expect('foobar').not.to.have.string('z');
     `,
     `
         expect('foobar').toContain('bar');
-        expect([1, 2, 3]).toContain(2);
+        expect('foobar').not.toContain('z');
+    `
+);
+
+testChanged(
+    'converts "includes-contains"',
+    `
+        expect('foobar').to.contain('foo');
+        expect([1, 2, 3]).to.include(2);
+        expect('foobar').which.contains('foo');
+        expect({ foo: 1, bar: 2 }).to.contain({ bar: 2 });
+    `,
+    `
+        expect('foobar').toContain('foo');
+        expect([1, 2, 3]).toEqual(expect.arrayContaining([2]));
         expect('foobar').toContain('foo');
         expect({ foo: 1, bar: 2 }).toMatchObject({ bar: 2 });
+    `
+);
+
+testChanged(
+    'converts chained "includes-contains"',
+    `
+        expect([1, 2, 3]).to.be.an('array').that.includes(2);
+        expect(arr).to.be.an('array').that.does.not.include(3);
+    `,
+
+    `
+        expect([1, 2, 3]).toEqual(expect.arrayContaining([2]));
+        expect(arr).toEqual(expect.not.arrayContaining([3]));
+    `
+);
+
+testChanged(
+    'converts empty array assertion',
+    `
+        expect(arr).to.be.an('array').that.is.empty;
+    `,
+
+    `
+        expect(arr).toEqual([]);
     `
 );
 

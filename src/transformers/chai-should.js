@@ -2,6 +2,7 @@ import {
     createCallUtil,
     chainContainsUtil,
     getNodeBeforeMemberExpressionUtil,
+    getExpectNodeUtil,
     updateExpectUtil,
     createCallChainUtil,
 } from '../utils/chai-chain-utils';
@@ -32,7 +33,9 @@ const fns = [
     'equals',
     'throw',
     'include',
+    'includes',
     'contain',
+    'contains',
     'eql',
     'eq',
     'above',
@@ -98,6 +101,7 @@ module.exports = function transformer(fileInfo, api, options) {
     const createCall = createCallUtil(j);
     const chainContains = chainContainsUtil(j);
     const getAllBefore = getNodeBeforeMemberExpressionUtil(j);
+    const getExpectNode = getExpectNodeUtil(j);
     const updateExpect = updateExpectUtil(j);
     const createCallChain = createCallChainUtil(j);
 
@@ -140,7 +144,7 @@ module.exports = function transformer(fileInfo, api, options) {
         (node.type === j.MemberExpression.name && isExpectCall(node.object)) ||
         (node.type === j.CallExpression.name && isExpectCall(node.callee));
 
-    const typeOf = (value, args, containsNot) => {
+    const typeOf = (path, value, args, containsNot) => {
         switch (args[0].value) {
             case 'null':
                 return createCall(
@@ -154,7 +158,32 @@ module.exports = function transformer(fileInfo, api, options) {
                     [],
                     updateExpect(value, node => node, containsNot)
                 );
-            case 'array':
+            case 'array': {
+                const parentExpressionStatement = findParentOfType(
+                    path,
+                    'ExpressionStatement'
+                );
+                if (
+                    parentExpressionStatement &&
+                    parentExpressionStatement.value &&
+                    parentExpressionStatement.value.expression &&
+                    parentExpressionStatement.value.expression.property &&
+                    parentExpressionStatement.value.expression.property.name === 'empty'
+                ) {
+                    const topExpression = parentExpressionStatement.value.expression;
+
+                    const newCallExpression = j.callExpression(j.identifier('toEqual'), [
+                        j.arrayExpression([]),
+                    ]);
+                    topExpression.property = containsNot
+                        ? j.memberExpression(j.identifier('not'), newCallExpression)
+                        : newCallExpression;
+
+                    topExpression.object = updateExpect(value, node => node);
+
+                    return null;
+                }
+
                 return createCall(
                     'toBe',
                     [j.booleanLiteral(containsNot ? false : true)],
@@ -168,6 +197,7 @@ module.exports = function transformer(fileInfo, api, options) {
                         )
                     )
                 );
+            }
             case 'error':
                 return createCall(
                     'toBeInstanceOf',
@@ -422,7 +452,7 @@ module.exports = function transformer(fileInfo, api, options) {
                             : createCall('toBeDefined', [], rest);
                     }
                     case 'function':
-                        return typeOf(value, [j.literal('function')], containsNot);
+                        return typeOf(p, value, [j.literal('function')], containsNot);
                     default:
                         return value;
                 }
@@ -480,16 +510,41 @@ module.exports = function transformer(fileInfo, api, options) {
                         return createCall('toBe', args, rest, containsNot);
                     case 'throw':
                         return createCall('toThrowError', args, rest, containsNot);
-                    case 'include':
                     case 'string':
+                    case 'include':
+                    case 'includes':
                     case 'contain':
+                    case 'contains': {
                         if (
                             args.length === 1 &&
                             args[0].type === j.ObjectExpression.name
                         ) {
                             return createCall('toMatchObject', args, rest, containsNot);
                         }
-                        return createCall('toContain', args, rest, containsNot);
+
+                        const expectNode = getExpectNode(value);
+                        if (expectNode != null) {
+                            const isExpectParamStringLiteral =
+                                expectNode.arguments[0].type === j.Literal.name;
+                            if (isExpectParamStringLiteral) {
+                                return createCall('toContain', args, rest, containsNot);
+                            }
+                        }
+
+                        return createCall(
+                            'toEqual',
+                            [
+                                createCallChain(
+                                    containsNot
+                                        ? ['expect', 'not', 'arrayContaining']
+                                        : ['expect', 'arrayContaining'],
+                                    [j.arrayExpression(args)]
+                                ),
+                            ],
+                            updateExpect(value, node => node),
+                            false
+                        );
+                    }
                     case 'eql':
                         if (numberOfArgs === 1 && args[0].type === 'Literal') {
                             return createCall('toBe', args, rest, containsNot);
@@ -557,7 +612,7 @@ module.exports = function transformer(fileInfo, api, options) {
                             return value;
                         }
                         if (args[0].type === 'Literal') {
-                            return typeOf(value, args, containsNot);
+                            return typeOf(p, value, args, containsNot);
                         }
                         return createCall('toBeInstanceOf', args, rest, containsNot);
                     case 'instanceof':
