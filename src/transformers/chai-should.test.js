@@ -367,6 +367,17 @@ testChanged(
 );
 
 testChanged(
+    'converts empty array assertion',
+    `
+        expect(arr).to.be.an('array').that.is.empty;
+    `,
+
+    `
+        expect(arr).toEqual([]);
+    `
+);
+
+testChanged(
     'converts "instanceof"',
     `
         expect(foo).to.be.an.instanceof(Foo);
