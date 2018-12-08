@@ -1,7 +1,7 @@
 <div align="center">
 <h1> jest-codemods 👾</h1>
 
-Codemods that simplify migrating JavaScript test files from
+Codemods that simplify migrating JavaScript and TypeScript test files from
 [AVA](https://github.com/avajs/ava),
 [Chai](https://github.com/chaijs/chai),
 [Expect.js (by Automattic)](https://github.com/Automattic/expect.js),
