@@ -34,7 +34,7 @@ it('runs jscodeshift for the given transformer', () => {
         `Executing command: jscodeshift -t ${path.join(
             transformerDirectory,
             'tape.js'
-        )} src --parser flow`
+        )} src --ignore-pattern node_modules --parser flow`
     );
 });
 
@@ -43,7 +43,7 @@ it('supports jscodeshift flags', () => {
     console.log = jest.fn();
     executeTransformations({
         files: 'folder',
-        flags: { dry: true, ignorePattern: '/node_modules/' },
+        flags: { dry: true },
         parser: 'flow',
         transformers: ['ava'],
     });
@@ -51,7 +51,7 @@ it('supports jscodeshift flags', () => {
         `Executing command: jscodeshift -t ${path.join(
             transformerDirectory,
             'ava.js'
-        )} folder --dry --ignore-pattern /node_modules/ --parser flow`
+        )} folder --dry --ignore-pattern node_modules --parser flow`
     );
 });
 
@@ -60,7 +60,7 @@ it('supports typescript parser', () => {
     console.log = jest.fn();
     executeTransformations({
         files: 'folder',
-        flags: { dry: true, ignorePattern: '/node_modules/' },
+        flags: { dry: true },
         parser: 'tsx',
         transformers: ['ava'],
     });
@@ -68,7 +68,7 @@ it('supports typescript parser', () => {
         `Executing command: jscodeshift -t ${path.join(
             transformerDirectory,
             'ava.js'
-        )} folder --dry --ignore-pattern /node_modules/ --parser tsx --extensions=tsx,ts`
+        )} folder --dry --ignore-pattern node_modules --parser tsx --extensions=tsx,ts`
     );
 });
 
@@ -86,7 +86,7 @@ it('supports jscodeshift custom arguments', () => {
         `Executing command: jscodeshift -t ${path.join(
             transformerDirectory,
             'ava.js'
-        )} folder --dry --parser babel --standaloneMode`
+        )} folder --dry --ignore-pattern node_modules --parser babel --standaloneMode`
     );
 });
 

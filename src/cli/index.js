@@ -18,7 +18,6 @@ const cli = meow(
     path    Files or directory to transform. Can be a glob like src/**.test.js
 
     Options
-      --ignore-pattern, -i  Ignore files that match a provided glob expression
       --force, -f           Bypass Git safety checks and forcibly run codemods
       --dry, -d             Dry run (no changes are made to files)
     `,
@@ -27,7 +26,6 @@ const cli = meow(
         boolean: ['force', 'dry'],
         string: ['_'],
         alias: {
-            i: 'ignorePattern',
             f: 'force',
             h: 'help',
             d: 'dry',

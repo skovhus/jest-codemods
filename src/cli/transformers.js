@@ -9,15 +9,13 @@ function executeTransformation({ files, flags, parser, transformer, transformerA
 
     let args = ['-t', transformerPath].concat(files);
 
-    const { dry, ignorePattern } = flags;
+    const { dry } = flags;
 
     if (dry) {
         args.push('--dry');
     }
 
-    if (ignorePattern) {
-        args.push('--ignore-pattern', ignorePattern);
-    }
+    args.push('--ignore-pattern', 'node_modules');
 
     args.push('--parser', parser);
     if (parser === 'tsx') {
