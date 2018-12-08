@@ -51,10 +51,6 @@ To use the interactive CLI run
 	$ jest-codemods
 
 
-If you are using Flow types
-
-	$ jest-codemods --parser flow
-
 
 For more options
 ```
@@ -72,7 +68,7 @@ $ jest-codemods --help
       --dry, -d		Dry run (no changes are made to files)
 ```
 
-To transform all test files in a directory run `jest-codemods test-folder` in your terminal.
+To transform all test files in a directory run `jest-codemods .` in your terminal.
 
 Notice the console output for errors, manual intervention and tweaks might be required.
 
@@ -140,6 +136,7 @@ Chai Should/Expect came from [AlexJuarez/chai-to-jasmine](https://github.com/Ale
 - "Switching from Ava to Jest for TypeScript" https://shift.infinite.red/switching-from-ava-to-jest-for-typescript-a6dac7d1712f
 - "Migrating a Mocha project to Jest Test Framework" https://medium.com/@liran.tal/migrating-a-mocha-project-to-jest-test-framework-76d13d76685
 - "Migrating to Jest on the P2P team at PayPal" https://blog.kentcdodds.com/migrating-to-jest-881f75366e7e
+
 
 ## Contributing
 

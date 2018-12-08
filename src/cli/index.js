@@ -218,7 +218,7 @@ inquirer
             name: 'files',
             message: 'On which files or directory should the codemods be applied?',
             when: () => !cli.input.length,
-            default: 'src test/**/*.js',
+            default: '.',
             filter: files =>
                 files
                     .trim()
