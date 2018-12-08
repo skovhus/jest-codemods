@@ -27,9 +27,8 @@ to [Jest](https://facebook.github.io/jest/).
 
 Codemods are small programs that help you automate changes to your codebase.
 Think of them as search and replace on steroids.
-They are executed by the [Facebook jscodeshift](https://github.com/facebook/jscodeshift) tool.
 
-This tool is made for trying out Jest on your existing test files.
+We made jest-codemods so you can try out Jest on your existing codebase.
 We strive to make the migration as smooth as possible, but some manual intervention
 and tweaks to your tests are to be expected.
 
@@ -76,7 +75,7 @@ Notice the console output for errors, manual intervention and tweaks might be re
 ## Usage (jscodeshift)
 
 To make the process as simple as possible, we recommend the `jest-codemods` CLI
-that wraps the `jscodeshift` executable.
+that wraps the [jscodeshift](https://github.com/facebook/jscodeshift) executable.
 But you can also run the transformations directly using `jscodeshift`.
 
 ```
