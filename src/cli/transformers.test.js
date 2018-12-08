@@ -24,45 +24,69 @@ it('finds jscodeshift executable', () => {
 it('runs jscodeshift for the given transformer', () => {
     execaReturnValue = { error: null };
     console.log = jest.fn();
-    executeTransformations('src', {}, ['tape']);
+    executeTransformations({
+        files: 'src',
+        flags: {},
+        parser: 'flow',
+        transformers: ['tape'],
+    });
     expect(console.log).toBeCalledWith(
         `Executing command: jscodeshift -t ${path.join(
             transformerDirectory,
             'tape.js'
-        )} src`
+        )} src --ignore-pattern node_modules --parser flow`
     );
 });
 
 it('supports jscodeshift flags', () => {
     execaReturnValue = { error: null };
     console.log = jest.fn();
-    executeTransformations(
-        'folder',
-        { dry: true, ignorePattern: '/node_modules/', parser: 'flow' },
-        ['ava']
-    );
+    executeTransformations({
+        files: 'folder',
+        flags: { dry: true },
+        parser: 'flow',
+        transformers: ['ava'],
+    });
     expect(console.log).toBeCalledWith(
         `Executing command: jscodeshift -t ${path.join(
             transformerDirectory,
             'ava.js'
-        )} folder --dry --ignore-pattern /node_modules/ --parser flow`
+        )} folder --dry --ignore-pattern node_modules --parser flow`
+    );
+});
+
+it('supports typescript parser', () => {
+    execaReturnValue = { error: null };
+    console.log = jest.fn();
+    executeTransformations({
+        files: 'folder',
+        flags: { dry: true },
+        parser: 'tsx',
+        transformers: ['ava'],
+    });
+    expect(console.log).toBeCalledWith(
+        `Executing command: jscodeshift -t ${path.join(
+            transformerDirectory,
+            'ava.js'
+        )} folder --dry --ignore-pattern node_modules --parser tsx --extensions=tsx,ts`
     );
 });
 
 it('supports jscodeshift custom arguments', () => {
     execaReturnValue = { error: null };
     console.log = jest.fn();
-    executeTransformations(
-        'folder',
-        { dry: true, parser: 'flow' },
-        ['ava'],
-        ['--standaloneMode']
-    );
+    executeTransformations({
+        files: 'folder',
+        flags: { dry: true },
+        parser: 'babel',
+        transformers: ['ava'],
+        transformerArgs: ['--standaloneMode'],
+    });
     expect(console.log).toBeCalledWith(
         `Executing command: jscodeshift -t ${path.join(
             transformerDirectory,
             'ava.js'
-        )} folder --dry --parser flow --standaloneMode`
+        )} folder --dry --ignore-pattern node_modules --parser babel --standaloneMode`
     );
 });
 
@@ -71,6 +95,11 @@ it('rethrows jscodeshift errors', () => {
     execaReturnValue = { error: transformerError };
     console.log = jest.fn();
     expect(() => {
-        executeTransformations('src', {}, ['tape']);
+        executeTransformations({
+            files: 'src',
+            flags: {},
+            parser: 'flow',
+            transformers: ['tape'],
+        });
     }).toThrowError(transformerError);
 });

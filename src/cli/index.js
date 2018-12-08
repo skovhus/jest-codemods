@@ -18,17 +18,14 @@ const cli = meow(
     path    Files or directory to transform. Can be a glob like src/**.test.js
 
     Options
-      --ignore-pattern, -i  Ignore files that match a provided glob expression
       --force, -f           Bypass Git safety checks and forcibly run codemods
       --dry, -d             Dry run (no changes are made to files)
-      --parser              The parser to use for parsing your source files (babel | babylon | flow)  [babel]
     `,
     },
     {
         boolean: ['force', 'dry'],
         string: ['_'],
         alias: {
-            i: 'ignorePattern',
             f: 'force',
             h: 'help',
             d: 'dry',
@@ -115,6 +112,21 @@ const TRANSFORMER_INQUIRER_CHOICES = [
     },
 ];
 
+const PARSER_INQUIRER_CHOICES = [
+    {
+        name: 'Babel',
+        value: 'babel',
+    },
+    {
+        name: 'Flow',
+        value: 'flow',
+    },
+    {
+        name: 'TypeScript',
+        value: 'tsx',
+    },
+];
+
 function supportFailure(supportedItems) {
     console.log(`\nCurrently, jest-codemods only has support for ${supportedItems}.`);
     console.log(
@@ -124,6 +136,13 @@ function supportFailure(supportedItems) {
 
 inquirer
     .prompt([
+        {
+            type: 'list',
+            name: 'parser',
+            message: 'Which parser do you want to use?',
+            pageSize: PARSER_INQUIRER_CHOICES.length,
+            choices: PARSER_INQUIRER_CHOICES,
+        },
         {
             type: 'list',
             name: 'transformer',
@@ -199,7 +218,7 @@ inquirer
             name: 'files',
             message: 'On which files or directory should the codemods be applied?',
             when: () => !cli.input.length,
-            default: 'src test/**/*.js',
+            default: '.',
             filter: files =>
                 files
                     .trim()
@@ -211,6 +230,7 @@ inquirer
         const {
             files,
             transformer,
+            parser,
             mochaAssertion,
             skipImportDetection,
             standaloneMode,
@@ -253,10 +273,11 @@ inquirer
             );
         }
 
-        return executeTransformations(
-            filesExpanded,
-            cli.flags,
+        return executeTransformations({
+            files: filesExpanded,
+            flags: cli.flags,
+            parser,
             transformers,
-            transformerArgs
-        );
+            transformerArgs,
+        });
     });

@@ -1,7 +1,7 @@
 <div align="center">
 <h1> jest-codemods 👾</h1>
 
-Codemods that simplify migrating JavaScript test files from
+Codemods that simplify migrating JavaScript and TypeScript test files from
 [AVA](https://github.com/avajs/ava),
 [Chai](https://github.com/chaijs/chai),
 [Expect.js (by Automattic)](https://github.com/Automattic/expect.js),
@@ -27,9 +27,8 @@ to [Jest](https://facebook.github.io/jest/).
 
 Codemods are small programs that help you automate changes to your codebase.
 Think of them as search and replace on steroids.
-They are executed by the [Facebook jscodeshift](https://github.com/facebook/jscodeshift) tool.
 
-This tool is made for trying out Jest on your existing test files.
+We made jest-codemods so you can try out Jest on your existing codebase.
 We strive to make the migration as smooth as possible, but some manual intervention
 and tweaks to your tests are to be expected.
 
@@ -51,10 +50,6 @@ To use the interactive CLI run
 	$ jest-codemods
 
 
-If you are using Flow types
-
-	$ jest-codemods --parser flow
-
 
 For more options
 ```
@@ -70,10 +65,9 @@ $ jest-codemods --help
     Options
       --force, -f	Bypass Git safety checks and forcibly run codemods
       --dry, -d		Dry run (no changes are made to files)
-      --parser		The parser to use for parsing your source files (babel | babylon | flow)  [babel]
 ```
 
-To transform all test files in a directory run `jest-codemods test-folder` in your terminal.
+To transform all test files in a directory run `jest-codemods .` in your terminal.
 
 Notice the console output for errors, manual intervention and tweaks might be required.
 
@@ -81,7 +75,7 @@ Notice the console output for errors, manual intervention and tweaks might be re
 ## Usage (jscodeshift)
 
 To make the process as simple as possible, we recommend the `jest-codemods` CLI
-that wraps the `jscodeshift` executable.
+that wraps the [jscodeshift](https://github.com/facebook/jscodeshift) executable.
 But you can also run the transformations directly using `jscodeshift`.
 
 ```
@@ -141,6 +135,7 @@ Chai Should/Expect came from [AlexJuarez/chai-to-jasmine](https://github.com/Ale
 - "Switching from Ava to Jest for TypeScript" https://shift.infinite.red/switching-from-ava-to-jest-for-typescript-a6dac7d1712f
 - "Migrating a Mocha project to Jest Test Framework" https://medium.com/@liran.tal/migrating-a-mocha-project-to-jest-test-framework-76d13d76685
 - "Migrating to Jest on the P2P team at PayPal" https://blog.kentcdodds.com/migrating-to-jest-881f75366e7e
+
 
 ## Contributing
 
