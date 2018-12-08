@@ -124,12 +124,23 @@ Warnings are made if packages are used that are incompatible with Jest.
 
 ## Inspiration
 
-Thanks to [avajs/ava-codemods](https://github.com/avajs/ava-codemods) for inspiration and CLI setup.
+Thanks to [avajs/ava-codemods](https://github.com/avajs/ava-codemods) for inspiration and original CLI setup.
 
 The Mocha and Chai assert support began its life at [paularmstrong/mocha-to-jest-codemod](https://github.com/paularmstrong/mocha-to-jest-codemod).
 
 Chai Should/Expect came from [AlexJuarez/chai-to-jasmine](https://github.com/AlexJuarez/chai-to-jasmine).
 
+
+## Links
+
+- Official Jest migration guide https://jestjs.io/docs/en/migration-guide
+- "Migrating 2,000+ Specs from Karma to Jest" https://labs.contactually.com/migrating-2-000-specs-from-karma-to-jest-25dd8b0f3cfb
+- "Into the Great Unknown — Migrating from Mocha to Jest" https://ebaytech.berlin/into-the-great-unknown-migrating-from-mocha-to-jest-3baced083c7e
+- "Automate your migration to Jest using codemods" Egghead video https://egghead.io/lessons/jest-automate-your-migration-to-jest-using-codemods
+- "Migrating Ava to Jest" https://codedaily.io/tutorials/11/Migrating-Ava-to-Jest
+- "Switching from Ava to Jest for TypeScript" https://shift.infinite.red/switching-from-ava-to-jest-for-typescript-a6dac7d1712f
+- "Migrating a Mocha project to Jest Test Framework" https://medium.com/@liran.tal/migrating-a-mocha-project-to-jest-test-framework-76d13d76685
+- "Migrating to Jest on the P2P team at PayPal" https://blog.kentcdodds.com/migrating-to-jest-881f75366e7e
 
 ## Contributing
 
