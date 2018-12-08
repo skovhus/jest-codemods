@@ -21,7 +21,6 @@ const cli = meow(
       --ignore-pattern, -i  Ignore files that match a provided glob expression
       --force, -f           Bypass Git safety checks and forcibly run codemods
       --dry, -d             Dry run (no changes are made to files)
-      --parser              The parser to use for parsing your source files (babel | babylon | flow)  [babel]
     `,
     },
     {
@@ -115,6 +114,21 @@ const TRANSFORMER_INQUIRER_CHOICES = [
     },
 ];
 
+const PARSER_INQUIRER_CHOICES = [
+    {
+        name: 'Babel',
+        value: 'babel',
+    },
+    {
+        name: 'Flow',
+        value: 'flow',
+    },
+    {
+        name: 'TypeScript',
+        value: 'tsx',
+    },
+];
+
 function supportFailure(supportedItems) {
     console.log(`\nCurrently, jest-codemods only has support for ${supportedItems}.`);
     console.log(
@@ -124,6 +138,13 @@ function supportFailure(supportedItems) {
 
 inquirer
     .prompt([
+        {
+            type: 'list',
+            name: 'parser',
+            message: 'Which parser do you want to use?',
+            pageSize: PARSER_INQUIRER_CHOICES.length,
+            choices: PARSER_INQUIRER_CHOICES,
+        },
         {
             type: 'list',
             name: 'transformer',
@@ -211,6 +232,7 @@ inquirer
         const {
             files,
             transformer,
+            parser,
             mochaAssertion,
             skipImportDetection,
             standaloneMode,
@@ -253,10 +275,11 @@ inquirer
             );
         }
 
-        return executeTransformations(
-            filesExpanded,
-            cli.flags,
+        return executeTransformations({
+            files: filesExpanded,
+            flags: cli.flags,
+            parser,
             transformers,
-            transformerArgs
-        );
+            transformerArgs,
+        });
     });

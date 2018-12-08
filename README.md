@@ -70,7 +70,6 @@ $ jest-codemods --help
     Options
       --force, -f	Bypass Git safety checks and forcibly run codemods
       --dry, -d		Dry run (no changes are made to files)
-      --parser		The parser to use for parsing your source files (babel | babylon | flow)  [babel]
 ```
 
 To transform all test files in a directory run `jest-codemods test-folder` in your terminal.

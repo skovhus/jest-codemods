@@ -4,21 +4,24 @@ import execa from 'execa';
 export const transformerDirectory = path.join(__dirname, '../', 'transformers');
 export const jscodeshiftExecutable = require.resolve('.bin/jscodeshift');
 
-function executeTransformation(files, flags, transformer, transformerArgs) {
+function executeTransformation({ files, flags, parser, transformer, transformerArgs }) {
     const transformerPath = path.join(transformerDirectory, `${transformer}.js`);
 
     let args = ['-t', transformerPath].concat(files);
 
-    if (flags.dry) {
+    const { dry, ignorePattern } = flags;
+
+    if (dry) {
         args.push('--dry');
     }
 
-    if (flags.ignorePattern) {
-        args.push('--ignore-pattern', flags.ignorePattern);
+    if (ignorePattern) {
+        args.push('--ignore-pattern', ignorePattern);
     }
 
-    if (['babel', 'babylon', 'flow'].indexOf(flags.parser) >= 0) {
-        args.push('--parser', flags.parser);
+    args.push('--parser', parser);
+    if (parser === 'tsx') {
+        args.push('--extensions=tsx,ts');
     }
 
     if (transformerArgs && transformerArgs.length > 0) {
@@ -37,13 +40,20 @@ function executeTransformation(files, flags, transformer, transformerArgs) {
     }
 }
 
-export function executeTransformations(
+export function executeTransformations({
     files,
     flags,
+    parser,
     transformers,
-    transformerOptions = []
-) {
+    transformerArgs,
+}) {
     transformers.forEach(t => {
-        executeTransformation(files, flags, t, transformerOptions);
+        executeTransformation({
+            files,
+            flags,
+            transformer: t,
+            parser,
+            transformerArgs,
+        });
     });
 }
