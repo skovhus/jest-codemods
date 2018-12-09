@@ -104,9 +104,9 @@ you may need to choose the option with explicit `require()` calls.
 
 In the second case, after running `jest-codemods`, you might need to install a few dependencies:
 
-    yarn -D expect jest-mock
+    yarn add --dev expect jest-mock
 
-    npm install expect jest-mock
+    npm install --save-dev expect jest-mock
 
 
 ## Transformations
