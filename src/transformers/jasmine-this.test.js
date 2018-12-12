@@ -52,6 +52,44 @@ describe('foo', () => {
 );
 
 testChanged(
+    'does not transform generator functions',
+    `
+describe('foo', function*() {
+    beforeEach(function*() {
+        this.foo = { id: 'FOO' };
+        this.bar = { id: 'BAR', child: this.foo };
+    });
+
+    it('should have proper IDs', function*() {
+        expect(this.foo.id).to.equal('FOO');
+        expect(this.bar.id).to.equal('BAR');
+        expect(this.bar.child.id).to.equal('FOO');
+    });
+});
+`,
+    `
+describe('foo', function*() {
+    let testContext;
+
+    beforeEach(() => {
+        testContext = {};
+    });
+
+    beforeEach(function*() {
+        testContext.foo = { id: 'FOO' };
+        testContext.bar = { id: 'BAR', child: testContext.foo };
+    });
+
+    it('should have proper IDs', function*() {
+        expect(testContext.foo.id).to.equal('FOO');
+        expect(testContext.bar.id).to.equal('BAR');
+        expect(testContext.bar.child.id).to.equal('FOO');
+    });
+});
+`
+);
+
+testChanged(
     'transforms only test functions context',
     `
 describe('foo', function() {

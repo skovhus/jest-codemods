@@ -200,6 +200,7 @@ export default function jasmineThis(fileInfo, api, options) {
             .filter(path =>
                 isFunctionExpressionWithinSpecificFunctions(path, allFunctionNames)
             )
+            .filter(path => !path.value.generator)
             .replaceWith(path => {
                 const newFn = j.arrowFunctionExpression(
                     path.value.params,
