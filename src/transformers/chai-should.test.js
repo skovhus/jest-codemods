@@ -518,7 +518,12 @@ testChanged(
         expect(undefined).to.not.be.ok;
         expect(null).to.not.be.ok;
         expect(null).to.not.be.ok();
-    `,
+
+        const x = { ok: true };
+        assert.ok(x.ok);
+        expect(x.ok).toBeTruthy();
+        expect(x.ok).to.be.ok;
+        `,
     `
         expect('everything').toBeTruthy();
         expect(1).toBeTruthy();
@@ -526,7 +531,12 @@ testChanged(
         expect(undefined).toBeFalsy();
         expect(null).toBeFalsy();
         expect(null).toBeFalsy();
-    `
+
+        const x = { ok: true };
+        assert.ok(x.ok);
+        expect(x.ok).toBeTruthy();
+        expect(x.ok).toBeTruthy();
+        `
 );
 
 testChanged(
