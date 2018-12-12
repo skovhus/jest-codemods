@@ -351,7 +351,7 @@ module.exports = function transformer(fileInfo, api, options) {
                     const { value } = p;
                     const propertyName = value.property.name.toLowerCase();
 
-                    // Reject "ok" when it isn't not preceeded by "to"
+                    // Reject "ok" when it isn't  proceeded by "to"
                     return !(propertyName === 'ok' && !chainContains('to', value, 'to'));
                 });
 
