@@ -520,8 +520,9 @@ testChanged(
         expect(null).to.not.be.ok();
 
         const x = { ok: true };
-        expect(x.ok).toBeTruthy();
         assert.ok(x.ok);
+        expect(x.ok).toBeTruthy();
+        expect(x.ok).to.be.ok;
         `,
     `
         expect('everything').toBeTruthy();
@@ -532,8 +533,9 @@ testChanged(
         expect(null).toBeFalsy();
 
         const x = { ok: true };
-        expect(x.ok).toBeTruthy();
         assert.ok(x.ok);
+        expect(x.ok).toBeTruthy();
+        expect(x.ok).toBeTruthy();
         `
 );
 
