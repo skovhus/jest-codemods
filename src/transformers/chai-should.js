@@ -346,7 +346,14 @@ module.exports = function transformer(fileInfo, api, options) {
                         name: name => members.indexOf(name.toLowerCase()) !== -1,
                     },
                 })
-                .filter(p => findParentOfType(p, 'ExpressionStatement'));
+                .filter(p => findParentOfType(p, 'ExpressionStatement'))
+                .filter(p => {
+                    const { value } = p;
+                    const propertyName = value.property.name.toLowerCase();
+
+                    // Reject "ok" when it isn't not preceeded by "to"
+                    return !(propertyName === 'ok' && !chainContains('to', value, 'to'));
+                });
 
         getMembers().forEach(p => {
             if (p.parentPath.value.type === j.CallExpression.name) {
