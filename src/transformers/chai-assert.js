@@ -353,6 +353,17 @@ export default function transformer(fileInfo, api, options) {
             return makeExpectation('toHaveProperty', obj, [prop, value]);
         });
 
+    // assert.deepPropertyNotVal -> expect(*).not.toHaveProperty(keyPath, ?value)
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'deepPropertyNotVal')
+        )
+        .replaceWith(path => {
+            const [obj, prop, value] = path.value.arguments;
+            return makeNegativeExpectation('toHaveProperty', obj, [prop, value]);
+        });
+
     // assert.notDeepPropertyVal -> expect(*).not.toHaveProperty(keyPath, ?value)
     ast
         .find(

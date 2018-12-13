@@ -126,6 +126,10 @@ const mappings = [
         "expect({ tea: { green: 'matcha' } }).not.toHaveProperty('tea', { black: 'matcha' });",
     ],
     [
+        "assert.deepPropertyNotVal({ tea: { green: 'matcha' } }, 'tea', { green: 'oolong' });",
+        "expect({ tea: { green: 'matcha' } }).not.toHaveProperty('tea', { green: 'oolong' });",
+    ],
+    [
         "assert.notDeepPropertyVal({ tea: { green: 'matcha' } }, 'tea', { green: 'oolong' });",
         "expect({ tea: { green: 'matcha' } }).not.toHaveProperty('tea', { green: 'oolong' });",
     ],
