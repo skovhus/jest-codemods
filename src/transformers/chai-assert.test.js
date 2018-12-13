@@ -115,7 +115,7 @@ const mappings = [
         "expect({ tea: { green: 'matcha' }}).not.toHaveProperty('tea.oolong');",
     ],
     ['assert.propertyVal(foo, bar, baz);', 'expect(foo.bar).toBe(baz);'],
-    ['assert.notPropertyVal(foo, bar, baz);', 'expect(foo.bar).not.toBe(baz);'],
+    ['assert.propertyNotVal(foo, bar, baz);', 'expect(foo.bar).not.toBe(baz);'],
     [
         "assert.deepPropertyVal({ tea: { green: 'matcha' } }, 'tea', { green: 'matcha' });",
         "expect({ tea: { green: 'matcha' } }).toHaveProperty('tea', { green: 'matcha' });",

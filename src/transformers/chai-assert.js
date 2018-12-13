@@ -320,11 +320,11 @@ export default function transformer(fileInfo, api, options) {
             return makeExpectation('toBe', j.memberExpression(obj, prop), value);
         });
 
-    // assert.notPropertyVal -> expect(*.[prop]).not.toBe()
+    // assert.propertyNotVal -> expect(*.[prop]).not.toBe()
     ast
         .find(
             j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'notPropertyVal')
+            getAssertionExpression(chaiAssertExpression, 'propertyNotVal')
         )
         .replaceWith(path => {
             const [obj, prop, value] = path.value.arguments;
