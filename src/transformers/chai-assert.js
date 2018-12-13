@@ -157,10 +157,6 @@ const getArguments = (path, ignoreExpectedValue, expectedOverride) => {
 };
 
 const unsupportedAssertions = [
-    'deepProperty',
-    'notDeepProperty',
-    'deepPropertyVal',
-    'deepPropertyNotVal',
     'operator',
     'includeMembers',
     'includeDeepMembers',
@@ -333,6 +329,72 @@ export default function transformer(fileInfo, api, options) {
         .replaceWith(path => {
             const [obj, prop, value] = path.value.arguments;
             return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
+        });
+
+    // assert.notPropertyVal -> expect(*.[prop]).not.toBe()
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'notPropertyVal')
+        )
+        .replaceWith(path => {
+            const [obj, prop, value] = path.value.arguments;
+            return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
+        });
+
+    // assert.deepPropertyVal -> expect(*).toHaveProperty(keyPath, ?value)
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'deepPropertyVal')
+        )
+        .replaceWith(path => {
+            const [obj, prop, value] = path.value.arguments;
+            return makeExpectation('toHaveProperty', obj, [prop, value]);
+        });
+
+    // assert.deepPropertyNotVal -> expect(*).not.toHaveProperty(keyPath, ?value)
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'deepPropertyNotVal')
+        )
+        .replaceWith(path => {
+            const [obj, prop, value] = path.value.arguments;
+            return makeNegativeExpectation('toHaveProperty', obj, [prop, value]);
+        });
+
+    // assert.notDeepPropertyVal -> expect(*).not.toHaveProperty(keyPath, ?value)
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'notDeepPropertyVal')
+        )
+        .replaceWith(path => {
+            const [obj, prop, value] = path.value.arguments;
+            return makeNegativeExpectation('toHaveProperty', obj, [prop, value]);
+        });
+
+    // assert.deepProperty -> expect(*).toHaveProperty(keyPath)
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'deepProperty')
+        )
+        .replaceWith(path => {
+            const [obj, prop] = path.value.arguments;
+            return makeExpectation('toHaveProperty', obj, prop);
+        });
+
+    // assert.notDeepProperty -> expect(*).not.toHaveProperty(keyPath)
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'notDeepProperty')
+        )
+        .replaceWith(path => {
+            const [obj, prop] = path.value.arguments;
+            return makeNegativeExpectation('toHaveProperty', obj, prop);
         });
 
     // assert.property -> expect(prop in obj).toBeTruthy()
