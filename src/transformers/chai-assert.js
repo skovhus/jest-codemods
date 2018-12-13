@@ -157,7 +157,6 @@ const getArguments = (path, ignoreExpectedValue, expectedOverride) => {
 };
 
 const unsupportedAssertions = [
-    'deepProperty',
     'notDeepProperty',
     'operator',
     'includeMembers',
@@ -353,6 +352,17 @@ export default function transformer(fileInfo, api, options) {
         .replaceWith(path => {
             const [obj, prop, value] = path.value.arguments;
             return makeNegativeExpectation('toHaveProperty', obj, [prop, value]);
+        });
+
+    // assert.deepProperty -> expect(*).toHaveProperty(keyPath)
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'deepProperty')
+        )
+        .replaceWith(path => {
+            const [obj, prop] = path.value.arguments;
+            return makeExpectation('toHaveProperty', obj, prop);
         });
 
     // assert.property -> expect(prop in obj).toBeTruthy()

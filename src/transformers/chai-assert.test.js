@@ -106,6 +106,10 @@ const mappings = [
     ['assert.notMatch(foo, bar, baz);', 'expect(foo).not.toMatch(bar);'],
     ['assert.property(foo, bar, baz);', 'expect(bar in foo).toBeTruthy();'],
     ['assert.notProperty(foo, bar, baz);', 'expect(bar in foo).toBeFalsy();'],
+    [
+        "assert.deepProperty({ tea: { green: 'matcha' }}, 'tea.green');",
+        "expect({ tea: { green: 'matcha' }}).toHaveProperty('tea.green');",
+    ],
     ['assert.propertyVal(foo, bar, baz);', 'expect(foo.bar).toBe(baz);'],
     ['assert.propertyNotVal(foo, bar, baz);', 'expect(foo.bar).not.toBe(baz);'],
     [
@@ -176,7 +180,6 @@ testChanged(
 
 test('not supported assertions', () => {
     const unsupportedAssertions = [
-        'deepProperty',
         'notDeepProperty',
         'operator',
         'includeMembers',
@@ -200,18 +203,17 @@ assert.${assertion}(foo, bar, baz);`,
     wrappedPlugin(fileInput);
 
     expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 2) Unsupported Chai Assertion "deepProperty".',
-        'jest-codemods warning: (test.js line 3) Unsupported Chai Assertion "notDeepProperty".',
-        'jest-codemods warning: (test.js line 4) Unsupported Chai Assertion "operator".',
-        'jest-codemods warning: (test.js line 5) Unsupported Chai Assertion "includeMembers".',
-        'jest-codemods warning: (test.js line 6) Unsupported Chai Assertion "includeDeepMembers".',
-        'jest-codemods warning: (test.js line 7) Unsupported Chai Assertion "changes".',
-        'jest-codemods warning: (test.js line 8) Unsupported Chai Assertion "doesNotChange".',
-        'jest-codemods warning: (test.js line 9) Unsupported Chai Assertion "increases".',
-        'jest-codemods warning: (test.js line 10) Unsupported Chai Assertion "doesNotIncrease".',
-        'jest-codemods warning: (test.js line 11) Unsupported Chai Assertion "decreases".',
-        'jest-codemods warning: (test.js line 12) Unsupported Chai Assertion "doesNotDecrease".',
-        'jest-codemods warning: (test.js line 13) Unsupported Chai Assertion "ifError".',
+        'jest-codemods warning: (test.js line 2) Unsupported Chai Assertion "notDeepProperty".',
+        'jest-codemods warning: (test.js line 3) Unsupported Chai Assertion "operator".',
+        'jest-codemods warning: (test.js line 4) Unsupported Chai Assertion "includeMembers".',
+        'jest-codemods warning: (test.js line 5) Unsupported Chai Assertion "includeDeepMembers".',
+        'jest-codemods warning: (test.js line 6) Unsupported Chai Assertion "changes".',
+        'jest-codemods warning: (test.js line 7) Unsupported Chai Assertion "doesNotChange".',
+        'jest-codemods warning: (test.js line 8) Unsupported Chai Assertion "increases".',
+        'jest-codemods warning: (test.js line 9) Unsupported Chai Assertion "doesNotIncrease".',
+        'jest-codemods warning: (test.js line 10) Unsupported Chai Assertion "decreases".',
+        'jest-codemods warning: (test.js line 11) Unsupported Chai Assertion "doesNotDecrease".',
+        'jest-codemods warning: (test.js line 12) Unsupported Chai Assertion "ifError".',
     ]);
 });
 
