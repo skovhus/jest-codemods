@@ -331,6 +331,17 @@ export default function transformer(fileInfo, api, options) {
             return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
         });
 
+    // assert.notPropertyVal -> expect(*.[prop]).not.toBe()
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'notPropertyVal')
+        )
+        .replaceWith(path => {
+            const [obj, prop, value] = path.value.arguments;
+            return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
+        });
+
     // assert.deepPropertyVal -> expect(*).toHaveProperty(keyPath, ?value)
     ast
         .find(
