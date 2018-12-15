@@ -248,9 +248,11 @@ inquirer
             transformers.push(mochaAssertion);
         }
 
-        const filesExpanded = cli.input.length ? cli.input : globby.sync(files);
+        const filesBeforeExpansion = cli.input.length ? cli.input : files;
+        const filesExpanded = globby.sync(filesBeforeExpansion);
+
         if (!filesExpanded.length) {
-            console.log(`No files found matching ${files.join(' ')}`);
+            console.log(`No files found matching ${filesBeforeExpansion.join(' ')}`);
             return;
         }
 
