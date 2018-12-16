@@ -55,7 +55,7 @@
     "chalk": "~1.1.3",
     "execa": "~0.4.0",
     "globby": "^8.0.1",
-    "inquirer": "^3.2.2",
+    "inquirer": "^6.2.1",
     "is-git-clean": "~1.1.0",
     "jscodeshift": "^0.6.2",
     "meow": "~3.7.0",
