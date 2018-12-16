@@ -134,6 +134,11 @@ function supportFailure(supportedItems) {
     );
 }
 
+function expandFilePathsIfNeeded(filesBeforeExpansion) {
+    const shouldExpandFiles = filesBeforeExpansion.some(file => file.includes('*'));
+    return shouldExpandFiles ? globby.sync(filesBeforeExpansion) : filesBeforeExpansion;
+}
+
 inquirer
     .prompt([
         {
@@ -249,7 +254,7 @@ inquirer
         }
 
         const filesBeforeExpansion = cli.input.length ? cli.input : files;
-        const filesExpanded = globby.sync(filesBeforeExpansion);
+        const filesExpanded = expandFilePathsIfNeeded(filesBeforeExpansion);
 
         if (!filesExpanded.length) {
             console.log(`No files found matching ${filesBeforeExpansion.join(' ')}`);
