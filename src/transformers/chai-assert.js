@@ -158,7 +158,6 @@ const getArguments = (path, ignoreExpectedValue, expectedOverride) => {
 
 const unsupportedAssertions = [
     'operator',
-    'includeDeepMembers',
     'changes',
     'doesNotChange',
     'increases',
@@ -426,8 +425,6 @@ export default function transformer(fileInfo, api, options) {
             getAssertionExpression(chaiAssertExpression, 'includeMembers')
         )
         .replaceWith(path => {
-            // console.log(path.value.arguments);
-            // const [obj, prop, value] = path.value.arguments;
             return makeExpectation(
                 'toEqual',
                 path.value.arguments[0],
@@ -448,9 +445,27 @@ export default function transformer(fileInfo, api, options) {
             getAssertionExpression(chaiAssertExpression, 'notIncludeMembers')
         )
         .replaceWith(path => {
-            // console.log(path.value.arguments);
-            // const [obj, prop, value] = path.value.arguments;
             return makeNegativeExpectation(
+                'toEqual',
+                path.value.arguments[0],
+                j.callExpression(
+                    j.memberExpression(
+                        j.identifier('expect'),
+                        j.identifier('arrayContaining')
+                    ),
+                    [path.value.arguments[1]]
+                )
+            );
+        });
+
+    // assert.includeDeepMembers -> expect([]).toEqual(expect.arrayContaining([]))
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'includeDeepMembers')
+        )
+        .replaceWith(path => {
+            return makeExpectation(
                 'toEqual',
                 path.value.arguments[0],
                 j.callExpression(
