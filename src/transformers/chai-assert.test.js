@@ -154,6 +154,10 @@ const mappings = [
         'assert.includeMembers([1, 2, 3], [2, 1, 2]);',
         'expect([1, 2, 3]).toEqual(expect.arrayContaining([2, 1, 2]));',
     ],
+    [
+        'assert.notIncludeMembers([1, 2, 3], [5, 1]);',
+        'expect([1, 2, 3]).not.toEqual(expect.arrayContaining([5, 1]));',
+    ],
     ['assert.isExtensible(foo);', 'expect(Object.isExtensible(foo)).toBe(true);'],
     ['assert.isNotExtensible(foo);', 'expect(Object.isExtensible(foo)).not.toBe(true);'],
     ['assert.isSealed(foo);', 'expect(Object.isSealed(foo)).toBe(true);'],
