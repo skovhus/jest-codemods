@@ -478,6 +478,26 @@ export default function transformer(fileInfo, api, options) {
             );
         });
 
+    // assert.notIncludeDeepMembers -> expect([]).not.toEqual(expect.arrayContaining([]))
+    ast
+        .find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, 'notIncludeDeepMembers')
+        )
+        .replaceWith(path => {
+            return makeNegativeExpectation(
+                'toEqual',
+                path.value.arguments[0],
+                j.callExpression(
+                    j.memberExpression(
+                        j.identifier('expect'),
+                        j.identifier('arrayContaining')
+                    ),
+                    [path.value.arguments[1]]
+                )
+            );
+        });
+
     // assert.isArray -> expect(Array.isArray).toBe(true)
     ast
         .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'isArray'))

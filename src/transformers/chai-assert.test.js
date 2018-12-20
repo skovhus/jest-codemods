@@ -162,6 +162,10 @@ const mappings = [
         'assert.includeDeepMembers([{ a: 1 }, { b: 2 }, { c: 3 }], [{ b: 2 }, { a: 1 }, { b: 2 }]);',
         'expect([{ a: 1 }, { b: 2 }, { c: 3 }]).toEqual(expect.arrayContaining([{ b: 2 }, { a: 1 }, { b: 2 }]));',
     ],
+    [
+        'assert.notIncludeDeepMembers([{ a: 1 }, { b: 2 }, { c: 3 }], [{ b: 2 }, { f: 5 }]);',
+        'expect([{ a: 1 }, { b: 2 }, { c: 3 }]).not.toEqual(expect.arrayContaining([{ b: 2 }, { f: 5 }]));',
+    ],
     ['assert.isExtensible(foo);', 'expect(Object.isExtensible(foo)).toBe(true);'],
     ['assert.isNotExtensible(foo);', 'expect(Object.isExtensible(foo)).not.toBe(true);'],
     ['assert.isSealed(foo);', 'expect(Object.isSealed(foo)).toBe(true);'],
