@@ -150,6 +150,22 @@ const mappings = [
     ],
     ['assert.sameMembers(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
     ['assert.sameDeepMembers(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
+    [
+        'assert.includeMembers([1, 2, 3], [2, 1, 2]);',
+        'expect([1, 2, 3]).toEqual(expect.arrayContaining([2, 1, 2]));',
+    ],
+    [
+        'assert.notIncludeMembers([1, 2, 3], [5, 1]);',
+        'expect([1, 2, 3]).not.toEqual(expect.arrayContaining([5, 1]));',
+    ],
+    [
+        'assert.includeDeepMembers([{ a: 1 }, { b: 2 }, { c: 3 }], [{ b: 2 }, { a: 1 }, { b: 2 }]);',
+        'expect([{ a: 1 }, { b: 2 }, { c: 3 }]).toEqual(expect.arrayContaining([{ b: 2 }, { a: 1 }, { b: 2 }]));',
+    ],
+    [
+        'assert.notIncludeDeepMembers([{ a: 1 }, { b: 2 }, { c: 3 }], [{ b: 2 }, { f: 5 }]);',
+        'expect([{ a: 1 }, { b: 2 }, { c: 3 }]).not.toEqual(expect.arrayContaining([{ b: 2 }, { f: 5 }]));',
+    ],
     ['assert.isExtensible(foo);', 'expect(Object.isExtensible(foo)).toBe(true);'],
     ['assert.isNotExtensible(foo);', 'expect(Object.isExtensible(foo)).not.toBe(true);'],
     ['assert.isSealed(foo);', 'expect(Object.isSealed(foo)).toBe(true);'],
@@ -190,8 +206,6 @@ testChanged(
 test('not supported assertions', () => {
     const unsupportedAssertions = [
         'operator',
-        'includeMembers',
-        'includeDeepMembers',
         'changes',
         'doesNotChange',
         'increases',
@@ -212,15 +226,13 @@ assert.${assertion}(foo, bar, baz);`,
 
     expect(consoleWarnings).toEqual([
         'jest-codemods warning: (test.js line 2) Unsupported Chai Assertion "operator".',
-        'jest-codemods warning: (test.js line 3) Unsupported Chai Assertion "includeMembers".',
-        'jest-codemods warning: (test.js line 4) Unsupported Chai Assertion "includeDeepMembers".',
-        'jest-codemods warning: (test.js line 5) Unsupported Chai Assertion "changes".',
-        'jest-codemods warning: (test.js line 6) Unsupported Chai Assertion "doesNotChange".',
-        'jest-codemods warning: (test.js line 7) Unsupported Chai Assertion "increases".',
-        'jest-codemods warning: (test.js line 8) Unsupported Chai Assertion "doesNotIncrease".',
-        'jest-codemods warning: (test.js line 9) Unsupported Chai Assertion "decreases".',
-        'jest-codemods warning: (test.js line 10) Unsupported Chai Assertion "doesNotDecrease".',
-        'jest-codemods warning: (test.js line 11) Unsupported Chai Assertion "ifError".',
+        'jest-codemods warning: (test.js line 3) Unsupported Chai Assertion "changes".',
+        'jest-codemods warning: (test.js line 4) Unsupported Chai Assertion "doesNotChange".',
+        'jest-codemods warning: (test.js line 5) Unsupported Chai Assertion "increases".',
+        'jest-codemods warning: (test.js line 6) Unsupported Chai Assertion "doesNotIncrease".',
+        'jest-codemods warning: (test.js line 7) Unsupported Chai Assertion "decreases".',
+        'jest-codemods warning: (test.js line 8) Unsupported Chai Assertion "doesNotDecrease".',
+        'jest-codemods warning: (test.js line 9) Unsupported Chai Assertion "ifError".',
     ]);
 });
 
