@@ -330,10 +330,14 @@ testChanged(
     `
         expect('foobar').to.have.string('bar');
         expect('foobar').not.to.have.string('z');
+        expect(someString).to.have.string('bar');
+        expect(someString).not.to.have.string('bar');
     `,
     `
         expect('foobar').toContain('bar');
         expect('foobar').not.toContain('z');
+        expect(someString).toContain('bar');
+        expect(someString).not.toContain('bar');
     `
 );
 

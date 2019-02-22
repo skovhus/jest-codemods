@@ -518,6 +518,7 @@ module.exports = function transformer(fileInfo, api, options) {
                     case 'throw':
                         return createCall('toThrowError', args, rest, containsNot);
                     case 'string':
+                        return createCall('toContain', args, rest, containsNot);
                     case 'include':
                     case 'includes':
                     case 'contain':
