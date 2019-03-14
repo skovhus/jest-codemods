@@ -3,12 +3,15 @@
  */
 
 import finale from '../utils/finale';
+import logger from '../utils/logger';
 
 export default function jasmineGlobals(fileInfo, api, options) {
     const j = api.jscodeshift;
     const root = j(fileInfo.source);
 
     const emptyArrowFn = j('() => {}').__paths[0].value.program.body[0].expression;
+
+    const logWarning = (msg, path) => logger(fileInfo, msg, path);
 
     root
         // find all `jasmine.createSpy('stuff')
@@ -311,6 +314,20 @@ export default function jasmineGlobals(fileInfo, api, options) {
                     path.node.callee = j.memberExpression(
                         j.identifier('jest'),
                         j.identifier('advanceTimersByTime')
+                    );
+                    break;
+                }
+                case 'mockDate': {
+                    logWarning(
+                        'Unsupported Jasmine functionality "jasmine.clock().mockDate(*)".',
+                        path
+                    );
+                    break;
+                }
+                default: {
+                    logWarning(
+                        `Unsupported Jasmine functionality "jasmine.clock().${usageType}".`,
+                        path
                     );
                     break;
                 }

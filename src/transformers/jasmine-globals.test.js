@@ -13,6 +13,12 @@ function testChanged(msg, source, expectedOutput) {
     });
 }
 
+let consoleWarnings = [];
+beforeEach(() => {
+    consoleWarnings = [];
+    console.warn = v => consoleWarnings.push(v);
+});
+
 testChanged(
     'spyOn',
     `
@@ -90,3 +96,15 @@ testChanged(
     jest.advanceTimersByTime(50);
     `
 );
+
+test('not supported jasmine.clock()', () => {
+    wrappedPlugin(`
+        jasmine.clock().mockDate(new Date(2013, 9, 23));
+        jasmine.clock().unknownUtil();
+    `);
+
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 2) Unsupported Jasmine functionality "jasmine.clock().mockDate(*)".',
+        'jest-codemods warning: (test.js line 3) Unsupported Jasmine functionality "jasmine.clock().unknownUtil".',
+    ]);
+});
