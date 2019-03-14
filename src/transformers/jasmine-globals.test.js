@@ -76,3 +76,17 @@ testChanged(
     stuff;
     `
 );
+
+testChanged(
+    'jasmine.clock()',
+    `
+    jasmine.clock().install();
+    jasmine.clock().uninstall();
+    jasmine.clock().tick(50);
+    `,
+    `
+    jest.useFakeTimers();
+    jest.useRealTimers();
+    jest.advanceTimersByTime(50);
+    `
+);

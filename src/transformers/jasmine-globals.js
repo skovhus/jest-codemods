@@ -267,5 +267,55 @@ export default function jasmineGlobals(fileInfo, api, options) {
             j(path).replaceWith(path.node.callee.object);
         });
 
+    root
+        // find all `jasmine.clock()`
+        .find(j.CallExpression, {
+            callee: {
+                type: 'MemberExpression',
+                object: {
+                    type: 'CallExpression',
+                    callee: {
+                        object: {
+                            type: 'Identifier',
+                            name: 'jasmine',
+                        },
+                        property: {
+                            type: 'Identifier',
+                            name: 'clock',
+                        },
+                    },
+                },
+            },
+        })
+        .forEach(path => {
+            const usageType = path.node.callee.property.name;
+            switch (usageType) {
+                case 'install': {
+                    // make it `jest.useFakeTimers()`
+                    path.node.callee = j.memberExpression(
+                        j.identifier('jest'),
+                        j.identifier('useFakeTimers')
+                    );
+                    break;
+                }
+                case 'uninstall': {
+                    // make it `jest.useRealTimers()`
+                    path.node.callee = j.memberExpression(
+                        j.identifier('jest'),
+                        j.identifier('useRealTimers')
+                    );
+                    break;
+                }
+                case 'tick': {
+                    // make it `jest.advanceTimersByTime(ms)`
+                    path.node.callee = j.memberExpression(
+                        j.identifier('jest'),
+                        j.identifier('advanceTimersByTime')
+                    );
+                    break;
+                }
+            }
+        });
+
     return finale(fileInfo, j, root, options);
 }
