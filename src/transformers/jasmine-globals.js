@@ -328,6 +328,36 @@ export default function jasmineGlobals(fileInfo, api, options) {
         });
 
     root
+        // find `*.calls.argsFor(index)`
+        .find(j.CallExpression, {
+            callee: {
+                type: 'MemberExpression',
+                object: {
+                    type: 'MemberExpression',
+                    property: {
+                        type: 'Identifier',
+                        name: 'calls',
+                    },
+                },
+                property: {
+                    type: 'Identifier',
+                    name: 'argsFor',
+                },
+            },
+        })
+        .forEach(path => {
+            const expressionMockCalls = j.memberExpression(
+                j.memberExpression(path.node.callee.object.object, j.identifier('mock')),
+                j.identifier('calls')
+            );
+
+            // make it `*.mock.calls[index]`
+            j(path).replaceWith(
+                j.memberExpression(expressionMockCalls, path.node.arguments[0])
+            );
+        });
+
+    root
         // replace `andCallFake` with `mockImplementation`
         .find(j.MemberExpression, {
             property: {
