@@ -46,15 +46,13 @@ testChanged(
 );
 
 testChanged(
-    'mock.calls.count()',
+    '*.calls.count()',
     `
     someMock.calls.count();
     stuff.someMock.calls.count();
     getMock(stuff).calls.count();
     getMock(stuff).calls.count() > 1;
     wyoming.cheyenne.callCount
-    wyoming.cheyenne.stuff.mostRecentCall.args[0]
-    georgia.atlanta.mostRecentCall.args.map(fn)
     args.map()
     oklahoma.argsForCall[0]
     idaho.argsForCall[0][1]
@@ -70,8 +68,6 @@ testChanged(
     getMock(stuff).mock.calls.length;
     getMock(stuff).mock.calls.length > 1;
     wyoming.cheyenne.mock.calls.length
-    wyoming.cheyenne.stuff.mock.calls[wyoming.cheyenne.stuff.mock.calls.length - 1][0]
-    georgia.atlanta.mock.calls[georgia.atlanta.mock.calls.length - 1].map(fn)
     args.map()
     oklahoma.mock.calls[0]
     idaho.mock.calls[0][1]
@@ -80,6 +76,34 @@ testChanged(
     jest.spyOn('stuff').mockReturnValue('lol');
     jest.spyOn('stuff');
     stuff;
+    `
+);
+
+testChanged(
+    '*.mostRecentCall',
+    `
+    wyoming.cheyenne.stuff.mostRecentCall.args[0]
+    georgia.atlanta.mostRecentCall.args.map(fn)
+    `,
+    `
+    wyoming.cheyenne.stuff.mock.calls[wyoming.cheyenne.stuff.mock.calls.length - 1][0]
+    georgia.atlanta.mock.calls[georgia.atlanta.mock.calls.length - 1].map(fn)
+    `
+);
+
+testChanged(
+    '*.calls.mostRecent()',
+    `
+    const foo = someMock.calls.mostRecent();
+    someMock.calls.mostRecent()[0];
+
+    foo.mostRecent();
+    `,
+    `
+    const foo = someMock.mock.calls[someMock.mock.calls.length - 1];
+    someMock.mock.calls[someMock.mock.calls.length - 1][0];
+
+    foo.mostRecent();
     `
 );
 
