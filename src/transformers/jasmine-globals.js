@@ -177,7 +177,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
             },
         })
         .forEach(path => {
-            // turn it into `stuff.mock.calls[stuff.mock.calls.length - 1]
+            // turn it into `stuff.mock.calls[stuff.mock.calls.length - 1]`
             path.node.object = j.memberExpression(path.node.object, j.identifier('mock'));
             path.node.object = j.memberExpression(
                 path.node.object,
@@ -189,6 +189,44 @@ export default function jasmineGlobals(fileInfo, api, options) {
                 j.literal(1)
             );
             path.node.computed = true;
+        });
+
+    root
+        // find `*.calls.mostRecent()`
+        .find(j.CallExpression, {
+            callee: {
+                type: 'MemberExpression',
+                object: {
+                    type: 'MemberExpression',
+                    property: {
+                        type: 'Identifier',
+                        name: 'calls',
+                    },
+                },
+                property: {
+                    type: 'Identifier',
+                    name: 'mostRecent',
+                },
+            },
+        })
+        .forEach(path => {
+            const expressionMockCalls = j.memberExpression(
+                j.memberExpression(path.node.callee.object.object, j.identifier('mock')),
+                j.identifier('calls')
+            );
+
+            // turn it into `*.mock.calls[*.mock.calls.length - 1]`
+            j(path).replaceWith(
+                j.memberExpression(
+                    expressionMockCalls,
+                    j.binaryExpression(
+                        '-',
+                        j.memberExpression(expressionMockCalls, j.identifier('length')),
+                        j.literal(1)
+                    ),
+                    true
+                )
+            );
         });
 
     root
