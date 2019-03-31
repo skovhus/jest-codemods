@@ -14,7 +14,66 @@ export default function jasmineGlobals(fileInfo, api, options) {
     const logWarning = (msg, path) => logger(fileInfo, msg, path);
 
     root
-        // find all `jasmine.createSpy('stuff')
+        // find `jasmine.createSpy(*).and.*()` expressions
+        .find(j.CallExpression, {
+            callee: {
+                type: 'MemberExpression',
+                object: {
+                    type: 'MemberExpression',
+                    property: { name: 'and' },
+                    object: {
+                        type: 'CallExpression',
+                        callee: {
+                            type: 'MemberExpression',
+                            property: {
+                                type: 'Identifier',
+                                name: 'createSpy',
+                            },
+                            object: {
+                                type: 'Identifier',
+                                name: 'jasmine',
+                            },
+                        },
+                    },
+                },
+            },
+        })
+        .forEach(path => {
+            const spyType = path.node.callee.property.name;
+            switch (spyType) {
+                // `jasmine.createSpy().and.callFake(*)` is equivalent of
+                // `jest.fn(*)`
+                case 'callFake': {
+                    path.node.callee = j.memberExpression(
+                        j.identifier('jest'),
+                        j.identifier('fn')
+                    );
+                    break;
+                }
+                // `jasmine.createSpy().and.returnValue(*)` is equivalent of
+                // `jest.fn(() => *)`
+                case 'returnValue': {
+                    path.node.callee = j.memberExpression(
+                        j.identifier('jest'),
+                        j.identifier('fn')
+                    );
+                    path.node.arguments = [
+                        j.arrowFunctionExpression([], path.node.arguments[0]),
+                    ];
+                    break;
+                }
+                default: {
+                    logWarning(
+                        `Unsupported Jasmine functionality "jasmine.createSpy().and.${spyType}".`,
+                        path
+                    );
+                    break;
+                }
+            }
+        });
+
+    root
+        // find all other `jasmine.createSpy` calls
         .find(j.CallExpression, {
             callee: {
                 type: 'MemberExpression',
@@ -114,7 +173,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         });
 
     root
-        //   find all `SpyOn` calls
+        //   find all `spyOn` calls
         .find(j.CallExpression, {
             callee: { type: 'Identifier', name: 'spyOn' },
         })

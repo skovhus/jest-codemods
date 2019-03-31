@@ -29,8 +29,6 @@ testChanged(
     jest.spyOn();
     spyOn(stuff);
     jest.spyOn().mockImplementation();
-    jasmine.createSpy();
-    jasmine.createSpy('lmao');
     `,
     `
     jest.spyOn().mockReturnValue();
@@ -40,10 +38,38 @@ testChanged(
     jest.spyOn();
     jest.spyOn(stuff).mockImplementation(() => {});
     jest.spyOn().mockImplementation();
-    jest.fn();
-    jest.fn();
     `
 );
+
+testChanged(
+    'jasmine.createSpy',
+    `
+    jasmine.createSpy();
+    jasmine.createSpy('lmao');
+    const spy = jasmine.createSpy();
+    jasmine.createSpy().and.callFake(arg => arg);
+    jasmine.createSpy().and.returnValue('lmao');
+    const spy = jasmine.createSpy().and.returnValue('lmao');
+    `,
+    `
+    jest.fn();
+    jest.fn();
+    const spy = jest.fn();
+    jest.fn(arg => arg);
+    jest.fn(() => 'lmao');
+    const spy = jest.fn(() => 'lmao');
+    `
+);
+
+test('not supported jasmine.createSpy().and.*', () => {
+    wrappedPlugin(`
+        jasmine.createSpy().and.unknownUtil();
+    `);
+
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 2) Unsupported Jasmine functionality "jasmine.createSpy().and.unknownUtil".',
+    ]);
+});
 
 testChanged(
     '*.calls.count()',
