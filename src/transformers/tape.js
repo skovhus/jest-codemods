@@ -115,7 +115,9 @@ export default function tapeToJest(fileInfo, api, options) {
                     const propertyName = p.value.callee.property.name;
                     if (propertyName.toLowerCase().indexOf('looseequal') >= 0) {
                         logWarning(
-                            `"t.${propertyName}" is currently not supported. Try the stricter "toEqual" or "not.toEqual"`,
+                            `"t.${
+                                propertyName
+                            }" is currently not supported. Try the stricter "toEqual" or "not.toEqual"`,
                             p
                         );
                     } else {
