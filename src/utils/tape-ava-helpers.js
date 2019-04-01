@@ -188,7 +188,9 @@ export function detectUnsupportedNaming(fileInfo, j, ast, testFunctionName) {
                 if (lastArgName !== 't') {
                     logger(
                         fileInfo,
-                        `Argument to test function should be named "t" not "${lastArgName}"`,
+                        `Argument to test function should be named "t" not "${
+                            lastArgName
+                        }"`,
                         p
                     );
                 }

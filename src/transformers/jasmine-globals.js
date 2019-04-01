@@ -64,7 +64,9 @@ export default function jasmineGlobals(fileInfo, api, options) {
                 }
                 default: {
                     logWarning(
-                        `Unsupported Jasmine functionality "jasmine.createSpy().and.${spyType}".`,
+                        `Unsupported Jasmine functionality "jasmine.createSpy().and.${
+                            spyType
+                        }".`,
                         path
                     );
                     break;
@@ -453,7 +455,9 @@ export default function jasmineGlobals(fileInfo, api, options) {
                 }
                 default: {
                     logWarning(
-                        `Unsupported Jasmine functionality "jasmine.clock().${usageType}".`,
+                        `Unsupported Jasmine functionality "jasmine.clock().${
+                            usageType
+                        }".`,
                         path
                     );
                     break;
