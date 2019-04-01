@@ -80,8 +80,6 @@ testChanged(
     getMock(stuff).calls.count() > 1;
     wyoming.cheyenne.callCount
     args.map()
-    oklahoma.argsForCall[0]
-    idaho.argsForCall[0][1]
     spyOn('stuff').andCallFake(fn);
     hmm.andCallFake(fn);
     spyOn('stuff').andReturn('lol');
@@ -95,8 +93,6 @@ testChanged(
     getMock(stuff).mock.calls.length > 1;
     wyoming.cheyenne.mock.calls.length
     args.map()
-    oklahoma.mock.calls[0]
-    idaho.mock.calls[0][1]
     jest.spyOn('stuff').mockImplementation(fn);
     hmm.mockImplementation(fn);
     jest.spyOn('stuff').mockReturnValue('lol');
@@ -130,6 +126,30 @@ testChanged(
     someMock.mock.calls[someMock.mock.calls.length - 1][0];
 
     foo.mostRecent();
+    `
+);
+
+testChanged(
+    '*.argsForCall',
+    `
+    oklahoma.argsForCall[0]
+    idaho.argsForCall[0][1]
+    `,
+    `
+    oklahoma.mock.calls[0]
+    idaho.mock.calls[0][1]
+    `
+);
+
+testChanged(
+    '*.calls.argsFor()',
+    `
+    oklahoma.calls.argsFor(0)
+    idaho.calls.argsFor(0)[1]
+    `,
+    `
+    oklahoma.mock.calls[0]
+    idaho.mock.calls[0][1]
     `
 );
 
