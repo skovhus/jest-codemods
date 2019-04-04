@@ -13,6 +13,30 @@ export default function jasmineGlobals(fileInfo, api, options) {
 
     const logWarning = (msg, path) => logger(fileInfo, msg, path);
 
+    const spiesToCheckForChain = [];
+
+    const setCheckForChainIfNeeded = path => {
+        if (path.parentPath) {
+            const parentType = path.parentPath.node.type;
+
+            let varName;
+            if (parentType === 'VariableDeclarator') {
+                varName = path.parentPath.node.id.name;
+            } else if (parentType === 'AssignmentExpression') {
+                varName = path.parentPath.node.left.name;
+            } else {
+                return;
+            }
+
+            const varScope = path.parentPath.scope.lookup(varName);
+
+            spiesToCheckForChain.push({
+                varName,
+                varScope,
+            });
+        }
+    };
+
     root
         // find `jasmine.createSpy(*).and.*()` expressions
         .find(j.CallExpression, {
@@ -72,6 +96,8 @@ export default function jasmineGlobals(fileInfo, api, options) {
                     break;
                 }
             }
+
+            setCheckForChainIfNeeded(path);
         });
 
     root
@@ -96,6 +122,8 @@ export default function jasmineGlobals(fileInfo, api, options) {
                 j.identifier('fn')
             );
             path.node.arguments = [];
+
+            setCheckForChainIfNeeded(path);
         });
 
     root
@@ -172,6 +200,8 @@ export default function jasmineGlobals(fileInfo, api, options) {
                     break;
                 }
             }
+
+            setCheckForChainIfNeeded(path);
         });
 
     root
@@ -185,8 +215,66 @@ export default function jasmineGlobals(fileInfo, api, options) {
                 j.identifier('jest'),
                 j.identifier('spyOn')
             );
+
+            setCheckForChainIfNeeded(path);
         });
 
+    spiesToCheckForChain.forEach(({ varName, varScope }) => {
+        // find `jasmineSpy.and.*` within the scope of where the variable was defined
+        j(varScope.path)
+            .find(j.CallExpression, {
+                callee: {
+                    type: 'MemberExpression',
+                    object: {
+                        type: 'MemberExpression',
+                        object: {
+                            type: 'Identifier',
+                            name: varName,
+                        },
+                        property: {
+                            type: 'Identifier',
+                            name: 'and',
+                        },
+                    },
+                },
+            })
+            .forEach(path => {
+                const spyType = path.node.callee.property.name;
+                switch (spyType) {
+                    // `jasmineSpy.and.callFake()` is equivalent of
+                    // `jestSpy.mockImplementation();
+                    case 'callFake': {
+                        path.node.callee.object = path.node.callee.object.object;
+                        path.node.callee.property.name = 'mockImplementation';
+                        break;
+                    }
+                    // `jasmineSpy.and.returnValue()` is equivalent of
+                    // `jestSpy.mockReturnValue()`
+                    case 'returnValue': {
+                        path.node.callee.object = path.node.callee.object.object;
+                        path.node.callee.property.name = 'mockReturnValue';
+                        break;
+                    }
+                    case 'callThrough': {
+                        // This is similar to `jestSpy.mockRestore()`, but we don't
+                        // want to reset the calls or run it on spies created without `spyOn`
+                        logWarning(
+                            'Unsupported Jasmine functionality "jasmineSpy.and.callThrough()'
+                        );
+                        break;
+                    }
+                    default: {
+                        logWarning(
+                            `Unsupported Jasmine functionality "jasmineSpy.and.${
+                                spyType
+                            }".`,
+                            path
+                        );
+                        break;
+                    }
+                }
+            });
+    });
     root
         // find all `*.calls.count()`
         .find(j.CallExpression, {
