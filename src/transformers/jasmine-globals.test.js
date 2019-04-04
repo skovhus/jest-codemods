@@ -178,3 +178,21 @@ test('not supported jasmine.clock()', () => {
         'jest-codemods warning: (test.js line 3) Unsupported Jasmine functionality "jasmine.clock().unknownUtil".',
     ]);
 });
+
+testChanged(
+    'jasmine.<jasmineToExpectFunctionName>(*)',
+    `
+    jasmine.any(Function);
+    jasmine.anything();
+    jasmine.arrayContaining(['foo']);
+    jasmine.objectContaining({ foo: 'bar' });
+    jasmine.stringMatching('text');
+    `,
+    `
+    expect.any(Function);
+    expect.anything();
+    expect.arrayContaining(['foo']);
+    expect.objectContaining({ foo: 'bar' });
+    expect.stringMatching('text');
+    `
+);

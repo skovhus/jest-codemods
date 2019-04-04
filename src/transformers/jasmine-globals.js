@@ -465,5 +465,36 @@ export default function jasmineGlobals(fileInfo, api, options) {
             }
         });
 
+    const jasmineToExpectFunctionNames = [
+        'any',
+        'anything',
+        'arrayContaining',
+        'objectContaining',
+        'stringMatching',
+    ];
+
+    jasmineToExpectFunctionNames.forEach(functionName => {
+        // jasmine.<jasmineToExpectFunctionName>(*)
+        root
+            .find(j.CallExpression, {
+                callee: {
+                    type: 'MemberExpression',
+                    object: {
+                        type: 'Identifier',
+                        name: 'jasmine',
+                    },
+                    property: {
+                        type: 'Identifier',
+                        name: functionName,
+                    },
+                },
+            })
+            .forEach(path => {
+                // `jasmine.<jasmineToExpectFunctionName>(*)` is equivalent of
+                // `expect.<jasmineToExpectFunctionName>(*)`
+                path.node.callee.object.name = 'expect';
+            });
+    });
+
     return finale(fileInfo, j, root, options);
 }
