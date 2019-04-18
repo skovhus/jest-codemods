@@ -13,7 +13,7 @@ const cli = meow(
         description: 'Codemods for migrating test files to Jest.',
         help: `
     Usage
-      $ jest-codemods <path> [options]
+      $ npx jest-codemods <path> [options]
 
     path    Files or directory to transform. Can be a glob like src/**.test.js
 
