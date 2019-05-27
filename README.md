@@ -40,7 +40,7 @@ To use the interactive CLI run
 
 	$ npx jest-codemods
 
-
+If you do not have `npx` installed, you can install the `jest-codemods` command globally by running `npm install -g jest-codemods`.
 
 For more options
 ```
