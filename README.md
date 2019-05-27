@@ -33,32 +33,23 @@ We strive to make the migration as smooth as possible, but some manual intervent
 and tweaks to your tests are to be expected.
 
 
-## Install
-
-```
-$ npm install -g jest-codemods
-```
-
-This installs the runner as `jest-codemods`.
-
-
 ## Usage (CLI)
 
 
 To use the interactive CLI run
 
-	$ jest-codemods
+	$ npx jest-codemods
 
-
+If you do not have `npx` installed, you can install the `jest-codemods` command globally by running `npm install -g jest-codemods`.
 
 For more options
 ```
-$ jest-codemods --help
+$ npx jest-codemods --help
 
     Codemods for migrating test files to Jest.
 
     Usage
-      $ jest-codemods <path> [options]
+      $ npx jest-codemods <path> [options]
 
     path	        Files or directory to transform. Can be a glob like src/**.test.js
 
