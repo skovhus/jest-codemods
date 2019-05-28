@@ -126,6 +126,11 @@ const assertToExpectMapping = [
         assert: 'sameDeepMembers',
         expect: 'toEqual',
     },
+    {
+        assert: 'nestedProperty',
+        expect: 'toHaveProperty',
+        includeNegative: 'notNestedProperty',
+    },
 ];
 
 const objectChecks = [
@@ -293,6 +298,28 @@ export default function transformer(fileInfo, api, options) {
             )
         );
     });
+
+    // assert.nestedPropertyVal -> expect(obj).toHaveProperty()
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'nestedPropertyVal')
+    ).replaceWith(path =>
+        makeExpectation('toHaveProperty', path.value.arguments[0], [
+            path.value.arguments[1],
+            path.value.arguments[2],
+        ])
+    );
+
+    // assert.notNestedPropertyVal -> expect(obj).not.toHaveProperty()
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'notNestedPropertyVal')
+    ).replaceWith(path =>
+        makeNegativeExpectation('toHaveProperty', path.value.arguments[0], [
+            path.value.arguments[1],
+            path.value.arguments[2],
+        ])
+    );
 
     // assert.fail -> expect(false).toBeTruthy()
     ast.find(

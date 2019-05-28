@@ -117,6 +117,13 @@ const mappings = [
     ['assert.propertyVal(foo, bar, baz);', 'expect(foo.bar).toBe(baz);'],
     ['assert.propertyNotVal(foo, bar, baz);', 'expect(foo.bar).not.toBe(baz);'],
     ['assert.notPropertyVal(foo, bar, baz);', 'expect(foo.bar).not.toBe(baz);'],
+    ['assert.nestedProperty(foo, bar);', 'expect(foo).toHaveProperty(bar);'],
+    ['assert.notNestedProperty(foo, bar);', 'expect(foo).not.toHaveProperty(bar);'],
+    ['assert.nestedPropertyVal(foo, bar, baz);', 'expect(foo).toHaveProperty(bar, baz);'],
+    [
+        'assert.notNestedPropertyVal(foo, bar, baz);',
+        'expect(foo).not.toHaveProperty(bar, baz);',
+    ],
     [
         "assert.deepPropertyVal({ tea: { green: 'matcha' } }, 'tea', { green: 'matcha' });",
         "expect({ tea: { green: 'matcha' } }).toHaveProperty('tea', { green: 'matcha' });",
