@@ -126,6 +126,11 @@ const assertToExpectMapping = [
         assert: 'sameDeepMembers',
         expect: 'toEqual',
     },
+    {
+        assert: 'nestedProperty',
+        expect: 'toHaveProperty',
+        includeNegative: 'notNestedProperty',
+    },
 ];
 
 const objectChecks = [
@@ -164,7 +169,6 @@ const unsupportedAssertions = [
     'doesNotIncrease',
     'decreases',
     'doesNotDecrease',
-    'ifError',
 ];
 
 export default function transformer(fileInfo, api, options) {
@@ -294,6 +298,28 @@ export default function transformer(fileInfo, api, options) {
         );
     });
 
+    // assert.nestedPropertyVal -> expect(obj).toHaveProperty()
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'nestedPropertyVal')
+    ).replaceWith(path =>
+        makeExpectation('toHaveProperty', path.value.arguments[0], [
+            path.value.arguments[1],
+            path.value.arguments[2],
+        ])
+    );
+
+    // assert.notNestedPropertyVal -> expect(obj).not.toHaveProperty()
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'notNestedPropertyVal')
+    ).replaceWith(path =>
+        makeNegativeExpectation('toHaveProperty', path.value.arguments[0], [
+            path.value.arguments[1],
+            path.value.arguments[2],
+        ])
+    );
+
     // assert.fail -> expect(false).toBeTruthy()
     ast.find(
         j.CallExpression,
@@ -393,6 +419,12 @@ export default function transformer(fileInfo, api, options) {
             j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0])
         )
     );
+
+    // assert.ifError -> expect(*).toBeFalsy()
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'ifError')
+    ).replaceWith(path => makeExpectation('toBeFalsy', path.value.arguments[0]));
 
     // assert.includeMembers -> expect([]).toEqual(expect.arrayContaining([]))
     ast.find(
