@@ -31,8 +31,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
     if (importVariableName) {
         const mocks = new Set();
 
-        ast
-            .find(j.CallExpression)
+        ast.find(j.CallExpression)
             .filter(path => {
                 const match = path.value;
                 if (
@@ -96,10 +95,9 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
                 } else if (mocksNode.type === 'Identifier') {
                     // Look for an ObjectExpression that defines the mocks
                     let mocksObjectExpression;
-                    ast
-                        .find(j.VariableDeclarator, {
-                            id: { name: mocksNode.name },
-                        })
+                    ast.find(j.VariableDeclarator, {
+                        id: { name: mocksNode.name },
+                    })
                         .filter(path => path.node.init.type === 'ObjectExpression')
                         .forEach(path => {
                             mocksObjectExpression = path.node.init;

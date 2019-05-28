@@ -24,13 +24,17 @@
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
     "format": "prettier --ignore-path .gitignore --write './**/*.js'",
-    "precommit": "lint-staged",
     "prepare": "npm run build",
     "prepublish": "npm run clean && npm run check:bail",
     "ci": "npm run check:bail && codecov",
     "test:cov": "npm run test -- --coverage",
     "test:watch": "npm run test -- --watch",
     "test": "jest --runInBand"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "lint-staged": {
     "*.js": [
@@ -63,24 +67,22 @@
     "update-notifier": "^2.2.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.1.6",
-    "@babel/core": "^7.1.6",
-    "@babel/preset-env": "^7.1.6",
-    "babel-core": "^7.0.0-bridge.0",
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
     "babel-eslint": "^10.0.1",
-    "babel-jest": "^23.6.0",
-    "codecov": "^3.1.0",
-    "eslint": "^5.10.0",
-    "eslint-config-prettier": "^2.6.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-prettier": "^2.3.1",
-    "husky": "^0.14.3",
-    "jest": "^23.6.0",
-    "lint-staged": "^4.2.3",
-    "prettier": "^1.8.2"
+    "babel-jest": "^24.8.0",
+    "codecov": "^3.5.0",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-prettier": "^3.1.0",
+    "husky": "^2.3.0",
+    "jest": "^24.8.0",
+    "lint-staged": "^8.1.7",
+    "prettier": "^1.17.1"
   },
   "resolutions": {
-    "babel-core": "^7.0.0-bridge.0",
     "sane": "^3.0.2"
   },
   "jest": {

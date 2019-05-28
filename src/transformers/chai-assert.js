@@ -239,384 +239,346 @@ export default function transformer(fileInfo, api, options) {
                         : j.identifier(expectedOverride);
             }
 
-            ast
-                .find(
-                    j.CallExpression,
-                    getAssertionExpression(chaiAssertExpression, assert)
+            ast.find(
+                j.CallExpression,
+                getAssertionExpression(chaiAssertExpression, assert)
+            ).replaceWith(path =>
+                makeExpectation(
+                    expect,
+                    ...getArguments(path, ignoreExpectedValue, override)
                 )
-                .replaceWith(path =>
-                    makeExpectation(
+            );
+
+            if (includeNegative) {
+                ast.find(
+                    j.CallExpression,
+                    getAssertionExpression(chaiAssertExpression, includeNegative)
+                ).replaceWith(path =>
+                    makeNegativeExpectation(
                         expect,
                         ...getArguments(path, ignoreExpectedValue, override)
                     )
                 );
-
-            if (includeNegative) {
-                ast
-                    .find(
-                        j.CallExpression,
-                        getAssertionExpression(chaiAssertExpression, includeNegative)
-                    )
-                    .replaceWith(path =>
-                        makeNegativeExpectation(
-                            expect,
-                            ...getArguments(path, ignoreExpectedValue, override)
-                        )
-                    );
             }
         }
     );
 
     unsupportedAssertions.forEach(assertion => {
-        ast
-            .find(
-                j.CallExpression,
-                getAssertionExpression(chaiAssertExpression, assertion)
-            )
-            .forEach(path => {
-                logWarning(`Unsupported Chai Assertion "${assertion}".`, path);
-            });
+        ast.find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, assertion)
+        ).forEach(path => {
+            logWarning(`Unsupported Chai Assertion "${assertion}".`, path);
+        });
     });
 
     ['approximately', 'closeTo'].forEach(assertion => {
-        ast
-            .find(
-                j.CallExpression,
-                getAssertionExpression(chaiAssertExpression, assertion)
+        ast.find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, assertion)
+        ).replaceWith(path =>
+            makeExpectation(
+                'toBeLessThanOrEqual',
+                j.callExpression(
+                    j.memberExpression(j.identifier('Math'), j.identifier('abs')),
+                    [
+                        j.binaryExpression(
+                            '-',
+                            path.value.arguments[0],
+                            path.value.arguments[1]
+                        ),
+                    ]
+                ),
+                [path.value.arguments[2]]
             )
-            .replaceWith(path =>
-                makeExpectation(
-                    'toBeLessThanOrEqual',
-                    j.callExpression(
-                        j.memberExpression(j.identifier('Math'), j.identifier('abs')),
-                        [
-                            j.binaryExpression(
-                                '-',
-                                path.value.arguments[0],
-                                path.value.arguments[1]
-                            ),
-                        ]
-                    ),
-                    [path.value.arguments[2]]
-                )
-            );
+        );
     });
 
     // assert.fail -> expect(false).toBeTruthy()
-    ast
-        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'fail'))
-        .replaceWith(path => makeExpectation('toBe', j.literal(false), j.literal(true)));
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'fail')
+    ).replaceWith(path => makeExpectation('toBe', j.literal(false), j.literal(true)));
 
     // assert.propertyVal -> expect(*.[prop]).toBe()
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'propertyVal')
-        )
-        .replaceWith(path => {
-            const [obj, prop, value] = path.value.arguments;
-            return makeExpectation('toBe', j.memberExpression(obj, prop), value);
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'propertyVal')
+    ).replaceWith(path => {
+        const [obj, prop, value] = path.value.arguments;
+        return makeExpectation('toBe', j.memberExpression(obj, prop), value);
+    });
 
     // assert.propertyNotVal -> expect(*.[prop]).not.toBe()
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'propertyNotVal')
-        )
-        .replaceWith(path => {
-            const [obj, prop, value] = path.value.arguments;
-            return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'propertyNotVal')
+    ).replaceWith(path => {
+        const [obj, prop, value] = path.value.arguments;
+        return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
+    });
 
     // assert.notPropertyVal -> expect(*.[prop]).not.toBe()
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'notPropertyVal')
-        )
-        .replaceWith(path => {
-            const [obj, prop, value] = path.value.arguments;
-            return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'notPropertyVal')
+    ).replaceWith(path => {
+        const [obj, prop, value] = path.value.arguments;
+        return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
+    });
 
     // assert.deepPropertyVal -> expect(*).toHaveProperty(keyPath, ?value)
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'deepPropertyVal')
-        )
-        .replaceWith(path => {
-            const [obj, prop, value] = path.value.arguments;
-            return makeExpectation('toHaveProperty', obj, [prop, value]);
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'deepPropertyVal')
+    ).replaceWith(path => {
+        const [obj, prop, value] = path.value.arguments;
+        return makeExpectation('toHaveProperty', obj, [prop, value]);
+    });
 
     // assert.deepPropertyNotVal -> expect(*).not.toHaveProperty(keyPath, ?value)
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'deepPropertyNotVal')
-        )
-        .replaceWith(path => {
-            const [obj, prop, value] = path.value.arguments;
-            return makeNegativeExpectation('toHaveProperty', obj, [prop, value]);
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'deepPropertyNotVal')
+    ).replaceWith(path => {
+        const [obj, prop, value] = path.value.arguments;
+        return makeNegativeExpectation('toHaveProperty', obj, [prop, value]);
+    });
 
     // assert.notDeepPropertyVal -> expect(*).not.toHaveProperty(keyPath, ?value)
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'notDeepPropertyVal')
-        )
-        .replaceWith(path => {
-            const [obj, prop, value] = path.value.arguments;
-            return makeNegativeExpectation('toHaveProperty', obj, [prop, value]);
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'notDeepPropertyVal')
+    ).replaceWith(path => {
+        const [obj, prop, value] = path.value.arguments;
+        return makeNegativeExpectation('toHaveProperty', obj, [prop, value]);
+    });
 
     // assert.deepProperty -> expect(*).toHaveProperty(keyPath)
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'deepProperty')
-        )
-        .replaceWith(path => {
-            const [obj, prop] = path.value.arguments;
-            return makeExpectation('toHaveProperty', obj, prop);
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'deepProperty')
+    ).replaceWith(path => {
+        const [obj, prop] = path.value.arguments;
+        return makeExpectation('toHaveProperty', obj, prop);
+    });
 
     // assert.notDeepProperty -> expect(*).not.toHaveProperty(keyPath)
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'notDeepProperty')
-        )
-        .replaceWith(path => {
-            const [obj, prop] = path.value.arguments;
-            return makeNegativeExpectation('toHaveProperty', obj, prop);
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'notDeepProperty')
+    ).replaceWith(path => {
+        const [obj, prop] = path.value.arguments;
+        return makeNegativeExpectation('toHaveProperty', obj, prop);
+    });
 
     // assert.property -> expect(prop in obj).toBeTruthy()
-    ast
-        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'property'))
-        .replaceWith(path =>
-            makeExpectation(
-                'toBeTruthy',
-                j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0])
-            )
-        );
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'property')
+    ).replaceWith(path =>
+        makeExpectation(
+            'toBeTruthy',
+            j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0])
+        )
+    );
 
     // assert.notProperty -> expect(prop in obj).toBeFalsy()
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'notProperty')
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'notProperty')
+    ).replaceWith(path =>
+        makeExpectation(
+            'toBeFalsy',
+            j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0])
         )
-        .replaceWith(path =>
-            makeExpectation(
-                'toBeFalsy',
-                j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0])
-            )
-        );
+    );
 
     // assert.includeMembers -> expect([]).toEqual(expect.arrayContaining([]))
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'includeMembers')
-        )
-        .replaceWith(path => {
-            return makeExpectation(
-                'toEqual',
-                path.value.arguments[0],
-                j.callExpression(
-                    j.memberExpression(
-                        j.identifier('expect'),
-                        j.identifier('arrayContaining')
-                    ),
-                    [path.value.arguments[1]]
-                )
-            );
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'includeMembers')
+    ).replaceWith(path => {
+        return makeExpectation(
+            'toEqual',
+            path.value.arguments[0],
+            j.callExpression(
+                j.memberExpression(
+                    j.identifier('expect'),
+                    j.identifier('arrayContaining')
+                ),
+                [path.value.arguments[1]]
+            )
+        );
+    });
 
     // assert.notIncludeMembers -> expect([]).not.toEqual(expect.arrayContaining([]))
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'notIncludeMembers')
-        )
-        .replaceWith(path => {
-            return makeNegativeExpectation(
-                'toEqual',
-                path.value.arguments[0],
-                j.callExpression(
-                    j.memberExpression(
-                        j.identifier('expect'),
-                        j.identifier('arrayContaining')
-                    ),
-                    [path.value.arguments[1]]
-                )
-            );
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'notIncludeMembers')
+    ).replaceWith(path => {
+        return makeNegativeExpectation(
+            'toEqual',
+            path.value.arguments[0],
+            j.callExpression(
+                j.memberExpression(
+                    j.identifier('expect'),
+                    j.identifier('arrayContaining')
+                ),
+                [path.value.arguments[1]]
+            )
+        );
+    });
 
     // assert.includeDeepMembers -> expect([]).toEqual(expect.arrayContaining([]))
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'includeDeepMembers')
-        )
-        .replaceWith(path => {
-            return makeExpectation(
-                'toEqual',
-                path.value.arguments[0],
-                j.callExpression(
-                    j.memberExpression(
-                        j.identifier('expect'),
-                        j.identifier('arrayContaining')
-                    ),
-                    [path.value.arguments[1]]
-                )
-            );
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'includeDeepMembers')
+    ).replaceWith(path => {
+        return makeExpectation(
+            'toEqual',
+            path.value.arguments[0],
+            j.callExpression(
+                j.memberExpression(
+                    j.identifier('expect'),
+                    j.identifier('arrayContaining')
+                ),
+                [path.value.arguments[1]]
+            )
+        );
+    });
 
     // assert.notIncludeDeepMembers -> expect([]).not.toEqual(expect.arrayContaining([]))
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'notIncludeDeepMembers')
-        )
-        .replaceWith(path => {
-            return makeNegativeExpectation(
-                'toEqual',
-                path.value.arguments[0],
-                j.callExpression(
-                    j.memberExpression(
-                        j.identifier('expect'),
-                        j.identifier('arrayContaining')
-                    ),
-                    [path.value.arguments[1]]
-                )
-            );
-        });
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'notIncludeDeepMembers')
+    ).replaceWith(path => {
+        return makeNegativeExpectation(
+            'toEqual',
+            path.value.arguments[0],
+            j.callExpression(
+                j.memberExpression(
+                    j.identifier('expect'),
+                    j.identifier('arrayContaining')
+                ),
+                [path.value.arguments[1]]
+            )
+        );
+    });
 
     // assert.isArray -> expect(Array.isArray).toBe(true)
-    ast
-        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'isArray'))
-        .replaceWith(path =>
-            makeExpectation(
-                'toBe',
-                j.callExpression(
-                    j.memberExpression(j.identifier('Array'), j.identifier('isArray')),
-                    [path.value.arguments[0]]
-                ),
-                j.literal(true)
-            )
-        );
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'isArray')
+    ).replaceWith(path =>
+        makeExpectation(
+            'toBe',
+            j.callExpression(
+                j.memberExpression(j.identifier('Array'), j.identifier('isArray')),
+                [path.value.arguments[0]]
+            ),
+            j.literal(true)
+        )
+    );
 
     // assert.isArray -> expect(Array.isArray).toBe(false)
-    ast
-        .find(
-            j.CallExpression,
-            getAssertionExpression(chaiAssertExpression, 'isNotArray')
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'isNotArray')
+    ).replaceWith(path =>
+        makeNegativeExpectation(
+            'toBe',
+            j.callExpression(
+                j.memberExpression(j.identifier('Array'), j.identifier('isArray')),
+                [path.value.arguments[0]]
+            ),
+            j.literal(true)
         )
-        .replaceWith(path =>
-            makeNegativeExpectation(
-                'toBe',
-                j.callExpression(
-                    j.memberExpression(j.identifier('Array'), j.identifier('isArray')),
-                    [path.value.arguments[0]]
-                ),
-                j.literal(true)
-            )
-        );
+    );
 
     // assert.typeOf(foo, Bar) -> expect(typeof foo).toBe(Bar)
-    ast
-        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'typeOf'))
-        .replaceWith(path =>
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'typeOf')
+    ).replaceWith(path =>
+        makeExpectation(
+            'toBe',
+            j.unaryExpression('typeof', path.value.arguments[0]),
+            path.value.arguments[1]
+        )
+    );
+
+    // assert.notTypeOf(foo, Bar) -> expect(typeof foo).not.toBe(Bar)
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'notTypeOf')
+    ).replaceWith(path =>
+        makeNegativeExpectation(
+            'toBe',
+            j.unaryExpression('typeof', path.value.arguments[0]),
+            path.value.arguments[1]
+        )
+    );
+
+    chaiAssertTypeofs.forEach(({ assert, type }) => {
+        ast.find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, assert)
+        ).replaceWith(path =>
             makeExpectation(
                 'toBe',
                 j.unaryExpression('typeof', path.value.arguments[0]),
-                path.value.arguments[1]
+                j.literal(type)
             )
         );
 
-    // assert.notTypeOf(foo, Bar) -> expect(typeof foo).not.toBe(Bar)
-    ast
-        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'notTypeOf'))
-        .replaceWith(path =>
+        ast.find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, assert.replace(/^is/, 'isNot'))
+        ).replaceWith(path =>
             makeNegativeExpectation(
                 'toBe',
                 j.unaryExpression('typeof', path.value.arguments[0]),
-                path.value.arguments[1]
+                j.literal(type)
             )
         );
-
-    chaiAssertTypeofs.forEach(({ assert, type }) => {
-        ast
-            .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, assert))
-            .replaceWith(path =>
-                makeExpectation(
-                    'toBe',
-                    j.unaryExpression('typeof', path.value.arguments[0]),
-                    j.literal(type)
-                )
-            );
-
-        ast
-            .find(
-                j.CallExpression,
-                getAssertionExpression(
-                    chaiAssertExpression,
-                    assert.replace(/^is/, 'isNot')
-                )
-            )
-            .replaceWith(path =>
-                makeNegativeExpectation(
-                    'toBe',
-                    j.unaryExpression('typeof', path.value.arguments[0]),
-                    j.literal(type)
-                )
-            );
     });
 
     // assert.lengthOf -> expect(*.length).toBe()
-    ast
-        .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, 'lengthOf'))
-        .replaceWith(path =>
-            makeExpectation(
-                'toBe',
-                j.memberExpression(path.value.arguments[0], j.identifier('length')),
-                path.value.arguments[1]
-            )
-        );
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'lengthOf')
+    ).replaceWith(path =>
+        makeExpectation(
+            'toBe',
+            j.memberExpression(path.value.arguments[0], j.identifier('length')),
+            path.value.arguments[1]
+        )
+    );
 
     // Object-specific boolean checks
     objectChecks.forEach(check => {
         const isNegative = check.indexOf('isNot') === 0;
         const expectation = check.replace('isNot', 'is');
-        ast
-            .find(j.CallExpression, getAssertionExpression(chaiAssertExpression, check))
-            .replaceWith(path =>
-                (isNegative ? makeNegativeExpectation : makeExpectation)(
-                    'toBe',
-                    j.callExpression(
-                        j.memberExpression(
-                            j.identifier('Object'),
-                            j.identifier(expectation)
-                        ),
-                        [path.value.arguments[0]]
-                    ),
-                    j.literal(true)
-                )
-            );
+        ast.find(
+            j.CallExpression,
+            getAssertionExpression(chaiAssertExpression, check)
+        ).replaceWith(path =>
+            (isNegative ? makeNegativeExpectation : makeExpectation)(
+                'toBe',
+                j.callExpression(
+                    j.memberExpression(j.identifier('Object'), j.identifier(expectation)),
+                    [path.value.arguments[0]]
+                ),
+                j.literal(true)
+            )
+        );
     });
 
     // assert -> expect().toBeTruthy()
-    ast
-        .find(j.CallExpression, {
-            callee: { type: 'Identifier', name: assertLocalName },
-        })
-        .replaceWith(path => makeExpectation('toBeTruthy', path.value.arguments[0]));
+    ast.find(j.CallExpression, {
+        callee: { type: 'Identifier', name: assertLocalName },
+    }).replaceWith(path => makeExpectation('toBeTruthy', path.value.arguments[0]));
 
     return finale(fileInfo, j, ast, options);
 }
