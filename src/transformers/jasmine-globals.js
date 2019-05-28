@@ -64,9 +64,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
                 }
                 default: {
                     logWarning(
-                        `Unsupported Jasmine functionality "jasmine.createSpy().and.${
-                            spyType
-                        }".`,
+                        `Unsupported Jasmine functionality "jasmine.createSpy().and.${spyType}".`,
                         path
                     );
                     break;
@@ -455,9 +453,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
                 }
                 default: {
                     logWarning(
-                        `Unsupported Jasmine functionality "jasmine.clock().${
-                            usageType
-                        }".`,
+                        `Unsupported Jasmine functionality "jasmine.clock().${usageType}".`,
                         path
                     );
                     break;
@@ -475,25 +471,23 @@ export default function jasmineGlobals(fileInfo, api, options) {
 
     jasmineToExpectFunctionNames.forEach(functionName => {
         // jasmine.<jasmineToExpectFunctionName>(*)
-        root
-            .find(j.CallExpression, {
-                callee: {
-                    type: 'MemberExpression',
-                    object: {
-                        type: 'Identifier',
-                        name: 'jasmine',
-                    },
-                    property: {
-                        type: 'Identifier',
-                        name: functionName,
-                    },
+        root.find(j.CallExpression, {
+            callee: {
+                type: 'MemberExpression',
+                object: {
+                    type: 'Identifier',
+                    name: 'jasmine',
                 },
-            })
-            .forEach(path => {
-                // `jasmine.<jasmineToExpectFunctionName>(*)` is equivalent of
-                // `expect.<jasmineToExpectFunctionName>(*)`
-                path.node.callee.object.name = 'expect';
-            });
+                property: {
+                    type: 'Identifier',
+                    name: functionName,
+                },
+            },
+        }).forEach(path => {
+            // `jasmine.<jasmineToExpectFunctionName>(*)` is equivalent of
+            // `expect.<jasmineToExpectFunctionName>(*)`
+            path.node.callee.object.name = 'expect';
+        });
     });
 
     return finale(fileInfo, j, root, options);

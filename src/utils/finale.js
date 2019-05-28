@@ -20,24 +20,22 @@ function updateJestImports(j, ast, isStandaloneMode, testFunctionName = 'jest') 
         addRequireOrImportOnce('expect', 'expect');
     }
 
-    ast
-        .find(j.CallExpression, {
-            callee: {
-                type: 'MemberExpression',
-                object: { type: 'Identifier', name: testFunctionName },
-                property: { name: p => JEST_MOCK_PROPERTIES.has(p) },
-            },
-        })
-        .forEach(path => {
-            const { callee } = path.node;
-            if (isStandaloneMode) {
-                const mockLocalName = 'mock';
-                addRequireOrImportOnce(mockLocalName, 'jest-mock');
-                callee.object = mockLocalName;
-            } else {
-                callee.object = 'jest';
-            }
-        });
+    ast.find(j.CallExpression, {
+        callee: {
+            type: 'MemberExpression',
+            object: { type: 'Identifier', name: testFunctionName },
+            property: { name: p => JEST_MOCK_PROPERTIES.has(p) },
+        },
+    }).forEach(path => {
+        const { callee } = path.node;
+        if (isStandaloneMode) {
+            const mockLocalName = 'mock';
+            addRequireOrImportOnce(mockLocalName, 'jest-mock');
+            callee.object = mockLocalName;
+        } else {
+            callee.object = 'jest';
+        }
+    });
 }
 
 /**

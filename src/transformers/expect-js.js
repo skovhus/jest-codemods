@@ -72,69 +72,67 @@ export default function expectJsTransfomer(fileInfo, api, options) {
     const t = makeTransformApi(j);
 
     // transform expect.js assertion syntax
-    ast
-        .find(j.ExpressionStatement, {
-            expression: {
-                type: 'CallExpression',
-                callee: {
-                    type: 'MemberExpression',
-                    property: node => {
-                        return (
-                            node.type === 'Identifier' &&
-                            MATCHER_METHODS.indexOf(node.name) !== -1
-                        );
-                    },
+    ast.find(j.ExpressionStatement, {
+        expression: {
+            type: 'CallExpression',
+            callee: {
+                type: 'MemberExpression',
+                property: node => {
+                    return (
+                        node.type === 'Identifier' &&
+                        MATCHER_METHODS.indexOf(node.name) !== -1
+                    );
                 },
             },
-        })
-        .replaceWith(path => {
-            const callExpression = path.value.expression;
-            const expectCall = getExpectCallExpression(callExpression);
-            if (!expectCall) {
-                return path.node;
-            }
+        },
+    }).replaceWith(path => {
+        const callExpression = path.value.expression;
+        const expectCall = getExpectCallExpression(callExpression);
+        if (!expectCall) {
+            return path.node;
+        }
 
-            const negation = hasNegation(callExpression);
-            const matcherArg = callExpression.arguments[0];
-            const name = callExpression.callee.property.name;
-            switch (name) {
-                case 'ok':
-                    return t.transform(negation ? 'toBeFalsy' : 'toBeTruthy', expectCall);
-                case 'fail':
-                    return j.throwStatement(
-                        j.callExpression(
-                            j.identifier('Error'),
-                            matcherArg ? [matcherArg] : []
-                        )
-                    );
-                case 'a':
-                case 'an':
-                    return t.makeInstanceOfExpect(expectCall, negation, matcherArg);
-                case 'empty':
-                    return t.transform(
-                        'toHaveLength',
-                        expectCall,
-                        negation,
-                        j.identifier('0')
-                    );
-                case 'throwError':
-                case 'throw':
-                case 'throwException':
-                    return t.makeThrowExpect(expectCall, negation, matcherArg);
-                case 'within':
-                    return t.makeWithinExpect(
-                        expectCall,
-                        negation,
-                        matcherArg,
-                        callExpression.arguments[1]
-                    );
-                case 'keys':
-                    logWarning('Unsupported Expect.js Assertion "*.keys"', path);
-                    return path.node;
-                default:
-                    return t.transform(MATCHES[name], expectCall, negation, matcherArg);
-            }
-        });
+        const negation = hasNegation(callExpression);
+        const matcherArg = callExpression.arguments[0];
+        const name = callExpression.callee.property.name;
+        switch (name) {
+            case 'ok':
+                return t.transform(negation ? 'toBeFalsy' : 'toBeTruthy', expectCall);
+            case 'fail':
+                return j.throwStatement(
+                    j.callExpression(
+                        j.identifier('Error'),
+                        matcherArg ? [matcherArg] : []
+                    )
+                );
+            case 'a':
+            case 'an':
+                return t.makeInstanceOfExpect(expectCall, negation, matcherArg);
+            case 'empty':
+                return t.transform(
+                    'toHaveLength',
+                    expectCall,
+                    negation,
+                    j.identifier('0')
+                );
+            case 'throwError':
+            case 'throw':
+            case 'throwException':
+                return t.makeThrowExpect(expectCall, negation, matcherArg);
+            case 'within':
+                return t.makeWithinExpect(
+                    expectCall,
+                    negation,
+                    matcherArg,
+                    callExpression.arguments[1]
+                );
+            case 'keys':
+                logWarning('Unsupported Expect.js Assertion "*.keys"', path);
+                return path.node;
+            default:
+                return t.transform(MATCHES[name], expectCall, negation, matcherArg);
+        }
+    });
 
     return finale(fileInfo, j, ast, options, expectImport);
 }

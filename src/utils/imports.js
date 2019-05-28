@@ -17,8 +17,7 @@ export function addRequireOrImport(j, ast, localName, pkg) {
         );
     }
 
-    ast
-        .find(j.Program)
+    ast.find(j.Program)
         .get('body', 0)
         .insertBefore(requireStatement);
 }
@@ -211,45 +210,40 @@ export function removeRequireAndImport(j, ast, pkg, specifier) {
 
             // const chai = require('chai');
             // const { expect } = chai;
-            ast
-                .find(j.VariableDeclarator, {
-                    id: node => node.type === 'ObjectPattern',
-                    init: node =>
-                        node &&
-                        node.type === 'Identifier' &&
-                        node.name === variableDeclarationPath.value.id.name,
-                })
-                .forEach(p => {
-                    const index = p.value.id.properties.findIndex(
-                        prop =>
-                            prop.key.type === 'Identifier' && prop.key.name === specifier
-                    );
+            ast.find(j.VariableDeclarator, {
+                id: node => node.type === 'ObjectPattern',
+                init: node =>
+                    node &&
+                    node.type === 'Identifier' &&
+                    node.name === variableDeclarationPath.value.id.name,
+            }).forEach(p => {
+                const index = p.value.id.properties.findIndex(
+                    prop => prop.key.type === 'Identifier' && prop.key.name === specifier
+                );
 
-                    if (index >= 0) {
-                        const property = p.get('id', 'properties', index);
-                        localName = property.value.value.name;
-                        if (p.value.id.properties.length === 1) {
-                            p.prune();
-                            if (usagesOfPkg <= 1) {
-                                variableDeclarationPath.prune();
-                            }
-                        } else {
-                            property.prune();
+                if (index >= 0) {
+                    const property = p.get('id', 'properties', index);
+                    localName = property.value.value.name;
+                    if (p.value.id.properties.length === 1) {
+                        p.prune();
+                        if (usagesOfPkg <= 1) {
+                            variableDeclarationPath.prune();
                         }
+                    } else {
+                        property.prune();
                     }
-                });
+                }
+            });
 
             // const chai = require('chai');
             // const expect = chai.expect;
-            ast
-                .find(j.MemberExpression, {
-                    object: node =>
-                        variableDeclarationPath.value &&
-                        node.type === 'Identifier' &&
-                        node.name === variableDeclarationPath.value.id.name,
-                    property: node =>
-                        node.type === 'Identifier' && node.name === specifier,
-                })
+            ast.find(j.MemberExpression, {
+                object: node =>
+                    variableDeclarationPath.value &&
+                    node.type === 'Identifier' &&
+                    node.name === variableDeclarationPath.value.id.name,
+                property: node => node.type === 'Identifier' && node.name === specifier,
+            })
                 .map(p => findVariableDeclarator(p))
                 .filter(Boolean)
                 .forEach(p => {

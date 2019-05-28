@@ -35,43 +35,36 @@ module.exports = function transformer(fileInfo, api, options) {
             }
         };
 
-        root
-            .find(j.CallExpression, {
-                callee: {
-                    name: name => ['expect', 'should'].indexOf(name) >= 0,
-                },
-            })
-            .forEach(injector);
+        root.find(j.CallExpression, {
+            callee: {
+                name: name => ['expect', 'should'].indexOf(name) >= 0,
+            },
+        }).forEach(injector);
 
-        root
-            .find(j.MemberExpression, {
-                property: {
-                    type: j.Identifier.name,
-                    name: 'should',
-                },
-            })
-            .forEach(injector);
+        root.find(j.MemberExpression, {
+            property: {
+                type: j.Identifier.name,
+                name: 'should',
+            },
+        }).forEach(injector);
     }
 
     function renameShouldCallExpressions() {
-        root
-            .find(j.CallExpression, {
-                callee: {
-                    name: 'should',
-                },
-            })
-            .forEach(p => {
-                p.value.callee.name = 'expect';
-            });
+        root.find(j.CallExpression, {
+            callee: {
+                name: 'should',
+            },
+        }).forEach(p => {
+            p.value.callee.name = 'expect';
+        });
     }
 
     function remapAssertions() {
-        root
-            .find(j.MemberExpression, {
-                property: {
-                    name: name => Object.keys(assertionRemappings).indexOf(name) >= 0,
-                },
-            })
+        root.find(j.MemberExpression, {
+            property: {
+                name: name => Object.keys(assertionRemappings).indexOf(name) >= 0,
+            },
+        })
             .filter(p => isShouldMemberExpression(p.value))
             .forEach(p => {
                 const { property } = p.value;

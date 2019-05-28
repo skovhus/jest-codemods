@@ -135,9 +135,9 @@ export default function expectTransformer(fileInfo, api, options) {
         }
 
         logWarning(
-            `Too many arguments given to "${newJestMatcherName}". Expected max ${
-                maxArgs
-            } but got ${matcherNode.arguments.length}`,
+            `Too many arguments given to "${newJestMatcherName}". Expected max ${maxArgs} but got ${
+                matcherNode.arguments.length
+            }`,
             path
         );
     }
@@ -218,65 +218,59 @@ ${keys}.forEach(e => {
         });
 
     const updateSpies = () => {
-        ast
-            .find(j.CallExpression, {
-                callee: {
-                    type: 'Identifier',
-                    name: name => expectSpyFunctions.has(name),
-                },
-            })
-            .forEach(({ value }) => {
-                value.callee = j.memberExpression(
-                    j.identifier(expectFunctionName),
-                    j.identifier(value.callee.name)
-                );
-            });
+        ast.find(j.CallExpression, {
+            callee: {
+                type: 'Identifier',
+                name: name => expectSpyFunctions.has(name),
+            },
+        }).forEach(({ value }) => {
+            value.callee = j.memberExpression(
+                j.identifier(expectFunctionName),
+                j.identifier(value.callee.name)
+            );
+        });
 
         // Update expect.createSpy calls and warn about restoreSpies
-        ast
-            .find(j.MemberExpression, {
-                object: {
-                    type: 'Identifier',
-                    name: expectFunctionName,
-                },
-                property: { type: 'Identifier' },
-            })
-            .forEach(path => {
-                const { name } = path.value.property;
-                if (name === 'createSpy') {
-                    path.value.property.name = 'fn';
-                }
+        ast.find(j.MemberExpression, {
+            object: {
+                type: 'Identifier',
+                name: expectFunctionName,
+            },
+            property: { type: 'Identifier' },
+        }).forEach(path => {
+            const { name } = path.value.property;
+            if (name === 'createSpy') {
+                path.value.property.name = 'fn';
+            }
 
-                if (unsupportedSpyFunctions.has(name)) {
-                    logWarning(
-                        `"${path.value.property.name}" is currently not supported`,
-                        path
-                    );
-                }
-            });
+            if (unsupportedSpyFunctions.has(name)) {
+                logWarning(
+                    `"${path.value.property.name}" is currently not supported`,
+                    path
+                );
+            }
+        });
 
         // Warn about expect.spyOn calls with variable assignment
-        ast
-            .find(j.MemberExpression, {
-                object: {
-                    type: 'Identifier',
-                    name: expectFunctionName,
-                },
-                property: { type: 'Identifier', name: 'spyOn' },
-            })
-            .forEach(path => {
-                const parentAssignment =
-                    findParentOfType(path, 'VariableDeclarator') ||
-                    findParentOfType(path, 'AssignmentExpression');
-                if (!parentAssignment) {
-                    logWarning(
-                        `"${
-                            path.value.property.name
-                        }" without variable assignment might not work as expected (see https://facebook.github.io/jest/docs/jest-object.html#jestspyonobject-methodname)`,
-                        path
-                    );
-                }
-            });
+        ast.find(j.MemberExpression, {
+            object: {
+                type: 'Identifier',
+                name: expectFunctionName,
+            },
+            property: { type: 'Identifier', name: 'spyOn' },
+        }).forEach(path => {
+            const parentAssignment =
+                findParentOfType(path, 'VariableDeclarator') ||
+                findParentOfType(path, 'AssignmentExpression');
+            if (!parentAssignment) {
+                logWarning(
+                    `"${
+                        path.value.property.name
+                    }" without variable assignment might not work as expected (see https://facebook.github.io/jest/docs/jest-object.html#jestspyonobject-methodname)`,
+                    path
+                );
+            }
+        });
 
         // Update mock chain calls
         const updateSpyProperty = (path, property) => {
@@ -374,53 +368,49 @@ ${keys}.forEach(e => {
         };
 
         const spyVariables = [];
-        ast
-            .find(j.MemberExpression, {
-                object: {
-                    type: 'Identifier',
-                    name: expectFunctionName,
-                },
-                property: {
-                    type: 'Identifier',
-                    name: name => JEST_MOCK_PROPERTIES.has(name),
-                },
-            })
-            .forEach(path => {
-                const spyVariable = findParentVariableDeclaration(path);
-                if (spyVariable) {
-                    spyVariables.push(spyVariable.value.id.name);
-                }
+        ast.find(j.MemberExpression, {
+            object: {
+                type: 'Identifier',
+                name: expectFunctionName,
+            },
+            property: {
+                type: 'Identifier',
+                name: name => JEST_MOCK_PROPERTIES.has(name),
+            },
+        }).forEach(path => {
+            const spyVariable = findParentVariableDeclaration(path);
+            if (spyVariable) {
+                spyVariables.push(spyVariable.value.id.name);
+            }
 
-                const { property } = path.parentPath.parentPath.value;
+            const { property } = path.parentPath.parentPath.value;
 
-                updateSpyProperty(path, property);
-            });
+            updateSpyProperty(path, property);
+        });
 
         // Update spy variable methods
-        ast
-            .find(j.MemberExpression, {
-                object: {
-                    type: 'Identifier',
-                    name: name => spyVariables.indexOf(name) >= 0,
-                },
-            })
-            .forEach(path => {
-                const { property } = path.value;
-                let spyProperty = null;
-                if (property.type === 'Identifier') {
-                    // spy.calls.length
-                    spyProperty = property;
-                }
+        ast.find(j.MemberExpression, {
+            object: {
+                type: 'Identifier',
+                name: name => spyVariables.indexOf(name) >= 0,
+            },
+        }).forEach(path => {
+            const { property } = path.value;
+            let spyProperty = null;
+            if (property.type === 'Identifier') {
+                // spy.calls.length
+                spyProperty = property;
+            }
 
-                if (property.type === 'Literal') {
-                    // spies[0].calls.length
-                    spyProperty = path.parentPath.value.property;
-                }
+            if (property.type === 'Literal') {
+                // spies[0].calls.length
+                spyProperty = path.parentPath.value.property;
+            }
 
-                if (spyProperty) {
-                    updateSpyProperty(path, spyProperty);
-                }
-            });
+            if (spyProperty) {
+                updateSpyProperty(path, spyProperty);
+            }
+        });
     };
 
     const checkForUnsupportedFeatures = () =>

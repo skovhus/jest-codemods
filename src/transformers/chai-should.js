@@ -684,12 +684,11 @@ module.exports = function transformer(fileInfo, api, options) {
     mutations += updateCallExpressions();
     mutations += updateMemberExpressions();
 
-    root
-        .find(j.MemberExpression, {
-            property: {
-                name: name => unsupportedProperties.has(name),
-            },
-        })
+    root.find(j.MemberExpression, {
+        property: {
+            name: name => unsupportedProperties.has(name),
+        },
+    })
         .filter(p => isExpectMemberExpression(p.value))
         .forEach(p => {
             const assertion = p.value.property.name;
