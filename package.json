@@ -24,13 +24,17 @@
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "eslint --fix src",
     "format": "prettier --ignore-path .gitignore --write './**/*.js'",
-    "precommit": "lint-staged",
     "prepare": "npm run build",
     "prepublish": "npm run clean && npm run check:bail",
     "ci": "npm run check:bail && codecov",
     "test:cov": "npm run test -- --coverage",
     "test:watch": "npm run test -- --watch",
     "test": "jest --runInBand"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "lint-staged": {
     "*.js": [
@@ -74,9 +78,9 @@
     "eslint-config-prettier": "^4.3.0",
     "eslint-plugin-import": "^2.17.3",
     "eslint-plugin-prettier": "^3.1.0",
-    "husky": "^0.14.3",
+    "husky": "^2.3.0",
     "jest": "^23.6.0",
-    "lint-staged": "^4.2.3",
+    "lint-staged": "^8.1.7",
     "prettier": "^1.17.1"
   },
   "resolutions": {
