@@ -169,7 +169,6 @@ const unsupportedAssertions = [
     'doesNotIncrease',
     'decreases',
     'doesNotDecrease',
-    'ifError',
 ];
 
 export default function transformer(fileInfo, api, options) {
@@ -420,6 +419,12 @@ export default function transformer(fileInfo, api, options) {
             j.binaryExpression('in', path.value.arguments[1], path.value.arguments[0])
         )
     );
+
+    // assert.ifError -> expect(*).toBeFalsy()
+    ast.find(
+        j.CallExpression,
+        getAssertionExpression(chaiAssertExpression, 'ifError')
+    ).replaceWith(path => makeExpectation('toBeFalsy', path.value.arguments[0]));
 
     // assert.includeMembers -> expect([]).toEqual(expect.arrayContaining([]))
     ast.find(

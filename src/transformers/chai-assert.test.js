@@ -157,6 +157,7 @@ const mappings = [
     ],
     ['assert.sameMembers(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
     ['assert.sameDeepMembers(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
+    ['assert.ifError(foo);', 'expect(foo).toBeFalsy();'],
     [
         'assert.includeMembers([1, 2, 3], [2, 1, 2]);',
         'expect([1, 2, 3]).toEqual(expect.arrayContaining([2, 1, 2]));',
@@ -219,7 +220,6 @@ test('not supported assertions', () => {
         'doesNotIncrease',
         'decreases',
         'doesNotDecrease',
-        'ifError',
     ];
 
     const fileInput = unsupportedAssertions.reduce(
@@ -239,7 +239,6 @@ assert.${assertion}(foo, bar, baz);`,
         'jest-codemods warning: (test.js line 6) Unsupported Chai Assertion "doesNotIncrease".',
         'jest-codemods warning: (test.js line 7) Unsupported Chai Assertion "decreases".',
         'jest-codemods warning: (test.js line 8) Unsupported Chai Assertion "doesNotDecrease".',
-        'jest-codemods warning: (test.js line 9) Unsupported Chai Assertion "ifError".',
     ]);
 });
 
