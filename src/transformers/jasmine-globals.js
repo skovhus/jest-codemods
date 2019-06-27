@@ -490,5 +490,37 @@ export default function jasmineGlobals(fileInfo, api, options) {
         });
     });
 
+    root.find(j.CallExpression, {
+        callee: {
+            type: 'MemberExpression',
+            object: {
+                type: 'Identifier',
+                name: 'jasmine',
+            },
+            property: {
+                type: 'Identifier',
+                name: 'createSpyObj',
+            },
+        },
+    })
+        .filter(
+            path =>
+                path.node.arguments.length === 2 &&
+                path.node.arguments[1].type === 'ArrayExpression'
+        )
+        .forEach(path => {
+            const properties = path.node.arguments[1].elements.map(arg =>
+                j.objectProperty(
+                    j.literal(arg.value),
+                    j.callExpression(
+                        j.memberExpression(j.identifier('jest'), j.identifier('fn')),
+                        []
+                    )
+                )
+            );
+
+            j(path).replaceWith(j.objectExpression(properties));
+        });
+
     return finale(fileInfo, j, root, options);
 }
