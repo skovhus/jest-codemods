@@ -196,3 +196,17 @@ testChanged(
     expect.stringMatching('text');
     `
 );
+
+testChanged(
+    'createSpyObj',
+    `
+    const spyObj = jasmine.createSpyObj('label', ['a', 'b', 'hyphen-ated']);
+    `,
+    `
+    const spyObj = {
+        'a': jest.fn(),
+        'b': jest.fn(),
+        'hyphen-ated': jest.fn()
+    };
+    `
+);
