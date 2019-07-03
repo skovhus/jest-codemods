@@ -20,6 +20,112 @@ beforeEach(() => {
 });
 
 testChanged(
+    'jasmine.createSpy',
+    `
+    jasmine.createSpy();
+    jasmine.createSpy('lmao');
+    const spy = jasmine.createSpy();
+    jasmine.createSpy().and.callFake(arg => arg);
+    jasmine.createSpy().and.returnValue('lmao');
+    const spy = jasmine.createSpy().and.returnValue('lmao');
+    `,
+    `
+    jest.fn();
+    jest.fn();
+    const spy = jest.fn();
+    jest.fn(arg => arg);
+    jest.fn(() => 'lmao');
+    const spy = jest.fn(() => 'lmao');
+    `
+);
+
+testChanged(
+    'jasmine.createSpy with later .and usage',
+    `
+    let bar;
+
+    it('does a thing', () => {
+        const foo = jasmine.createSpy();
+        bar = jasmine.createSpy();
+        const baz = jasmine.createSpy().and.returnValue('baz');
+
+        foo.and.returnValue('lmao');
+        foo.and.callFake(arg => arg);
+
+        bar.and.returnValue('lmao');
+        bar.and.callFake(arg => arg);
+
+        baz.and.returnValue('lmao');
+        baz.and.callFake(arg => arg);
+    });
+
+    bar.and.returnValue('lmao');
+    bar.and.callFake(arg => arg);
+
+    it('does a different thing', () => {
+        const foo = 'some value';
+        bar = 'another value';
+
+        // unchanged
+        foo.and.returnValue('lmao');
+        foo.and.callFake(arg => arg);
+        baz.and.returnValue('lmao');
+        baz.and.callFake(arg => arg);
+
+        // changed within scope of being a spy
+        bar.and.returnValue('lmao');
+        bar.and.callFake(arg => arg);
+    });
+    `,
+    `
+    let bar;
+
+    it('does a thing', () => {
+        const foo = jest.fn();
+        bar = jest.fn();
+        const baz = jest.fn(() => 'baz');
+
+        foo.mockReturnValue('lmao');
+        foo.mockImplementation(arg => arg);
+
+        bar.mockReturnValue('lmao');
+        bar.mockImplementation(arg => arg);
+
+        baz.mockReturnValue('lmao');
+        baz.mockImplementation(arg => arg);
+    });
+
+    bar.mockReturnValue('lmao');
+    bar.mockImplementation(arg => arg);
+
+    it('does a different thing', () => {
+        const foo = 'some value';
+        bar = 'another value';
+
+        // unchanged
+        foo.and.returnValue('lmao');
+        foo.and.callFake(arg => arg);
+        baz.and.returnValue('lmao');
+        baz.and.callFake(arg => arg);
+
+        // changed within scope of being a spy
+        bar.mockReturnValue('lmao');
+        bar.mockImplementation(arg => arg);
+    });
+    `
+);
+
+test('not supported jasmine.createSpy().and.*', () => {
+    wrappedPlugin(`
+        jasmine.createSpy().and.unknownUtil();
+    `);
+
+    expect(consoleWarnings).toEqual([
+        'jest-codemods warning: (test.js line 2) Unsupported Jasmine functionality "jasmine.createSpy().and.unknownUtil".',
+    ]);
+});
+
+testChanged(
     'spyOn',
     `
     jest.spyOn().mockReturnValue();
@@ -42,34 +148,80 @@ testChanged(
 );
 
 testChanged(
-    'jasmine.createSpy',
+    'spyOn() with later .and usage',
     `
-    jasmine.createSpy();
-    jasmine.createSpy('lmao');
-    const spy = jasmine.createSpy();
-    jasmine.createSpy().and.callFake(arg => arg);
-    jasmine.createSpy().and.returnValue('lmao');
-    const spy = jasmine.createSpy().and.returnValue('lmao');
+    let bar;
+
+    it('does a thing', () => {
+        const foo = spyOn(stuff);
+        bar = spyOn(stuff);
+        const baz = spyOn(stuff).and.returnValue('baz');
+
+        foo.and.returnValue('lmao');
+        foo.and.callFake(arg => arg);
+
+        bar.and.returnValue('lmao');
+        bar.and.callFake(arg => arg);
+
+        baz.and.returnValue('lmao');
+        baz.and.callFake(arg => arg);
+    });
+
+    bar.and.returnValue('lmao');
+    bar.and.callFake(arg => arg);
+
+    it('does a different thing', () => {
+        const foo = 'some value';
+        bar = 'another value';
+
+        // unchanged
+        foo.and.returnValue('lmao');
+        foo.and.callFake(arg => arg);
+        baz.and.returnValue('lmao');
+        baz.and.callFake(arg => arg);
+
+        // changed within scope of being a spy
+        bar.and.returnValue('lmao');
+        bar.and.callFake(arg => arg);
+    });
     `,
     `
-    jest.fn();
-    jest.fn();
-    const spy = jest.fn();
-    jest.fn(arg => arg);
-    jest.fn(() => 'lmao');
-    const spy = jest.fn(() => 'lmao');
+    let bar;
+
+    it('does a thing', () => {
+        const foo = jest.spyOn(stuff);
+        bar = jest.spyOn(stuff);
+        const baz = jest.spyOn(stuff).mockReturnValue('baz');
+
+        foo.mockReturnValue('lmao');
+        foo.mockImplementation(arg => arg);
+
+        bar.mockReturnValue('lmao');
+        bar.mockImplementation(arg => arg);
+
+        baz.mockReturnValue('lmao');
+        baz.mockImplementation(arg => arg);
+    });
+
+    bar.mockReturnValue('lmao');
+    bar.mockImplementation(arg => arg);
+
+    it('does a different thing', () => {
+        const foo = 'some value';
+        bar = 'another value';
+
+        // unchanged
+        foo.and.returnValue('lmao');
+        foo.and.callFake(arg => arg);
+        baz.and.returnValue('lmao');
+        baz.and.callFake(arg => arg);
+
+        // changed within scope of being a spy
+        bar.mockReturnValue('lmao');
+        bar.mockImplementation(arg => arg);
+    });
     `
 );
-
-test('not supported jasmine.createSpy().and.*', () => {
-    wrappedPlugin(`
-        jasmine.createSpy().and.unknownUtil();
-    `);
-
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 2) Unsupported Jasmine functionality "jasmine.createSpy().and.unknownUtil".',
-    ]);
-});
 
 testChanged(
     '*.calls.count()',
