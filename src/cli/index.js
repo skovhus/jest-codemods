@@ -4,7 +4,6 @@ import globby from 'globby';
 import inquirer from 'inquirer';
 import meow from 'meow';
 import updateNotifier from 'update-notifier';
-
 import checkGitStatus from './git-status';
 import { executeTransformations } from './transformers';
 
@@ -123,6 +122,10 @@ const PARSER_INQUIRER_CHOICES = [
     },
     {
         name: 'TypeScript',
+        value: 'ts',
+    },
+    {
+        name: 'TypeScript & TSX',
         value: 'tsx',
     },
 ];

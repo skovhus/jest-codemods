@@ -20,6 +20,8 @@ function executeTransformation({ files, flags, parser, transformer, transformerA
     args.push('--parser', parser);
     if (parser === 'tsx') {
         args.push('--extensions=tsx,ts');
+    } else if (parser === 'ts') {
+        args.push('--extensions=ts');
     }
 
     if (transformerArgs && transformerArgs.length > 0) {
