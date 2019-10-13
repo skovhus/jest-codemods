@@ -91,6 +91,27 @@ const mapValueNameToObjectMethod = {
   sealed: 'isSealed',
 }
 
+const typeEqualityToConstructor = {
+  regexp: 'RegExp',
+  promise: 'Promise',
+  date: 'Date',
+  set: 'Set',
+  map: 'Map',
+  weakset: 'WeakSet',
+  weakmap: 'WeakMap',
+  dataview: 'DataView',
+  object: 'Object',
+  float64array: 'Float64Array',
+  float32array: 'Float32Array',
+  uint32array: 'Uint32Array',
+  uint16array: 'Uint16Array',
+  uint8array: 'Uint8Array',
+  int32array: 'Int32Array',
+  int16array: 'Int16Array',
+  int8array: 'Int8Array',
+  uint8clampedarray: 'Uint8ClampedArray',
+}
+
 export const assertPrefixes = new Set(['to', 'with', 'that'])
 
 export default function transformer(fileInfo, api, options) {
@@ -184,20 +205,28 @@ export default function transformer(fileInfo, api, options) {
           )
         )
       }
-      case 'error':
-        return createCall(
-          'toBeInstanceOf',
-          [j.identifier('Error')],
-          updateExpect(value, node => node),
-          containsNot
-        )
-      default:
+      case 'string':
         return createCall(
           'toBe',
           args,
           updateExpect(value, node => j.unaryExpression('typeof', node)),
           containsNot
         )
+      default: {
+        const chaiValue = args[0].value
+
+        // Chai type strings are case insensitive. :/ Let us try to guess a constructor.
+        const constructor =
+          typeEqualityToConstructor[chaiValue.toLowerCase()] ||
+          `${chaiValue[0].toUpperCase()}${chaiValue.slice(1)}`
+
+        return createCall(
+          'toBeInstanceOf',
+          [j.identifier(constructor)],
+          updateExpect(value, node => node),
+          containsNot
+        )
+      }
     }
   }
 

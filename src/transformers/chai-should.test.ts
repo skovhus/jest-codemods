@@ -116,6 +116,7 @@ testChanged(
         expect(new Promise()).to.be.a('promise');
         expect(new Float32Array()).to.be.a('float32array');
         expect(Symbol()).to.be.a('symbol');
+        expect(new Date()).to.be.a('Date');
         expect(bar).to.be.an('object');
         expect(foo).to.not.be.an('object');
         expect(foo).to.be.an('array');
@@ -125,17 +126,18 @@ testChanged(
     `,
   `
         expect(typeof 'test').toBe('string');
-        expect(typeof { foo: 'bar' }).toBe('object');
+        expect({ foo: 'bar' }).toBeInstanceOf(Object);
         expect({ foo: 'bar' }).toBeInstanceOf(Object);
         expect('xyz').toBeInstanceOf(String);
         expect(null).toBeNull();
         expect(undefined).toBeUndefined();
         expect(new Error()).toBeInstanceOf(Error);
-        expect(typeof new Promise()).toBe('promise');
-        expect(typeof new Float32Array()).toBe('float32array');
-        expect(typeof Symbol()).toBe('symbol');
-        expect(typeof bar).toBe('object');
-        expect(typeof foo).not.toBe('object');
+        expect(new Promise()).toBeInstanceOf(Promise);
+        expect(new Float32Array()).toBeInstanceOf(Float32Array);
+        expect(Symbol()).toBeInstanceOf(Symbol);
+        expect(new Date()).toBeInstanceOf(Date);
+        expect(bar).toBeInstanceOf(Object);
+        expect(foo).not.toBeInstanceOf(Object);
         expect(Array.isArray(foo)).toBe(true);
         expect(Array.isArray(baz)).toBe(false);
 
@@ -650,7 +652,7 @@ testChanged(
         expect(foo).to.be.a.function;
     `,
   `
-        expect(typeof foo).toBe('function');
+        expect(foo).toBeInstanceOf(Function);
     `
 )
 
