@@ -135,9 +135,7 @@ export default function expectTransformer(fileInfo, api, options) {
         }
 
         logWarning(
-            `Too many arguments given to "${newJestMatcherName}". Expected max ${maxArgs} but got ${
-                matcherNode.arguments.length
-            }`,
+            `Too many arguments given to "${newJestMatcherName}". Expected max ${maxArgs} but got ${matcherNode.arguments.length}`,
             path
         );
     }
@@ -264,9 +262,7 @@ ${keys}.forEach(e => {
                 findParentOfType(path, 'AssignmentExpression');
             if (!parentAssignment) {
                 logWarning(
-                    `"${
-                        path.value.property.name
-                    }" without variable assignment might not work as expected (see https://facebook.github.io/jest/docs/jest-object.html#jestspyonobject-methodname)`,
+                    `"${path.value.property.name}" without variable assignment might not work as expected (see https://facebook.github.io/jest/docs/jest-object.html#jestspyonobject-methodname)`,
                     path
                 );
             }
