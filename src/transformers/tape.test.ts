@@ -1,78 +1,78 @@
 /* eslint-env jest */
-import chalk from 'chalk';
+import chalk from 'chalk'
 
-import { wrapPlugin } from '../utils/test-helpers';
-import plugin from './tape';
+import { wrapPlugin } from '../utils/test-helpers'
+import plugin from './tape'
 
-chalk.enabled = false;
-const wrappedPlugin = wrapPlugin(plugin);
+chalk.enabled = false
+const wrappedPlugin = wrapPlugin(plugin)
 
-let consoleWarnings = [];
+let consoleWarnings = []
 beforeEach(() => {
-    consoleWarnings = [];
-    console.warn = v => consoleWarnings.push(v);
-});
+  consoleWarnings = []
+  console.warn = v => consoleWarnings.push(v)
+})
 
 function testChanged(msg, source, expectedOutput, options = {}) {
-    test(msg, () => {
-        const result = wrappedPlugin(source, options);
-        expect(result).toBe(expectedOutput);
-        expect(consoleWarnings).toEqual([]);
-    });
+  test(msg, () => {
+    const result = wrappedPlugin(source, options)
+    expect(result).toBe(expectedOutput)
+    expect(consoleWarnings).toEqual([])
+  })
 }
 
 testChanged(
-    'does not touch code without tape require/import',
-    `
+  'does not touch code without tape require/import',
+  `
 const test = require("testlib");
 test(t => {
     t.notOk(1);
 });`,
-    `
+  `
 const test = require("testlib");
 test(t => {
     t.notOk(1);
 });`
-);
+)
 
 testChanged(
-    'changes code without tape require/import if skipImportDetection is set',
-    `
+  'changes code without tape require/import if skipImportDetection is set',
+  `
 test(t => {
     t.notOk(1);
 });`,
-    `
+  `
 test(t => {
     expect(1).toBeFalsy();
 });`,
-    { skipImportDetection: true }
-);
+  { skipImportDetection: true }
+)
 
 testChanged(
-    'CommonJs requires',
-    `
+  'CommonJs requires',
+  `
 const test = require('tape');
 const x = 1;
 `,
-    `
+  `
 const x = 1;
 `
-);
+)
 
 testChanged(
-    'ES2015 imports',
-    `
+  'ES2015 imports',
+  `
 import test from 'tape';
 const x = 1;
 `,
-    `
+  `
 const x = 1;
 `
-);
+)
 
 testChanged(
-    'maps assertions and comments',
-    `
+  'maps assertions and comments',
+  `
 import test from 'tape';
 test((t) => {
     t.fail('msg');
@@ -128,7 +128,7 @@ test((t) => {
     t.comment('this is a comment...');
 });
 `,
-    `
+  `
 test(done => {
     done.fail('msg');
     expect(1).toBeTruthy();
@@ -182,11 +182,11 @@ test(done => {
     console.log('this is a comment...');
 });
 `
-);
+)
 
 testChanged(
-    'rewriting non standard naming of test function and t argument',
-    `
+  'rewriting non standard naming of test function and t argument',
+  `
 import myTapeTest from "tape";
 myTapeTest("mytest", t => {
     t.ok("msg");
@@ -204,7 +204,7 @@ myTapeTest(function(t) {
     t.ok("msg");
 });
 `,
-    `
+  `
 test("mytest", () => {
     expect("msg").toBeTruthy();
 });
@@ -221,57 +221,57 @@ test(function() {
     expect("msg").toBeTruthy();
 });
 `
-);
+)
 
 testChanged(
-    'test options: removes',
-    `
+  'test options: removes',
+  `
 import test from 'tape';
 test('mytest', {objectPrintDepth: 4, skip: false}, t => {
     t.ok('msg');
 });
 `,
-    `
+  `
 test('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
-);
+)
 
 testChanged(
-    'test options: skip',
-    `
+  'test options: skip',
+  `
 import test from 'tape';
 test('mytest', {objectPrintDepth: 4, skip: true}, t => {
     t.ok('msg');
 });
 `,
-    `
+  `
 test.skip('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
-);
+)
 
 testChanged(
-    'removes t.end in scope of test function',
-    `
+  'removes t.end in scope of test function',
+  `
 import test from 'tape';
 test('mytest', t => {
     t.equal(1, 1);
     t.end();
 });
 `,
-    `
+  `
 test('mytest', () => {
     expect(1).toBe(1);
 });
 `
-);
+)
 
 testChanged(
-    'keeps t.end in nested functions',
-    `
+  'keeps t.end in nested functions',
+  `
 import test from 'tape';
 
 test(t => {
@@ -280,18 +280,18 @@ test(t => {
     }, 500);
 });
 `,
-    `
+  `
 test(done => {
     setTimeout(() => {
         done();
     }, 500);
 });
 `
-);
+)
 
 testChanged(
-    'removes t.pass but keeps t.fail',
-    `
+  'removes t.pass but keeps t.fail',
+  `
 import test from 'tape'
 
 test(function(t) {
@@ -305,7 +305,7 @@ test('handles done.fail and done.pass', t => {
     }, 500);
 });
 `,
-    `
+  `
 test(function(done) {
     done.fail();
 });
@@ -316,11 +316,11 @@ test('handles done.fail and done.pass', done => {
     }, 500);
 });
 `
-);
+)
 
 testChanged(
-    't.throws',
-    `
+  't.throws',
+  `
 import test from 'tape';
 test(t => {
     t.throws(myfunc, 'should not throw');
@@ -329,7 +329,7 @@ test(t => {
     t.throws(myfunc, /err_reg_exp/i, 'should not throw');
 });
 `,
-    `
+  `
 test(() => {
     expect(myfunc).toThrow();
     expect(myfunc).toThrowError('xxx');
@@ -337,11 +337,11 @@ test(() => {
     expect(myfunc).toThrowError(/err_reg_exp/i);
 });
 `
-);
+)
 
 testChanged(
-    'destructured test argument',
-    `
+  'destructured test argument',
+  `
 import test from 'tape';
 test(({ok}) => {
     ok('msg');
@@ -350,7 +350,7 @@ test('my test', ({equal}) => {
     equal('msg', 'other msg');
 });
 `,
-    `
+  `
 test(() => {
     expect('msg').toBeTruthy();
 });
@@ -358,143 +358,143 @@ test('my test', () => {
     expect('msg').toBe('other msg');
 });
 `
-);
+)
 
 test('not supported warnings: createStream', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test.createStream(() => {});
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) "createStream" is currently not supported',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 3) "createStream" is currently not supported',
+  ])
+})
 
 test('not supported warnings: onFinish', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test.onFinish(() => {});
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) "onFinish" is currently not supported',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 3) "onFinish" is currently not supported',
+  ])
+})
 
 test('not supported warnings: unmapped t property', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test(t => {
             t.unknownAssert(100);
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "t.unknownAssert" is currently not supported',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 4) "t.unknownAssert" is currently not supported',
+  ])
+})
 
 test('not supported warnings: t.timeoutAfter', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test(t => {
             t.timeoutAfter(100);
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "t.timeoutAfter" is currently not supported',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 4) "t.timeoutAfter" is currently not supported',
+  ])
+})
 
 test('not supported warnings: t.looseEquals', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test(t => {
             t.looseEquals({}, {});
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "t.looseEquals" is currently not supported. Try the stricter "toEqual" or "not.toEqual"',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 4) "t.looseEquals" is currently not supported. Try the stricter "toEqual" or "not.toEqual"',
+  ])
+})
 
 test('not supported warnings: t.skip', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test(t => {
             t.skip();
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 4) "t.skip" is currently not supported',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 4) "t.skip" is currently not supported',
+  ])
+})
 
 test('not supported warnings: timeout option', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test({timeout: 42}, t => {
             t.equal(1, 1);
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) "timeout" option is currently not supported',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 3) "timeout" option is currently not supported',
+  ])
+})
 
 test('not supported warnings: non standard argument for test', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test(x => {
             x.equal(1, 1);
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "x"',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "x"',
+  ])
+})
 
 test('not supported warnings: non standard argument for test.skip', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test.skip(function(y) {
             y.equal(1, 1);
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "y"',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "y"',
+  ])
+})
 
 test('graciously warns about unknown destructured assertions', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import test from 'tape';
         test(({plan}) => {
             plan('msg');
         });
-    `);
-});
+    `)
+})
 
 testChanged(
-    'supports renaming non standard import name',
-    `
+  'supports renaming non standard import name',
+  `
 import foo from 'tape';
 foo(() => {});
 `,
-    `
+  `
 test(() => {});
 `
-);
+)
 
 testChanged(
-    'doesNotThrow works with `expected` argument',
-    `
+  'doesNotThrow works with `expected` argument',
+  `
 import test from 'tape';
 test('foo', t => {
     t.doesNotThrow(() => {}, TypeError, 'foo');
 });
 `,
-    `
+  `
 test('foo', () => {
     expect(() => {}).not.toThrowError(TypeError);
 });
 `
-);
+)

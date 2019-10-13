@@ -20,8 +20,8 @@ module.exports = {
         trailingComma: 'es5',
         singleQuote: true,
         printWidth: 90,
-        semi: true,
-        tabWidth: 4,
+        semi: false,
+        tabWidth: 2,
       },
     ],
     '@typescript-eslint/no-unused-vars': [

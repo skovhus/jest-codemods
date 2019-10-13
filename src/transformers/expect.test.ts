@@ -1,63 +1,63 @@
 /* eslint-env jest */
-import chalk from 'chalk';
+import chalk from 'chalk'
 
-import { wrapPlugin } from '../utils/test-helpers';
-import plugin from './expect';
+import { wrapPlugin } from '../utils/test-helpers'
+import plugin from './expect'
 
-chalk.enabled = false;
-const wrappedPlugin = wrapPlugin(plugin);
+chalk.enabled = false
+const wrappedPlugin = wrapPlugin(plugin)
 
-let consoleWarnings = [];
+let consoleWarnings = []
 beforeEach(() => {
-    consoleWarnings = [];
-    console.warn = v => consoleWarnings.push(v);
-});
+  consoleWarnings = []
+  console.warn = v => consoleWarnings.push(v)
+})
 
 function testChanged(msg, source, expectedOutput, options = {}) {
-    test(msg, () => {
-        const result = wrappedPlugin(source, options);
-        expect(result).toBe(expectedOutput);
-        expect(consoleWarnings).toEqual([]);
+  test(msg, () => {
+    const result = wrappedPlugin(source, options)
+    expect(result).toBe(expectedOutput)
+    expect(consoleWarnings).toEqual([])
 
-        // Running it twice should yield same result
-        expect(wrappedPlugin(result, options)).toBe(result);
-    });
+    // Running it twice should yield same result
+    expect(wrappedPlugin(result, options)).toBe(result)
+  })
 }
 
 testChanged(
-    'does not touch code without expect require/import',
-    `
+  'does not touch code without expect require/import',
+  `
     const test = require("testlib");
     test(t => {
       expect(stuff).toExist();
     })
     `,
-    `
+  `
     const test = require("testlib");
     test(t => {
       expect(stuff).toExist();
     })
     `
-);
+)
 
 testChanged(
-    'changes code without expect require/import if skipImportDetection is set',
-    `
+  'changes code without expect require/import if skipImportDetection is set',
+  `
     test(t => {
       expect(stuff).toExist();
     })
     `,
-    `
+  `
     test(t => {
       expect(stuff).toBeTruthy();
     })
     `,
-    { skipImportDetection: true }
-);
+  { skipImportDetection: true }
+)
 
 testChanged(
-    'maps expect matchers',
-    `
+  'maps expect matchers',
+  `
     import expect from 'expect';
 
     test(() => {
@@ -113,7 +113,7 @@ testChanged(
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).toBeTruthy();
       expect(stuff).toBeTruthy();
@@ -167,11 +167,11 @@ testChanged(
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `
-);
+)
 
 testChanged(
-    'maps expect number matchers',
-    `
+  'maps expect number matchers',
+  `
     import expect from 'expect';
 
     test(() => {
@@ -182,7 +182,7 @@ testChanged(
       expect(stuff).toBeGreaterThanOrEqualTo(42);
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).toBeLessThan(42);
       expect(stuff).toBeLessThan(42);
@@ -191,11 +191,11 @@ testChanged(
       expect(stuff).toBeGreaterThanOrEqual(42);
     });
     `
-);
+)
 
 testChanged(
-    'maps expect contain matchers',
-    `
+  'maps expect contain matchers',
+  `
     import expect from 'expect';
 
     test(() => {
@@ -212,7 +212,7 @@ testChanged(
       expect({ a: 1, b: 2 }).toExcludeKeys([ 'c', 'd' ]);
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).toContain(1);
       expect(stuff).toContain(1);
@@ -231,11 +231,11 @@ testChanged(
       });
     });
     `
-);
+)
 
 testChanged(
-    'maps expect spy matchers',
-    `
+  'maps expect spy matchers',
+  `
     import expect from 'expect';
 
     test(() => {
@@ -244,18 +244,18 @@ testChanged(
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).toHaveBeenCalled();
       expect(stuff).not.toHaveBeenCalled();
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `
-);
+)
 
 testChanged(
-    'maps spy creation calls',
-    `
+  'maps spy creation calls',
+  `
     import expect from 'expect';
 
     test(() => {
@@ -274,7 +274,7 @@ testChanged(
       not.a.spy.andCall(fn);
     });
     `,
-    `
+  `
     test(() => {
       var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
@@ -293,11 +293,11 @@ testChanged(
       not.a.spy.andCall(fn);
     });
     `
-);
+)
 
 testChanged(
-    'maps spy methods on intitialized spies',
-    `
+  'maps spy methods on intitialized spies',
+  `
     import expect from 'expect';
 
     test(() => {
@@ -323,7 +323,7 @@ testChanged(
       spy2.reset();
     });
     `,
-    `
+  `
     test(() => {
       var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
@@ -349,11 +349,11 @@ testChanged(
       spy2.mockClear();
     });
     `
-);
+)
 
 testChanged(
-    'maps spy methods on intitialized spies (spread import)',
-    `
+  'maps spy methods on intitialized spies (spread import)',
+  `
     import { createSpy, spyOn } from 'expect'
 
     test(() => {
@@ -365,7 +365,7 @@ testChanged(
       spy2.reset();
     });
     `,
-    `
+  `
     test(() => {
       var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
@@ -375,11 +375,11 @@ testChanged(
       spy2.mockClear();
     });
     `
-);
+)
 
 testChanged(
-    'maps spy array',
-    `
+  'maps spy array',
+  `
     import { createSpy, spyOn } from 'expect'
 
     test(() => {
@@ -393,7 +393,7 @@ testChanged(
       expect(inputs[1].calls.length).toEqual(1)
     });
     `,
-    `
+  `
     test(() => {
       const inputs = [
         jest.fn(props => <input {...props.input} />),
@@ -405,11 +405,11 @@ testChanged(
       expect(inputs[1].mock.calls.length).toEqual(1)
     });
     `
-);
+)
 
 testChanged(
-    'renames non standard expect import name',
-    `
+  'renames non standard expect import name',
+  `
     import exp from 'expect';
 
     test(() => {
@@ -418,18 +418,18 @@ testChanged(
       exp(stuff).toHaveBeenCalledWith(1);
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).toHaveBeenCalled();
       expect(stuff).not.toHaveBeenCalled();
       expect(stuff).toHaveBeenCalledWith(1);
     });
     `
-);
+)
 
 testChanged(
-    'support chaining',
-    `
+  'support chaining',
+  `
     import expect from 'expect';
 
     test(() => {
@@ -440,7 +440,7 @@ testChanged(
          .toBeMoreThan(42);
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).toBeTruthy();
       expect(typeof stuff).toBe('number');
@@ -448,32 +448,32 @@ testChanged(
       expect(stuff).toBeGreaterThan(42);
     });
     `
-);
+)
 
 testChanged(
-    'standaloneMode: keeps expect import',
-    `
+  'standaloneMode: keeps expect import',
+  `
     import exp from 'expect';
 
     test(() => {
       exp(stuff).toHaveBeenCalled();
     });
     `,
-    `
+  `
     import exp from 'expect';
 
     test(() => {
       exp(stuff).toHaveBeenCalled();
     });
     `,
-    {
-        standaloneMode: true,
-    }
-);
+  {
+    standaloneMode: true,
+  }
+)
 
 testChanged(
-    'standaloneMode: rewrites expect.spyOn (import)',
-    `
+  'standaloneMode: rewrites expect.spyOn (import)',
+  `
     import expect from 'expect';
 
     test(() => {
@@ -485,7 +485,7 @@ testChanged(
         expect(spy1.calls.length).toEqual(3);
     });
     `,
-    `
+  `
     import mock from 'jest-mock';
     import expect from 'expect';
 
@@ -498,14 +498,14 @@ testChanged(
         expect(spy1.mock.calls.length).toEqual(3);
     });
     `,
-    {
-        standaloneMode: true,
-    }
-);
+  {
+    standaloneMode: true,
+  }
+)
 
 testChanged(
-    'standaloneMode: rewrites expect.spyOn (require)',
-    `
+  'standaloneMode: rewrites expect.spyOn (require)',
+  `
     const expect = require('expect');
 
     test(() => {
@@ -514,7 +514,7 @@ testChanged(
         expect(spy1.calls.length).toEqual(3);
     });
     `,
-    `
+  `
     const mock = require('jest-mock');
     const expect = require('expect');
 
@@ -524,90 +524,90 @@ testChanged(
         expect(spy1.mock.calls.length).toEqual(3);
     });
     `,
-    {
-        standaloneMode: true,
-    }
-);
+  {
+    standaloneMode: true,
+  }
+)
 
 test('warns about unsupported spy features', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import expect from 'expect';
 
         test(() => {
           expect.restoreSpies();
           expect(expect.isSpy(spy)).toBe(true);
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) "restoreSpies" is currently not supported',
-        'jest-codemods warning: (test.js line 6) "isSpy" is currently not supported',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 5) "restoreSpies" is currently not supported',
+    'jest-codemods warning: (test.js line 6) "isSpy" is currently not supported',
+  ])
+})
 
 test('warns about creating spies without assigning it to a variable', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import expect from 'expect'
 
         test(() => {
             expect.spyOn(console, 'error');
             expect(console.error.calls.length).toEqual(0);
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) "spyOn" without variable assignment might not work as expected (see https://facebook.github.io/jest/docs/jest-object.html#jestspyonobject-methodname)',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 5) "spyOn" without variable assignment might not work as expected (see https://facebook.github.io/jest/docs/jest-object.html#jestspyonobject-methodname)',
+  ])
+})
 
 test('warns about expect.extend usage', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import expect from 'expect'
         import expectElement from 'expect-element'
 
         expect.extend(expectElement);
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) "extend" is currently not supported',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 5) "extend" is currently not supported',
+  ])
+})
 
 test('warns about unknown matchers', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import expect from 'expect';
 
         test(() => {
             expect(age).toPass(n => n >= 18);
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) Unknown matcher "toPass"',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 5) Unknown matcher "toPass"',
+  ])
+})
 
 test('warns about toMatch usage on variables', () => {
-    const result = wrappedPlugin(`
+  const result = wrappedPlugin(`
         import expect from 'expect'
 
         test(() => {
           expect(stuff).toMatch(variable);
           expect(stuff).toNotMatch(variable);
         });
-        `);
+        `)
 
-    expect(result).toEqual(`
+  expect(result).toEqual(`
         test(() => {
           expect(stuff).toMatchObject(variable);
           expect(stuff).not.toMatchObject(variable);
         });
-        `);
+        `)
 
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) Use "toMatch" if "variable" is not an object',
-        'jest-codemods warning: (test.js line 6) Use "toMatch" if "variable" is not an object',
-    ]);
-});
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 5) Use "toMatch" if "variable" is not an object',
+    'jest-codemods warning: (test.js line 6) Use "toMatch" if "variable" is not an object',
+  ])
+})
 
 test('warns about unsupported number of arguments (comparator)', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import expect from 'expect';
 
         test(() => {
@@ -622,14 +622,14 @@ test('warns about unsupported number of arguments (comparator)', () => {
             expect({ a: 1, b: 2 }).toNotInclude([ 'a', 'b' ], myFunc, 'msg');
             expect({ a: 1, b: 2 }).toNotIncludeKey([ 'a', 'b' ], myFunc);
         });
-    `);
-    const firstErrorLine = 5;
-    const numberOfErrors = 10;
-    expect(consoleWarnings).toEqual(
-        [...Array(numberOfErrors).keys()].map(
-            e =>
-                `jest-codemods warning: (test.js line ${e +
-                    firstErrorLine}) Too many arguments given to "toContain". Expected max 1 but got 2`
-        )
-    );
-});
+    `)
+  const firstErrorLine = 5
+  const numberOfErrors = 10
+  expect(consoleWarnings).toEqual(
+    [...Array(numberOfErrors).keys()].map(
+      e =>
+        `jest-codemods warning: (test.js line ${e +
+          firstErrorLine}) Too many arguments given to "toContain". Expected max 1 but got 2`
+    )
+  )
+})

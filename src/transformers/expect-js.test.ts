@@ -1,63 +1,63 @@
 /* eslint-env jest */
-import chalk from 'chalk';
+import chalk from 'chalk'
 
-import { wrapPlugin } from '../utils/test-helpers';
-import plugin from './expect-js';
+import { wrapPlugin } from '../utils/test-helpers'
+import plugin from './expect-js'
 
-chalk.enabled = false;
-const wrappedPlugin = wrapPlugin(plugin);
+chalk.enabled = false
+const wrappedPlugin = wrapPlugin(plugin)
 
-let consoleWarnings = [];
+let consoleWarnings = []
 beforeEach(() => {
-    consoleWarnings = [];
-    console.warn = v => consoleWarnings.push(v);
-});
+  consoleWarnings = []
+  console.warn = v => consoleWarnings.push(v)
+})
 
 function testChanged(msg, source, expectedOutput, options = {}) {
-    test(msg, () => {
-        const result = wrappedPlugin(source, options);
-        expect(result).toBe(expectedOutput);
-        expect(consoleWarnings).toEqual([]);
+  test(msg, () => {
+    const result = wrappedPlugin(source, options)
+    expect(result).toBe(expectedOutput)
+    expect(consoleWarnings).toEqual([])
 
-        // Running it twice should yield same result
-        expect(wrappedPlugin(result, options)).toBe(result);
-    });
+    // Running it twice should yield same result
+    expect(wrappedPlugin(result, options)).toBe(result)
+  })
 }
 
 testChanged(
-    'does not touch code without expect require/import',
-    `
+  'does not touch code without expect require/import',
+  `
     const test = require("testlib");
     test(t => {
       expect(stuff).to.be.ok();
     })
     `,
-    `
+  `
     const test = require("testlib");
     test(t => {
       expect(stuff).to.be.ok();
     })
     `
-);
+)
 
 testChanged(
-    'changes code without expect require/import if skipImportDetection is set',
-    `
+  'changes code without expect require/import if skipImportDetection is set',
+  `
     test(t => {
       expect(stuff).to.be.ok();
     })
     `,
-    `
+  `
     test(t => {
       expect(stuff).toBeTruthy();
     })
     `,
-    { skipImportDetection: true }
-);
+  { skipImportDetection: true }
+)
 
 testChanged(
-    'maps expect matchers',
-    `
+  'maps expect matchers',
+  `
     import expect from 'expect.js';
 
     test(() => {
@@ -80,7 +80,7 @@ testChanged(
       expect(stuff).to.match('message');
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).toBeTruthy();
       expect(stuff).toBeFalsy();
@@ -101,11 +101,11 @@ testChanged(
       expect(stuff).toMatch('message');
     });
     `
-);
+)
 
 testChanged(
-    'does not map non expect.js matchers',
-    `
+  'does not map non expect.js matchers',
+  `
     import expect from 'expect.js';
 
     test(() => {
@@ -113,17 +113,17 @@ testChanged(
       expect(stuff).to.be.bananas();
     });
     `,
-    `
+  `
     test(() => {
       bob(stuff).to.be.ok();
       expect(stuff).to.be.bananas();
     });
     `
-);
+)
 
 testChanged(
-    'maps expect not matchers',
-    `
+  'maps expect not matchers',
+  `
     import expect from 'expect.js';
 
     test(() => {
@@ -141,7 +141,7 @@ testChanged(
       expect(stuff).to.not.match('message');
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).not.toBe('message');
       expect(stuff).not.toBe('message');
@@ -157,11 +157,11 @@ testChanged(
       expect(stuff).not.toMatch('message');
     });
     `
-);
+)
 
 testChanged(
-    'maps expect number matchers',
-    `
+  'maps expect number matchers',
+  `
     import expect from 'expect.js';
 
     test(() => {
@@ -173,7 +173,7 @@ testChanged(
       expect(stuff).to.be.gt(42);
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).toBeLessThan(42);
       expect(stuff).toBeLessThan(42);
@@ -183,11 +183,11 @@ testChanged(
       expect(stuff).toBeGreaterThan(42);
     });
     `
-);
+)
 
 testChanged(
-    'maps expect throw matchers',
-    `
+  'maps expect throw matchers',
+  `
     import expect from 'expect.js';
 
     test(() => {
@@ -210,7 +210,7 @@ testChanged(
       });
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff).toThrowError(Error);
       expect(stuff).toThrow();
@@ -245,27 +245,27 @@ testChanged(
       }
     });
     `
-);
+)
 
 testChanged(
-    'maps expect fail matchers',
-    `
+  'maps expect fail matchers',
+  `
     import expect from 'expect.js';
 
     test(() => {
       expect().fail('message');
     });
     `,
-    `
+  `
     test(() => {
       throw Error('message');
     });
     `
-);
+)
 
 testChanged(
-    'maps expect a and an matchers',
-    `
+  'maps expect a and an matchers',
+  `
     import expect from 'expect.js';
 
     test(() => {
@@ -288,7 +288,7 @@ testChanged(
       expect(stuff).to.be.an(Thing);
     });
     `,
-    `
+  `
     test(() => {
       expect(typeof stuff).toBe('function');
       expect(typeof stuff).toBe('string');
@@ -309,40 +309,40 @@ testChanged(
       expect(stuff).toBeInstanceOf(Thing);
     });
     `
-);
+)
 
 testChanged(
-    'maps expect within matchers',
-    `
+  'maps expect within matchers',
+  `
     import expect from 'expect.js';
 
     test(() => {
       expect(stuff).to.be.within(0, 100);
     });
     `,
-    `
+  `
     test(() => {
       expect(stuff > 0 && stuff < 100).toBeTruthy();
     });
     `
-);
+)
 
 test('warns about unsupported matchers', () => {
-    wrappedPlugin(`
+  wrappedPlugin(`
         import expect from 'expect.js';
 
         test(() => {
           expect({ a: 'b', c: 'd' }).to.only.have.keys(['a', 'c']);
         });
-    `);
-    expect(consoleWarnings).toEqual([
-        'jest-codemods warning: (test.js line 5) Unsupported Expect.js Assertion "*.keys"',
-    ]);
-});
+    `)
+  expect(consoleWarnings).toEqual([
+    'jest-codemods warning: (test.js line 5) Unsupported Expect.js Assertion "*.keys"',
+  ])
+})
 
 testChanged(
-    'standaloneMode: keeps Jest expect import',
-    `
+  'standaloneMode: keeps Jest expect import',
+  `
     import expect from 'expect.js';
     import exp from 'expect';
 
@@ -350,14 +350,14 @@ testChanged(
       expect(stuff).to.be('message');
     });
     `,
-    `
+  `
     import exp from 'expect';
 
     test(() => {
       expect(stuff).toBe('message');
     });
     `,
-    {
-        standaloneMode: true,
-    }
-);
+  {
+    standaloneMode: true,
+  }
+)

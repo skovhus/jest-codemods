@@ -1,26 +1,26 @@
 /* eslint-env jest */
-import { wrapPlugin } from '../utils/test-helpers';
-import plugin from './mocha';
+import { wrapPlugin } from '../utils/test-helpers'
+import plugin from './mocha'
 
-const wrappedPlugin = wrapPlugin(plugin);
+const wrappedPlugin = wrapPlugin(plugin)
 
-let consoleWarnings = [];
+let consoleWarnings = []
 beforeEach(() => {
-    consoleWarnings = [];
-    console.warn = v => consoleWarnings.push(v);
-});
+  consoleWarnings = []
+  console.warn = v => consoleWarnings.push(v)
+})
 
 function testChanged(msg, source, expectedOutput) {
-    test(msg, () => {
-        const result = wrappedPlugin(source);
-        expect(result).toBe(expectedOutput);
-        expect(consoleWarnings).toEqual([]);
-    });
+  test(msg, () => {
+    const result = wrappedPlugin(source)
+    expect(result).toBe(expectedOutput)
+    expect(consoleWarnings).toEqual([])
+  })
 }
 
 testChanged(
-    'maps BDD-style interface',
-    `
+  'maps BDD-style interface',
+  `
 // @flow
 describe('describe', () => {
   before(() => {});
@@ -39,7 +39,7 @@ describe('describe', () => {
   })
 })
 `,
-    `
+  `
 // @flow
 describe('describe', () => {
   beforeAll(() => {});
@@ -58,11 +58,11 @@ describe('describe', () => {
   })
 })
 `
-);
+)
 
 testChanged(
-    'maps TDD-style interface',
-    `
+  'maps TDD-style interface',
+  `
 // @flow
 suite('suite', () => {
   suiteSetup(() => {});
@@ -78,7 +78,7 @@ suite('suite', () => {
   test('description', () => {});
 })
 `,
-    `
+  `
 // @flow
 describe('suite', () => {
   beforeAll(() => {});
@@ -94,45 +94,45 @@ describe('suite', () => {
   test('description', () => {});
 })
 `
-);
+)
 
 testChanged(
-    'preserves exclusive tests',
-    `
+  'preserves exclusive tests',
+  `
 // @flow
 suite.only('only suite', () => {
   test.only('only test', () => {});
 });
 `,
-    `
+  `
 // @flow
 describe.only('only suite', () => {
   test.only('only test', () => {});
 });
 `
-);
+)
 
 testChanged(
-    'preserves skipped tests',
-    `
+  'preserves skipped tests',
+  `
 // @flow
 suite.skip('skip suite', () => {
   test.skip('skip test', () => {});
   test('test will be skipped');
 });
 `,
-    `
+  `
 // @flow
 describe.skip('skip suite', () => {
   test.skip('skip test', () => {});
   test.skip('test will be skipped', () => {});
 });
 `
-);
+)
 
 testChanged(
-    'preserves call expressions that are defined in scope',
-    `
+  'preserves call expressions that are defined in scope',
+  `
 const setup = () => {};
 context('test suite', () => {
     test('test', () => {
@@ -140,7 +140,7 @@ context('test suite', () => {
     });
 });
 `,
-    `
+  `
 const setup = () => {};
 describe('test suite', () => {
     test('test', () => {
@@ -148,17 +148,17 @@ describe('test suite', () => {
     });
 });
 `
-);
+)
 
 testChanged(
-    'removes mocha import',
-    `
+  'removes mocha import',
+  `
 import { describe, it } from 'mocha';
 suite('suite', () => {
 })
     `,
-    `
+  `
 describe('suite', () => {
 })
     `
-);
+)

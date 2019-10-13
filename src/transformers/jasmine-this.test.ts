@@ -1,22 +1,22 @@
 /* eslint-env jest */
-import chalk from 'chalk';
+import chalk from 'chalk'
 
-import { wrapPlugin } from '../utils/test-helpers';
-import plugin from './jasmine-this';
+import { wrapPlugin } from '../utils/test-helpers'
+import plugin from './jasmine-this'
 
-chalk.enabled = false;
-const wrappedPlugin = wrapPlugin(plugin);
+chalk.enabled = false
+const wrappedPlugin = wrapPlugin(plugin)
 
 function testChanged(msg, source, expectedOutput) {
-    test(msg, () => {
-        const result = wrappedPlugin(source);
-        expect(result).toBe(expectedOutput);
-    });
+  test(msg, () => {
+    const result = wrappedPlugin(source)
+    expect(result).toBe(expectedOutput)
+  })
 }
 
 testChanged(
-    'transforms simple cases',
-    `
+  'transforms simple cases',
+  `
 describe('foo', function() {
     beforeEach(function() {
         this.foo = { id: 'FOO' };
@@ -30,7 +30,7 @@ describe('foo', function() {
     });
 });
 `,
-    `
+  `
 describe('foo', () => {
     let testContext;
 
@@ -50,11 +50,11 @@ describe('foo', () => {
     });
 });
 `
-);
+)
 
 testChanged(
-    'does not transform generator functions',
-    `
+  'does not transform generator functions',
+  `
 describe('foo', function*() {
     beforeEach(function*() {
         this.foo = { id: 'FOO' };
@@ -68,7 +68,7 @@ describe('foo', function*() {
     });
 });
 `,
-    `
+  `
 describe('foo', function*() {
     let testContext;
 
@@ -88,11 +88,11 @@ describe('foo', function*() {
     });
 });
 `
-);
+)
 
 testChanged(
-    'transforms only test functions context',
-    `
+  'transforms only test functions context',
+  `
 describe('foo', function() {
     const MockClass = function(options) {
         this.options = options;
@@ -129,7 +129,7 @@ describe('bar', function () {
   });
 });
 `,
-    `
+  `
 describe('foo', () => {
     let testContext;
 
@@ -172,11 +172,11 @@ describe('bar', () => {
   });
 });
 `
-);
+)
 
 testChanged(
-    'transforms nested describes',
-    `
+  'transforms nested describes',
+  `
 describe('foo', function() {
     beforeEach(function() {
         this.foo = { id: 'FOO' };
@@ -198,7 +198,7 @@ describe('foo', function() {
     });
 });
 `,
-    `
+  `
 describe('foo', () => {
     let testContext;
 
@@ -226,11 +226,11 @@ describe('foo', () => {
     });
 });
 `
-);
+)
 
 testChanged(
-    'transforms plain functions within lifecycle methods',
-    `
+  'transforms plain functions within lifecycle methods',
+  `
 describe('foo', function() {
     beforeEach(function() {
         this.foo = { id: 'FOO' };
@@ -261,7 +261,7 @@ describe('foo', function() {
     });
 });
 `,
-    `
+  `
 describe('foo', () => {
     let testContext;
 
@@ -298,11 +298,11 @@ describe('foo', () => {
     });
 });
 `
-);
+)
 
 testChanged(
-    'transforms context within arrow functions',
-    `
+  'transforms context within arrow functions',
+  `
 describe('foo', () => {
     beforeEach(function() {
         this.foo = { id: 'FOO' };
@@ -313,7 +313,7 @@ describe('foo', () => {
     });
 });
 `,
-    `
+  `
 describe('foo', () => {
     let testContext;
 
@@ -330,11 +330,11 @@ describe('foo', () => {
     });
 });
 `
-);
+)
 
 testChanged(
-    'transforms context within async functions',
-    `
+  'transforms context within async functions',
+  `
 describe('foo', function () {
     beforeEach(async function() {
         this.foo = await globalPromise();
@@ -346,7 +346,7 @@ describe('foo', function () {
     });
 });
 `,
-    `
+  `
 describe('foo', () => {
     let testContext;
 
@@ -364,11 +364,11 @@ describe('foo', () => {
     });
 });
 `
-);
+)
 
 testChanged(
-    'original issue example',
-    `
+  'original issue example',
+  `
 beforeEach(function () {
     this.hello = 'hi';
 });
@@ -383,7 +383,7 @@ describe('context', () => {
     });
 });
 `,
-    `
+  `
 let testContext;
 
 beforeEach(() => {
@@ -404,11 +404,11 @@ describe('context', () => {
     });
 });
 `
-);
+)
 
 testChanged(
-    'does not transform mocha specific methods',
-    `
+  'does not transform mocha specific methods',
+  `
 describe('foo', function () {
     it('should keep mocha methods', function() {
         this.timeout(500);
@@ -418,7 +418,7 @@ describe('foo', function () {
     });
 });
 `,
-    `
+  `
 describe('foo', () => {
     it('should keep mocha methods', () => {
         this.timeout(500);
@@ -428,11 +428,11 @@ describe('foo', () => {
     });
 });
 `
-);
+)
 
 testChanged(
-    'ignores a function in an array',
-    `
+  'ignores a function in an array',
+  `
 describe('foo', function() {
     it('should tolerate an array of functions', function() {
         foo.apply(model, [
@@ -443,7 +443,7 @@ describe('foo', function() {
     });
 });
 `,
-    `
+  `
 describe('foo', () => {
     it('should tolerate an array of functions', () => {
         foo.apply(model, [
@@ -454,4 +454,4 @@ describe('foo', () => {
     });
 });
 `
-);
+)

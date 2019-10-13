@@ -6,5 +6,5 @@
  * @return '\n' or '\r\n'
  */
 export default function detectLineTerminator(source) {
-    return source && source.includes('\r\n') ? '\r\n' : '\n';
+  return source && source.includes('\r\n') ? '\r\n' : '\n'
 }

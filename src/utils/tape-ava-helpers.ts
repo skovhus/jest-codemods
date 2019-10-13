@@ -1,4 +1,4 @@
-import logger from './logger';
+import logger from './logger'
 
 /**
  * Rewrite last argument of a given CallExpression path
@@ -6,18 +6,18 @@ import logger from './logger';
  * @param  {CallExpression} path
  */
 function renameTestFunctionArgument(j, path, newArgument) {
-    const lastArg = path.node.arguments[path.node.arguments.length - 1];
-    if (lastArg.type === 'ArrowFunctionExpression') {
-        const arrowFunction = j.arrowFunctionExpression(
-            [j.identifier(newArgument === '' ? '()' : newArgument)],
-            lastArg.body,
-            false
-        );
-        arrowFunction.async = lastArg.async;
-        path.node.arguments[path.node.arguments.length - 1] = arrowFunction;
-    } else if (lastArg.type === 'FunctionExpression') {
-        lastArg.params = [j.identifier(newArgument)];
-    }
+  const lastArg = path.node.arguments[path.node.arguments.length - 1]
+  if (lastArg.type === 'ArrowFunctionExpression') {
+    const arrowFunction = j.arrowFunctionExpression(
+      [j.identifier(newArgument === '' ? '()' : newArgument)],
+      lastArg.body,
+      false
+    )
+    arrowFunction.async = lastArg.async
+    path.node.arguments[path.node.arguments.length - 1] = arrowFunction
+  } else if (lastArg.type === 'FunctionExpression') {
+    lastArg.params = [j.identifier(newArgument)]
+  }
 }
 
 /**
@@ -27,19 +27,19 @@ function renameTestFunctionArgument(j, path, newArgument) {
  * @return {boolean}    if any paths were changed
  */
 function rewriteFailingAssertion(j, path) {
-    return (
-        j(path)
-            .find(j.CallExpression, {
-                callee: {
-                    object: { name: 't' },
-                    property: { name: 'fail' },
-                },
-            })
-            .forEach(pFail => {
-                pFail.node.callee = j.identifier('done.fail');
-            })
-            .size() > 0
-    );
+  return (
+    j(path)
+      .find(j.CallExpression, {
+        callee: {
+          object: { name: 't' },
+          property: { name: 'fail' },
+        },
+      })
+      .forEach(pFail => {
+        pFail.node.callee = j.identifier('done.fail')
+      })
+      .size() > 0
+  )
 }
 
 /**
@@ -49,45 +49,45 @@ function rewriteFailingAssertion(j, path) {
  * @return {boolean}    if any paths were changed
  */
 function rewriteEndCallback(j, path) {
-    // calls to t.end()
-    const containsCalls =
-        j(path)
-            .find(j.CallExpression, {
-                callee: {
-                    object: { name: 't' },
-                    property: { name: 'end' },
-                },
-            })
-            .filter(p => {
-                // if t.end is in the scope of the test function we remove it
-                const outerParent = p.parent.parent.parent.node;
-                const inTestScope =
-                    outerParent.params &&
-                    outerParent.params[0] &&
-                    outerParent.params[0].name === 't';
-                if (inTestScope) {
-                    p.prune();
-                    return null;
-                }
+  // calls to t.end()
+  const containsCalls =
+    j(path)
+      .find(j.CallExpression, {
+        callee: {
+          object: { name: 't' },
+          property: { name: 'end' },
+        },
+      })
+      .filter(p => {
+        // if t.end is in the scope of the test function we remove it
+        const outerParent = p.parent.parent.parent.node
+        const inTestScope =
+          outerParent.params &&
+          outerParent.params[0] &&
+          outerParent.params[0].name === 't'
+        if (inTestScope) {
+          p.prune()
+          return null
+        }
 
-                // else it might be used for async testing. We rename it to
-                // familiar Jasmine 'done()'
-                p.node.callee = j.identifier('done');
-                return true;
-            })
-            .size() > 0;
+        // else it might be used for async testing. We rename it to
+        // familiar Jasmine 'done()'
+        p.node.callee = j.identifier('done')
+        return true
+      })
+      .size() > 0
 
-    // references to t.end
-    const containsReference =
-        j(path)
-            .find(j.MemberExpression, {
-                object: { name: 't' },
-                property: { name: 'end' },
-            })
-            .replaceWith(j.identifier('done'))
-            .size() > 0;
+  // references to t.end
+  const containsReference =
+    j(path)
+      .find(j.MemberExpression, {
+        object: { name: 't' },
+        property: { name: 'end' },
+      })
+      .replaceWith(j.identifier('done'))
+      .size() > 0
 
-    return containsCalls || containsReference;
+  return containsCalls || containsReference
 }
 
 /**
@@ -96,15 +96,15 @@ function rewriteEndCallback(j, path) {
  * @param  {CallExpression} path
  */
 function removePassingAssertion(j, path) {
-    // t.pass is a no op
-    j(path)
-        .find(j.CallExpression, {
-            callee: {
-                object: { name: 't' },
-                property: { name: 'pass' },
-            },
-        })
-        .remove();
+  // t.pass is a no op
+  j(path)
+    .find(j.CallExpression, {
+      callee: {
+        object: { name: 't' },
+        property: { name: 'pass' },
+      },
+    })
+    .remove()
 }
 
 /**
@@ -117,11 +117,11 @@ function removePassingAssertion(j, path) {
  * @param  {CallExpression} path of test function
  */
 export function rewriteAssertionsAndTestArgument(j, path) {
-    const containsFailCalls = rewriteFailingAssertion(j, path);
-    const containsEndCalls = rewriteEndCallback(j, path);
-    removePassingAssertion(j, path);
-    const argumentName = containsEndCalls || containsFailCalls ? 'done' : '';
-    renameTestFunctionArgument(j, path, argumentName);
+  const containsFailCalls = rewriteFailingAssertion(j, path)
+  const containsEndCalls = rewriteEndCallback(j, path)
+  removePassingAssertion(j, path)
+  const argumentName = containsEndCalls || containsFailCalls ? 'done' : ''
+  renameTestFunctionArgument(j, path, argumentName)
 }
 
 /**
@@ -130,35 +130,37 @@ export function rewriteAssertionsAndTestArgument(j, path) {
  * test(({ok}) => {ok()}) to test(t => {ok()})
  */
 export function rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName) {
-    ast.find(j.CallExpression, {
-        callee: callee =>
-            callee.name === testFunctionName ||
-            (callee.object && callee.object.name === testFunctionName),
-    }).forEach(p => {
-        // The last arg is the test callback
-        const lastArg = p.value.arguments[p.value.arguments.length - 1];
-        const lastArgParam = lastArg && lastArg.params && lastArg.params[0];
-        if (lastArgParam && lastArgParam.type === 'ObjectPattern') {
-            const objectPattern = lastArg.params[0];
-            const keys = objectPattern.properties.map(prop => prop.key.name);
-            lastArg.params[0] = j.identifier('t');
+  ast
+    .find(j.CallExpression, {
+      callee: callee =>
+        callee.name === testFunctionName ||
+        (callee.object && callee.object.name === testFunctionName),
+    })
+    .forEach(p => {
+      // The last arg is the test callback
+      const lastArg = p.value.arguments[p.value.arguments.length - 1]
+      const lastArgParam = lastArg && lastArg.params && lastArg.params[0]
+      if (lastArgParam && lastArgParam.type === 'ObjectPattern') {
+        const objectPattern = lastArg.params[0]
+        const keys = objectPattern.properties.map(prop => prop.key.name)
+        lastArg.params[0] = j.identifier('t')
 
-            keys.forEach(key => {
-                j(lastArg)
-                    .find(j.CallExpression, {
-                        callee: { name: key },
-                    })
-                    .forEach(assertion => {
-                        j(assertion).replaceWith(
-                            j.callExpression(
-                                j.memberExpression(j.identifier('t'), j.identifier(key)),
-                                assertion.node.arguments
-                            )
-                        );
-                    });
-            });
-        }
-    });
+        keys.forEach(key => {
+          j(lastArg)
+            .find(j.CallExpression, {
+              callee: { name: key },
+            })
+            .forEach(assertion => {
+              j(assertion).replaceWith(
+                j.callExpression(
+                  j.memberExpression(j.identifier('t'), j.identifier(key)),
+                  assertion.node.arguments
+                )
+              )
+            })
+        })
+      }
+    })
 }
 
 /**
@@ -167,23 +169,25 @@ export function rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName)
  * Example: 'test(x => {})' gives a warning.
  */
 export function detectUnsupportedNaming(fileInfo, j, ast, testFunctionName) {
-    ast.find(j.CallExpression, {
-        callee: callee =>
-            callee.name === testFunctionName ||
-            (callee.object && callee.object.name === testFunctionName),
-    }).forEach(p => {
-        const lastArg = p.value.arguments[p.value.arguments.length - 1];
-        if (lastArg && lastArg.params && lastArg.params[0]) {
-            const lastArgName = lastArg.params[0].name;
+  ast
+    .find(j.CallExpression, {
+      callee: callee =>
+        callee.name === testFunctionName ||
+        (callee.object && callee.object.name === testFunctionName),
+    })
+    .forEach(p => {
+      const lastArg = p.value.arguments[p.value.arguments.length - 1]
+      if (lastArg && lastArg.params && lastArg.params[0]) {
+        const lastArgName = lastArg.params[0].name
 
-            // Currently we only support "t" as the test argument name
-            if (lastArgName !== 't') {
-                logger(
-                    fileInfo,
-                    `Argument to test function should be named "t" not "${lastArgName}"`,
-                    p
-                );
-            }
+        // Currently we only support "t" as the test argument name
+        if (lastArgName !== 't') {
+          logger(
+            fileInfo,
+            `Argument to test function should be named "t" not "${lastArgName}"`,
+            p
+          )
         }
-    });
+      }
+    })
 }

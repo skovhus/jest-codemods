@@ -1,248 +1,246 @@
 /**
  * Codemod for transforming Tape tests into Jest.
  */
-import { PROP_WITH_SECONDS_ARGS } from '../utils/consts';
-import finale from '../utils/finale';
-import { removeRequireAndImport } from '../utils/imports';
-import logger from '../utils/logger';
+import { PROP_WITH_SECONDS_ARGS } from '../utils/consts'
+import finale from '../utils/finale'
+import { removeRequireAndImport } from '../utils/imports'
+import logger from '../utils/logger'
 import {
-    detectUnsupportedNaming,
-    rewriteAssertionsAndTestArgument,
-    rewriteDestructuredTArgument,
-} from '../utils/tape-ava-helpers';
+  detectUnsupportedNaming,
+  rewriteAssertionsAndTestArgument,
+  rewriteDestructuredTArgument,
+} from '../utils/tape-ava-helpers'
 
-const SPECIAL_THROWS_CASE = '(special throws case)';
-const SPECIAL_PLAN_CASE = '(special plan case)';
+const SPECIAL_THROWS_CASE = '(special throws case)'
+const SPECIAL_PLAN_CASE = '(special plan case)'
 
 const tPropertiesMap = {
-    ok: 'toBeTruthy',
-    true: 'toBeTruthy',
-    assert: 'toBeTruthy',
+  ok: 'toBeTruthy',
+  true: 'toBeTruthy',
+  assert: 'toBeTruthy',
 
-    notOk: 'toBeFalsy',
-    false: 'toBeFalsy',
-    notok: 'toBeFalsy',
+  notOk: 'toBeFalsy',
+  false: 'toBeFalsy',
+  notok: 'toBeFalsy',
 
-    error: 'toBeFalsy',
-    ifError: 'toBeFalsy',
-    ifErr: 'toBeFalsy',
-    iferror: 'toBeFalsy',
+  error: 'toBeFalsy',
+  ifError: 'toBeFalsy',
+  ifErr: 'toBeFalsy',
+  iferror: 'toBeFalsy',
 
-    equal: 'toBe',
-    equals: 'toBe',
-    isEqual: 'toBe',
-    is: 'toBe',
-    strictEqual: 'toBe',
-    strictEquals: 'toBe',
+  equal: 'toBe',
+  equals: 'toBe',
+  isEqual: 'toBe',
+  is: 'toBe',
+  strictEqual: 'toBe',
+  strictEquals: 'toBe',
 
-    notEqual: 'not.toBe',
-    notEquals: 'not.toBe',
-    notStrictEqual: 'not.toBe',
-    notStrictEquals: 'not.toBe',
-    isNotEqual: 'not.toBe',
-    isNot: 'not.toBe',
-    not: 'not.toBe',
-    doesNotEqual: 'not.toBe',
-    isInequal: 'not.toBe',
+  notEqual: 'not.toBe',
+  notEquals: 'not.toBe',
+  notStrictEqual: 'not.toBe',
+  notStrictEquals: 'not.toBe',
+  isNotEqual: 'not.toBe',
+  isNot: 'not.toBe',
+  not: 'not.toBe',
+  doesNotEqual: 'not.toBe',
+  isInequal: 'not.toBe',
 
-    deepEqual: 'toEqual',
-    deepEquals: 'toEqual',
-    isEquivalent: 'toEqual',
-    same: 'toEqual',
+  deepEqual: 'toEqual',
+  deepEquals: 'toEqual',
+  isEquivalent: 'toEqual',
+  same: 'toEqual',
 
-    notDeepEqual: 'not.toEqual',
-    notEquivalent: 'not.toEqual',
-    notDeeply: 'not.toEqual',
-    notSame: 'not.toEqual',
-    isNotDeepEqual: 'not.toEqual',
-    isNotDeeply: 'not.toEqual',
-    isNotEquivalent: 'not.toEqual',
-    isInequivalent: 'not.toEqual',
+  notDeepEqual: 'not.toEqual',
+  notEquivalent: 'not.toEqual',
+  notDeeply: 'not.toEqual',
+  notSame: 'not.toEqual',
+  isNotDeepEqual: 'not.toEqual',
+  isNotDeeply: 'not.toEqual',
+  isNotEquivalent: 'not.toEqual',
+  isInequivalent: 'not.toEqual',
 
-    throws: SPECIAL_THROWS_CASE,
-    doesNotThrow: SPECIAL_THROWS_CASE,
-    plan: SPECIAL_PLAN_CASE,
-};
+  throws: SPECIAL_THROWS_CASE,
+  doesNotThrow: SPECIAL_THROWS_CASE,
+  plan: SPECIAL_PLAN_CASE,
+}
 
-const tPropertiesNotMapped = new Set(['pass', 'fail', 'end', 'comment']);
+const tPropertiesNotMapped = new Set(['pass', 'fail', 'end', 'comment'])
 
 const tPropertiesUnsupported = new Set([
-    'timeoutAfter', // toEqual is more strict but might be used in some cases:
-    'deepLooseEqual',
-    'looseEqual',
-    'looseEquals',
-    'notDeepLooseEqual',
-    'notLooseEqual',
-    'notLooseEquals',
-    'skip',
-]);
+  'timeoutAfter', // toEqual is more strict but might be used in some cases:
+  'deepLooseEqual',
+  'looseEqual',
+  'looseEquals',
+  'notDeepLooseEqual',
+  'notLooseEqual',
+  'notLooseEquals',
+  'skip',
+])
 
-const unsupportedTestFunctionProperties = new Set(['createStream', 'onFinish']);
+const unsupportedTestFunctionProperties = new Set(['createStream', 'onFinish'])
 
 export default function tapeToJest(fileInfo, api, options) {
-    const j = api.jscodeshift;
-    const ast = j(fileInfo.source);
+  const j = api.jscodeshift
+  const ast = j(fileInfo.source)
 
-    let testFunctionName = removeRequireAndImport(j, ast, 'tape');
+  let testFunctionName = removeRequireAndImport(j, ast, 'tape')
 
-    if (!testFunctionName) {
-        // No Tape require/import were found
-        if (!options.skipImportDetection) {
-            return fileInfo.source;
-        }
-
-        testFunctionName = 'tape';
+  if (!testFunctionName) {
+    // No Tape require/import were found
+    if (!options.skipImportDetection) {
+      return fileInfo.source
     }
 
-    const logWarning = (msg, node) => logger(fileInfo, msg, node);
+    testFunctionName = 'tape'
+  }
 
-    const transforms = [
-        () => rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName),
-        () => detectUnsupportedNaming(fileInfo, j, ast, testFunctionName),
-        function detectUnsupportedFeatures() {
-            ast.find(j.CallExpression, {
-                callee: {
-                    object: { name: 't' },
-                    property: ({ name }) => tPropertiesUnsupported.has(name),
-                },
-            }).forEach(p => {
-                const propertyName = p.value.callee.property.name;
-                if (propertyName.toLowerCase().indexOf('looseequal') >= 0) {
-                    logWarning(
-                        `"t.${propertyName}" is currently not supported. Try the stricter "toEqual" or "not.toEqual"`,
-                        p
-                    );
-                } else {
-                    logWarning(`"t.${propertyName}" is currently not supported`, p);
-                }
-            });
+  const logWarning = (msg, node) => logger(fileInfo, msg, node)
 
-            ast.find(j.CallExpression, {
-                callee: {
-                    object: { name: testFunctionName },
-                    property: ({ name }) => unsupportedTestFunctionProperties.has(name),
-                },
-            }).forEach(p => {
-                const propertyName = p.value.callee.property.name;
-                logWarning(`"${propertyName}" is currently not supported`, p);
-            });
-        },
-        function updateAssertions() {
-            ast.find(j.CallExpression, {
-                callee: {
-                    object: { name: 't' },
-                    property: ({ name }) =>
-                        !tPropertiesUnsupported.has(name) &&
-                        !tPropertiesNotMapped.has(name),
-                },
-            }).forEach(p => {
-                const args = p.node.arguments;
-                const oldPropertyName = p.value.callee.property.name;
-                const newPropertyName = tPropertiesMap[oldPropertyName];
+  const transforms = [
+    () => rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName),
+    () => detectUnsupportedNaming(fileInfo, j, ast, testFunctionName),
+    function detectUnsupportedFeatures() {
+      ast
+        .find(j.CallExpression, {
+          callee: {
+            object: { name: 't' },
+            property: ({ name }) => tPropertiesUnsupported.has(name),
+          },
+        })
+        .forEach(p => {
+          const propertyName = p.value.callee.property.name
+          if (propertyName.toLowerCase().indexOf('looseequal') >= 0) {
+            logWarning(
+              `"t.${propertyName}" is currently not supported. Try the stricter "toEqual" or "not.toEqual"`,
+              p
+            )
+          } else {
+            logWarning(`"t.${propertyName}" is currently not supported`, p)
+          }
+        })
 
-                if (typeof newPropertyName === 'undefined') {
-                    logWarning(`"t.${oldPropertyName}" is currently not supported`, p);
-                    return null;
-                }
+      ast
+        .find(j.CallExpression, {
+          callee: {
+            object: { name: testFunctionName },
+            property: ({ name }) => unsupportedTestFunctionProperties.has(name),
+          },
+        })
+        .forEach(p => {
+          const propertyName = p.value.callee.property.name
+          logWarning(`"${propertyName}" is currently not supported`, p)
+        })
+    },
+    function updateAssertions() {
+      ast
+        .find(j.CallExpression, {
+          callee: {
+            object: { name: 't' },
+            property: ({ name }) =>
+              !tPropertiesUnsupported.has(name) && !tPropertiesNotMapped.has(name),
+          },
+        })
+        .forEach(p => {
+          const args = p.node.arguments
+          const oldPropertyName = p.value.callee.property.name
+          const newPropertyName = tPropertiesMap[oldPropertyName]
 
-                let newCondition;
-                if (newPropertyName === SPECIAL_THROWS_CASE) {
-                    // The semantics of t.throws(fn, expected, msg) in Tape:
-                    // If `expected` is a string, it is set to msg, else exception reg exp
-                    const secondArgString =
-                        args.length === 2 &&
-                        args[1].type === 'Literal' &&
-                        typeof args[1].value === 'string';
-                    const noErrorType = args.length === 1 || secondArgString;
-                    if (noErrorType) {
-                        newCondition = j.callExpression(
-                            j.identifier(
-                                oldPropertyName === 'throws' ? 'toThrow' : 'not.toThrow'
-                            ),
-                            []
-                        );
-                    } else {
-                        newCondition = j.callExpression(
-                            j.identifier(
-                                oldPropertyName === 'throws'
-                                    ? 'toThrowError'
-                                    : 'not.toThrowError'
-                            ),
-                            [args[1]]
-                        );
-                    }
-                } else if (newPropertyName === SPECIAL_PLAN_CASE) {
-                    const condition = j.memberExpression(
-                        j.identifier('expect'),
-                        j.callExpression(j.identifier('assertions'), [args[0]])
-                    );
-                    return j(p).replaceWith(condition);
-                } else {
-                    const hasSecondArgument =
-                        PROP_WITH_SECONDS_ARGS.indexOf(newPropertyName) >= 0;
-                    const conditionArgs = hasSecondArgument ? [args[1]] : [];
-                    newCondition = j.callExpression(
-                        j.identifier(newPropertyName),
-                        conditionArgs
-                    );
-                }
+          if (typeof newPropertyName === 'undefined') {
+            logWarning(`"t.${oldPropertyName}" is currently not supported`, p)
+            return null
+          }
 
-                const newExpression = j.memberExpression(
-                    j.callExpression(j.identifier('expect'), [args[0]]),
-                    newCondition
-                );
+          let newCondition
+          if (newPropertyName === SPECIAL_THROWS_CASE) {
+            // The semantics of t.throws(fn, expected, msg) in Tape:
+            // If `expected` is a string, it is set to msg, else exception reg exp
+            const secondArgString =
+              args.length === 2 &&
+              args[1].type === 'Literal' &&
+              typeof args[1].value === 'string'
+            const noErrorType = args.length === 1 || secondArgString
+            if (noErrorType) {
+              newCondition = j.callExpression(
+                j.identifier(oldPropertyName === 'throws' ? 'toThrow' : 'not.toThrow'),
+                []
+              )
+            } else {
+              newCondition = j.callExpression(
+                j.identifier(
+                  oldPropertyName === 'throws' ? 'toThrowError' : 'not.toThrowError'
+                ),
+                [args[1]]
+              )
+            }
+          } else if (newPropertyName === SPECIAL_PLAN_CASE) {
+            const condition = j.memberExpression(
+              j.identifier('expect'),
+              j.callExpression(j.identifier('assertions'), [args[0]])
+            )
+            return j(p).replaceWith(condition)
+          } else {
+            const hasSecondArgument = PROP_WITH_SECONDS_ARGS.indexOf(newPropertyName) >= 0
+            const conditionArgs = hasSecondArgument ? [args[1]] : []
+            newCondition = j.callExpression(j.identifier(newPropertyName), conditionArgs)
+          }
 
-                return j(p).replaceWith(newExpression);
-            });
-        },
-        function updateTapeComments() {
-            ast.find(j.CallExpression, {
-                callee: {
-                    object: { name: 't' },
-                    property: { name: 'comment' },
-                },
-            }).forEach(p => {
-                p.node.callee = 'console.log';
-            });
-        },
-        function rewriteTestCallExpression() {
-            ast.find(j.CallExpression, {
-                callee: { name: testFunctionName },
-            }).forEach(p => {
-                // Convert Tape option parameters, test([name], [opts], cb)
-                p.value.arguments.forEach(a => {
-                    if (a.type === 'ObjectExpression') {
-                        a.properties.forEach(tapeOption => {
-                            const tapeOptionKey = tapeOption.key.name;
-                            const tapeOptionValue = tapeOption.value.value;
-                            if (tapeOptionKey === 'skip' && tapeOptionValue === true) {
-                                p.value.callee.name = 'test.skip';
-                            }
+          const newExpression = j.memberExpression(
+            j.callExpression(j.identifier('expect'), [args[0]]),
+            newCondition
+          )
 
-                            if (tapeOptionKey === 'timeout') {
-                                logWarning(
-                                    '"timeout" option is currently not supported',
-                                    p
-                                );
-                            }
-                        });
-
-                        p.value.arguments = p.value.arguments.filter(
-                            pa => pa.type !== 'ObjectExpression'
-                        );
-                    }
-                });
-
-                if (p.node.callee.name !== 'test.skip') {
-                    p.node.callee.name = 'test';
+          return j(p).replaceWith(newExpression)
+        })
+    },
+    function updateTapeComments() {
+      ast
+        .find(j.CallExpression, {
+          callee: {
+            object: { name: 't' },
+            property: { name: 'comment' },
+          },
+        })
+        .forEach(p => {
+          p.node.callee = 'console.log'
+        })
+    },
+    function rewriteTestCallExpression() {
+      ast
+        .find(j.CallExpression, {
+          callee: { name: testFunctionName },
+        })
+        .forEach(p => {
+          // Convert Tape option parameters, test([name], [opts], cb)
+          p.value.arguments.forEach(a => {
+            if (a.type === 'ObjectExpression') {
+              a.properties.forEach(tapeOption => {
+                const tapeOptionKey = tapeOption.key.name
+                const tapeOptionValue = tapeOption.value.value
+                if (tapeOptionKey === 'skip' && tapeOptionValue === true) {
+                  p.value.callee.name = 'test.skip'
                 }
 
-                rewriteAssertionsAndTestArgument(j, p);
-            });
-        },
-    ];
+                if (tapeOptionKey === 'timeout') {
+                  logWarning('"timeout" option is currently not supported', p)
+                }
+              })
 
-    transforms.forEach(t => t());
+              p.value.arguments = p.value.arguments.filter(
+                pa => pa.type !== 'ObjectExpression'
+              )
+            }
+          })
 
-    return finale(fileInfo, j, ast, options);
+          if (p.node.callee.name !== 'test.skip') {
+            p.node.callee.name = 'test'
+          }
+
+          rewriteAssertionsAndTestArgument(j, p)
+        })
+    },
+  ]
+
+  transforms.forEach(t => t())
+
+  return finale(fileInfo, j, ast, options)
 }
