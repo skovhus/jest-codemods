@@ -46,16 +46,14 @@ For more options
 ```
 $ npx jest-codemods --help
 
-    Codemods for migrating test files to Jest.
+    Usage:      npx jest-codemods <path> [options]
 
-    Usage
-      $ npx jest-codemods <path> [options]
+    Examples:   npx jest-codemods src
+                npx jest-codemods src/**/*.test.js
 
-    path	        Files or directory to transform. Can be a glob like src/**.test.js
-
-    Options
-      --force, -f	Bypass Git safety checks and forcibly run codemods
-      --dry, -d		Dry run (no changes are made to files)
+    Options:
+      -f, --force       Bypass Git safety checks and force codemods to run
+      -d, --dry         Dry run (no changes are made to files)
 ```
 
 To transform all test files in a directory run `jest-codemods .` in your terminal.

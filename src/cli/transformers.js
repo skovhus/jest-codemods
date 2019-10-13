@@ -32,7 +32,7 @@ function executeTransformation({ files, flags, parser, transformer, transformerA
 
     const result = execa.sync(jscodeshiftExecutable, args, {
         stdio: 'inherit',
-        stripEof: false,
+        stripFinalNewline: false,
     });
 
     if (result.error) {

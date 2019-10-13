@@ -8,19 +8,15 @@ import checkGitStatus from './git-status';
 import { executeTransformations } from './transformers';
 
 const cli = meow(
-    {
-        description: 'Codemods for migrating test files to Jest.',
-        help: `
-    Usage
-      $ npx jest-codemods <path> [options]
+    `
+Usage:      npx jest-codemods <path> [options]
 
-    path    Files or directory to transform. Can be a glob like src/**.test.js
+Examples:   npx jest-codemods src
+            npx jest-codemods src/**/*.test.js
 
-    Options
-      --force, -f           Bypass Git safety checks and forcibly run codemods
-      --dry, -d             Dry run (no changes are made to files)
-    `,
-    },
+Options:
+  -f, --force       Bypass Git safety checks and force codemods to run
+  -d, --dry         Dry run (no changes are made to files)`,
     {
         boolean: ['force', 'dry'],
         string: ['_'],
@@ -28,6 +24,18 @@ const cli = meow(
             f: 'force',
             h: 'help',
             d: 'dry',
+        },
+    },
+    {
+        flags: {
+            force: {
+                type: 'boolean',
+                alias: 'f',
+            },
+            dry: {
+                type: 'boolean',
+                alias: 'd',
+            },
         },
     }
 );

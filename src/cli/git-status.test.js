@@ -56,7 +56,7 @@ it('does not exit when git repo is dirty and force flag is given', () => {
     process.exit = jest.fn();
     checkGitStatus(true);
     expect(console.log).toBeCalledWith(
-        'WARNING: Git directory is not clean. Forcibly continuing.'
+        'WARNING: Git directory is not clean. Forcibly continuing.\n'
     );
     expect(process.exit).not.toBeCalled();
 });
