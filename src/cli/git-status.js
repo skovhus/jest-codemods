@@ -15,7 +15,7 @@ export default function checkGitStatus(force) {
 
     if (!clean) {
         if (force) {
-            console.log(`WARNING: ${errorMessage}. Forcibly continuing.`);
+            console.log(`WARNING: ${errorMessage}. Forcibly continuing.\n`);
         } else {
             console.log('Thank you for using jest-codemods!');
             console.log(
