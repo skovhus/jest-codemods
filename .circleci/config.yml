@@ -1,6 +1,7 @@
 version: 2
+
 jobs:
-  build:
+  verify:
     docker:
       - image: circleci/node:10
 
@@ -22,3 +23,9 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
 
       - run: yarn run ci
+      
+workflows:
+  version: 2
+  main_workflow:
+    jobs:
+      - verify
