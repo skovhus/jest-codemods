@@ -18,11 +18,12 @@
     "dist"
   ],
   "scripts": {
-    "build": "babel src -d dist --ignore='src/**/*.test.js'",
+    "build": "tsc",
     "check": "npm run lint && npm run test:cov",
-    "check:bail": "eslint src && npm run test:cov",
+    "check:bail": "yarn lint:bail && npm run test:cov",
     "clean": "rm -rf lib coverage npm-debug.log dist",
-    "lint": "eslint --fix src",
+    "lint": "yarn run lint:bail --fix",
+    "lint:bail": "eslint src --ext js,ts,tsx",
     "format": "prettier --ignore-path .gitignore --write './**/*.js'",
     "prepare": "npm run build",
     "prepublish": "npm run clean && npm run check:bail",
@@ -68,24 +69,27 @@
     "update-notifier": "^3.0.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.6.4",
-    "@babel/core": "^7.6.4",
-    "@babel/preset-env": "^7.6.3",
-    "babel-eslint": "^10.0.3",
-    "babel-jest": "^24.9.0",
+    "@types/jest": "^24.0.18",
+    "@typescript-eslint/eslint-plugin": "^2.0.0",
+    "@typescript-eslint/parser": "^2.3.3",
     "codecov": "^3.6.1",
     "eslint": "^6.5.1",
     "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jest": "^22.15.1",
     "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-simple-import-sort": "^4.0.0",
     "husky": "^3.0.9",
     "jest": "^24.9.0",
     "lint-staged": "^9.4.2",
-    "prettier": "^1.18.2"
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.1.0",
+    "typescript": "^3.6.4"
   },
   "jest": {
+    "preset": "ts-jest",
     "collectCoverageFrom": [
-      "src/**/*.js"
+      "src/**/*.ts"
     ],
     "coverageReporters": [
       "text",
