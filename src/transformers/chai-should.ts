@@ -317,6 +317,7 @@ export default function transformer(fileInfo, api, options) {
           name: 'should',
         },
       })
+      .filter(p => p.node.object)
       .replaceWith(p => j.callExpression(j.identifier('expect'), [p.node.object]))
       .size()
 

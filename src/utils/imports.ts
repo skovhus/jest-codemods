@@ -1,4 +1,4 @@
-import { findParentVariableDeclaration } from './recast-helpers'
+import { findParentOfType, findParentVariableDeclaration } from './recast-helpers'
 
 export function addRequireOrImport(j: any, ast: any, localName: string, pkg: string) {
   const { statement } = j.template
@@ -147,7 +147,12 @@ export function removeRequireAndImport(
         localName = variableDeclarationPath.value.id.name
         variableDeclarationPath.prune()
       } else {
-        p.prune()
+        const expressionPath = findParentOfType(p, 'ExpressionStatement')
+        if (expressionPath) {
+          expressionPath.prune()
+        } else {
+          p.prune()
+        }
       }
       return
     }

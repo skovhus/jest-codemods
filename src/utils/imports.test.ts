@@ -87,6 +87,18 @@ describe('removeRequireAndImport', () => {
         `)
   })
 
+  it('removes require statements with calls and without a variable', () => {
+    const ast = j(`
+            require('foo').bar();
+            x();
+        `)
+    const removedVariableName = removeRequireAndImport(j, ast, 'foo')
+    expect(removedVariableName).toBe(null)
+    expect(ast.toSource(getOptions())).toEqual(`
+            x();
+        `)
+  })
+
   it('removes require statements with given specifier', () => {
     const ast = j(`
             const x = require('foo').bar;

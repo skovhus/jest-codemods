@@ -91,6 +91,26 @@ testChanged(
 )
 
 testChanged(
+  'removes imports (case where should is not assigned)',
+  `
+        require('chai').should();
+
+        describe('Instantiating TextField', () => {
+          it('should set the placeholder correctly', () => {
+              textField.props.placeholder.should.equal(PLACEHOLDER);
+              textField.props.placeholder.should.not.equal(PLACEHOLDER);
+          });
+        });`,
+  `
+        describe('Instantiating TextField', () => {
+          it('should set the placeholder correctly', () => {
+              expect(textField.props.placeholder).toBe(PLACEHOLDER);
+              expect(textField.props.placeholder).not.toBe(PLACEHOLDER);
+          });
+        });`
+)
+
+testChanged(
   'Removes complicated import',
   `
         const chai = require('chai');
