@@ -407,6 +407,46 @@ describe('context', () => {
 )
 
 testChanged(
+  'transforms before blocks',
+  `
+  before(function () {
+      this.hello = 'hi';
+  });
+
+  afterEach(function () {
+      console.log(this.hello);
+  });
+
+  describe('context', () => {
+      it('should work', function () {
+          console.log(this.hello);
+      });
+  });
+`,
+  `
+  let testContext;
+
+  before(() => {
+      testContext = {};
+  });
+
+  before(() => {
+      testContext.hello = 'hi';
+  });
+
+  afterEach(() => {
+      console.log(testContext.hello);
+  });
+
+  describe('context', () => {
+      it('should work', () => {
+          console.log(testContext.hello);
+      });
+  });
+`
+)
+
+testChanged(
   'does not transform mocha specific methods',
   `
 describe('foo', function () {
