@@ -1,10 +1,12 @@
 import jscodeshift from 'jscodeshift'
 
 // simulate the jscodeshift api
-export function api() {
+export function api(): jscodeshift.API {
   return {
     jscodeshift,
+    j: jscodeshift,
     stats: () => {},
+    report: () => {},
   }
 }
 
@@ -13,5 +15,5 @@ export function runPlugin(plugin: jscodeshift.Transform, source: string, options
 }
 
 export function wrapPlugin(plugin: jscodeshift.Transform) {
-  return (source: string, options = {}) => runPlugin(plugin, source, options)
+  return (source: string, options = {}) => runPlugin(plugin, source, options) || null
 }
