@@ -1,74 +1,99 @@
 /**
  * Codemod for transforming Jasmine `this` context into Jest v20+ compatible syntax.
  */
-import { Transform } from 'jscodeshift'
+import * as jscodeshift from 'jscodeshift'
+import { Collection } from 'jscodeshift/src/Collection'
+import { NodePath } from 'recast'
 
 import finale from '../utils/finale'
 
-const testFunctionNames = ['after', 'afterEach', 'before', 'beforeEach', 'it', 'test']
+const rankedSetupFunctionNames = ['beforeEach', 'before', 'beforeAll']
+const testFunctionNames = ['after', 'afterEach', 'it', 'test', 'afterAll'].concat(
+  rankedSetupFunctionNames
+)
 const allFunctionNames = ['describe'].concat(testFunctionNames)
 const ignoredIdentifiers = ['retries', 'skip', 'slow', 'timeout']
 const contextName = 'testContext'
 
-function isFunctionExpressionWithinSpecificFunctions(path, acceptedFunctionNames) {
-  if (!path || !path.parentPath || !Array.isArray(path.parentPath.value)) {
-    return false
-  }
-
-  const callExpressionPath = path.parentPath.parentPath
-
-  return (
-    !!callExpressionPath &&
-    !!callExpressionPath.value &&
-    callExpressionPath.value.callee &&
-    callExpressionPath.value.callee.type === 'Identifier' &&
-    acceptedFunctionNames.indexOf(callExpressionPath.value.callee.name) > -1
-  )
-}
-
-function isWithinObjectOrClass(path) {
-  const invalidParentTypes = ['Property', 'MethodDefinition']
-  let currentPath = path
-
-  while (
-    currentPath &&
-    currentPath.value &&
-    invalidParentTypes.indexOf(currentPath.value.type) === -1
-  ) {
-    currentPath = currentPath.parentPath
-  }
-  return currentPath ? invalidParentTypes.indexOf(currentPath.value.type) > -1 : false
-}
-
-function isWithinSpecificFunctions(path, acceptedFunctionNames, matchAll) {
-  if (!matchAll) {
-    // Do not replace within functions declared as object properties or class methods
-    // See `transforms plain functions within lifecycle methods` test
-    if (isWithinObjectOrClass(path)) {
-      return false
-    }
-  }
-  let currentPath = path
-
-  while (
-    currentPath &&
-    currentPath.value &&
-    currentPath.value.type !== 'FunctionExpression'
-  ) {
-    currentPath = currentPath.parentPath
-  }
-
-  return (
-    isFunctionExpressionWithinSpecificFunctions(currentPath, acceptedFunctionNames) ||
-    (currentPath
-      ? isWithinSpecificFunctions(currentPath.parentPath, testFunctionNames, false)
-      : false)
-  )
-}
-
-const jasmineThis: Transform = (fileInfo, api, options) => {
+const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
   const j = api.jscodeshift
   const root = j(fileInfo.source)
+
+  // Track the index of the most general hook that references `this`. This is
+  // necessary because the setup hook that initializes the testing context must
+  // run before the testing context is referenced.
+  let setupFunctionNameIndex = 0
+
+  function isFunctionExpressionWithinSpecificFunctions(path, acceptedFunctionNames) {
+    if (!path || !path.parentPath || !Array.isArray(path.parentPath.value)) {
+      return false
+    }
+
+    const callExpressionPath = path.parentPath.parentPath
+
+    const isWithin =
+      !!callExpressionPath &&
+      !!callExpressionPath.value &&
+      callExpressionPath.value.callee &&
+      callExpressionPath.value.callee.type === 'Identifier' &&
+      acceptedFunctionNames.indexOf(callExpressionPath.value.callee.name) > -1
+
+    if (
+      isWithin &&
+      rankedSetupFunctionNames.indexOf(callExpressionPath.value.callee.name) >
+        setupFunctionNameIndex
+    ) {
+      setupFunctionNameIndex = rankedSetupFunctionNames.indexOf(
+        callExpressionPath.value.callee.name
+      )
+    }
+
+    return isWithin
+  }
+
+  function isWithinObjectOrClass(path) {
+    const invalidParentTypes = ['Property', 'MethodDefinition']
+    let currentPath = path
+
+    while (
+      currentPath &&
+      currentPath.value &&
+      invalidParentTypes.indexOf(currentPath.value.type) === -1
+    ) {
+      currentPath = currentPath.parentPath
+    }
+    return currentPath ? invalidParentTypes.indexOf(currentPath.value.type) > -1 : false
+  }
+
+  function isWithinSpecificFunctions(
+    path: NodePath<jscodeshift.MemberExpression, jscodeshift.MemberExpression>,
+    acceptedFunctionNames,
+    matchAll
+  ) {
+    if (!matchAll) {
+      // Do not replace within functions declared as object properties or class methods
+      // See `transforms plain functions within lifecycle methods` test
+      if (isWithinObjectOrClass(path)) {
+        return false
+      }
+    }
+    let currentPath = path
+
+    while (
+      currentPath &&
+      currentPath.value &&
+      currentPath.value.type === 'MemberExpression'
+    ) {
+      currentPath = currentPath.parentPath
+    }
+
+    return (
+      isFunctionExpressionWithinSpecificFunctions(currentPath, acceptedFunctionNames) ||
+      (currentPath
+        ? isWithinSpecificFunctions(currentPath.parentPath, testFunctionNames, false)
+        : false)
+    )
+  }
 
   const getValidThisExpressions = node => {
     return j(node)
@@ -83,7 +108,7 @@ const jasmineThis: Transform = (fileInfo, api, options) => {
       .filter(path => isWithinSpecificFunctions(path, allFunctionNames, true))
   }
 
-  const mutateScope = (ast, body) => {
+  const mutateScope = (ast: Collection<any>, body) => {
     const replacedIdentifiers = []
 
     const updateThisExpressions = () => {
@@ -112,20 +137,23 @@ const jasmineThis: Transform = (fileInfo, api, options) => {
       }
       body.unshift(
         j.expressionStatement(
-          j.callExpression(j.identifier('beforeEach'), [
-            j.arrowFunctionExpression(
-              [],
-              j.blockStatement([
-                j.expressionStatement(
-                  j.assignmentExpression(
-                    '=',
-                    j.identifier(contextName),
-                    j.objectExpression([])
-                  )
-                ),
-              ])
-            ),
-          ])
+          j.callExpression(
+            j.identifier(rankedSetupFunctionNames[setupFunctionNameIndex]),
+            [
+              j.arrowFunctionExpression(
+                [],
+                j.blockStatement([
+                  j.expressionStatement(
+                    j.assignmentExpression(
+                      '=',
+                      j.identifier(contextName),
+                      j.objectExpression([])
+                    )
+                  ),
+                ])
+              ),
+            ]
+          )
         )
       )
       body.unshift(
