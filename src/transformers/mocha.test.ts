@@ -203,7 +203,7 @@ describe('describe', function () {
 describe('describe', () => {
   let testContext;
 
-  before(() => {
+  beforeAll(() => {
     testContext = {};
   });
 
