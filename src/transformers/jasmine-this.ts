@@ -1,6 +1,8 @@
 /**
  * Codemod for transforming Jasmine `this` context into Jest v20+ compatible syntax.
  */
+import { Transform } from 'jscodeshift'
+
 import finale from '../utils/finale'
 
 const testFunctionNames = ['after', 'afterEach', 'before', 'beforeEach', 'it', 'test']
@@ -64,7 +66,7 @@ function isWithinSpecificFunctions(path, acceptedFunctionNames, matchAll) {
   )
 }
 
-export default function jasmineThis(fileInfo, api, options) {
+const jasmineThis: Transform = (fileInfo, api, options) => {
   const j = api.jscodeshift
   const root = j(fileInfo.source)
 
@@ -72,7 +74,7 @@ export default function jasmineThis(fileInfo, api, options) {
     return j(node)
       .find(j.MemberExpression, {
         object: {
-          type: j.ThisExpression.name,
+          type: 'ThisExpression',
         },
         property: {
           name: name => ignoredIdentifiers.indexOf(name) === -1,
@@ -88,7 +90,7 @@ export default function jasmineThis(fileInfo, api, options) {
       return ast
         .find(j.MemberExpression, {
           object: {
-            type: j.ThisExpression.name,
+            type: 'ThisExpression',
           },
         })
         .filter(path => isWithinSpecificFunctions(path, allFunctionNames, true))
@@ -152,15 +154,15 @@ export default function jasmineThis(fileInfo, api, options) {
     const topLevelLifecycleMethods = root
       .find(j.CallExpression, {
         callee: {
-          type: j.Identifier.name,
+          type: 'Identifier',
           name: name => testFunctionNames.indexOf(name) > -1,
         },
       }) // Find only lifecyle methods which are in the root scope
       .filter(
         path =>
-          path.parentPath.value.type === j.ExpressionStatement.name &&
+          path.parentPath.value.type === 'ExpressionStatement' &&
           Array.isArray(path.parentPath.parentPath.value) &&
-          path.parentPath.parentPath.parentPath.value.type === j.Program.name
+          path.parentPath.parentPath.parentPath.value.type === 'Program'
       )
       .filter(path => getValidThisExpressions(path.value).size() > 0)
       .size()
@@ -178,7 +180,7 @@ export default function jasmineThis(fileInfo, api, options) {
     return root
       .find(j.CallExpression, {
         callee: {
-          type: j.Identifier.name,
+          type: 'Identifier',
           name: 'describe',
         },
       })
@@ -212,3 +214,5 @@ export default function jasmineThis(fileInfo, api, options) {
 
   return finale(fileInfo, j, root, options)
 }
+
+export default jasmineThis
