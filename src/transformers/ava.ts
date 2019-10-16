@@ -203,7 +203,7 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
             return null
           }
           if (identifier.name === testFunctionName) {
-            return !!p
+            return Boolean(p)
           }
           return null
         })
