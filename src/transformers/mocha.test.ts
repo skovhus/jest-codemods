@@ -164,7 +164,7 @@ describe('suite', () => {
 )
 
 testChanged(
-  'adds any type to the test context with typescript',
+  'adds any type to the test context with typescript (tsx)',
   `
 describe('describe', function () {
   beforeEach(function () {
@@ -198,4 +198,41 @@ describe('describe', () => {
 })
 `,
   { parser: 'tsx' }
+)
+
+testChanged(
+  'adds any type to the test context with typescript (ts)',
+  `
+describe('describe', function () {
+  beforeEach(function () {
+    this.hello = 'hi';
+  });
+
+  context('context', () => {
+    it('it', function () {
+      console.log(this.hello);
+    });
+  })
+})
+`,
+  `
+describe('describe', () => {
+  let testContext: any;
+
+  beforeEach(() => {
+    testContext = {};
+  });
+
+  beforeEach(() => {
+    testContext.hello = 'hi';
+  });
+
+  describe('context', () => {
+    test('it', () => {
+      console.log(testContext.hello);
+    });
+  })
+})
+`,
+  { parser: 'ts' }
 )

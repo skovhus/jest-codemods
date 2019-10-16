@@ -457,7 +457,7 @@ describe('foo', () => {
 )
 
 testChanged(
-  'adds any type to the test context with typescript',
+  'adds any type to the test context with typescript (tsx)',
   `
   beforeEach(function () {
       this.hello = 'hi';
@@ -495,4 +495,45 @@ testChanged(
   });
   `,
   { parser: 'tsx' }
+)
+
+testChanged(
+  'adds any type to the test context with typescript (ts)',
+  `
+beforeEach(function () {
+    this.hello = 'hi';
+});
+
+afterEach(function () {
+    console.log(this.hello);
+});
+
+describe('context', () => {
+    it('should work', function () {
+        console.log(this.hello);
+    });
+});
+`,
+  `
+let testContext: any;
+
+beforeEach(() => {
+    testContext = {};
+});
+
+beforeEach(() => {
+    testContext.hello = 'hi';
+});
+
+afterEach(() => {
+    console.log(testContext.hello);
+});
+
+describe('context', () => {
+    it('should work', () => {
+        console.log(testContext.hello);
+    });
+});
+`,
+  { parser: 'ts' }
 )
