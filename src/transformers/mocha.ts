@@ -1,3 +1,5 @@
+import * as jscodeshift from 'jscodeshift'
+
 import finale from '../utils/finale'
 import { removeRequireAndImport } from '../utils/imports'
 import jasmineThisTransformer from './jasmine-this'
@@ -35,7 +37,7 @@ function hasBinding(name, scope) {
   return scope.isGlobal ? false : hasBinding(name, scope.parent)
 }
 
-export default function mochaToJest(fileInfo, api, options) {
+const mochaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
   const j = api.jscodeshift
   const ast = j(fileInfo.source)
 
@@ -95,3 +97,5 @@ export default function mochaToJest(fileInfo, api, options) {
 
   return fileInfo.source
 }
+
+export default mochaToJest
