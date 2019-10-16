@@ -130,7 +130,14 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
       )
       body.unshift(
         j.variableDeclaration('let', [
-          j.variableDeclarator(j.identifier(contextName), null),
+          j.variableDeclarator(
+            j.identifier.from({
+              name: contextName,
+              typeAnnotation:
+                options.parser === 'tsx' ? j.typeAnnotation(j.anyTypeAnnotation()) : null,
+            }),
+            null
+          ),
         ])
       )
     }

@@ -7,9 +7,9 @@ import plugin from './jasmine-this'
 chalk.enabled = false
 const wrappedPlugin = wrapPlugin(plugin)
 
-function testChanged(msg, source, expectedOutput) {
+function testChanged(msg, source, expectedOutput, options = {}) {
   test(msg, () => {
-    const result = wrappedPlugin(source)
+    const result = wrappedPlugin(source, options)
     expect(result).toBe(expectedOutput)
   })
 }
@@ -454,4 +454,45 @@ describe('foo', () => {
     });
 });
 `
+)
+
+testChanged(
+  'adds any type to the test context with typescript',
+  `
+  beforeEach(function () {
+      this.hello = 'hi';
+  });
+
+  afterEach(function () {
+      console.log(this.hello);
+  });
+
+  describe('context', () => {
+      it('should work', function () {
+          console.log(this.hello);
+      });
+  });
+  `,
+  `
+  let testContext: any;
+
+  beforeEach(() => {
+      testContext = {};
+  });
+
+  beforeEach(() => {
+      testContext.hello = 'hi';
+  });
+
+  afterEach(() => {
+      console.log(testContext.hello);
+  });
+
+  describe('context', () => {
+      it('should work', () => {
+          console.log(testContext.hello);
+      });
+  });
+  `,
+  { parser: 'tsx' }
 )
