@@ -21,6 +21,7 @@
     "build": "tsc",
     "check": "npm run lint && npm run test:cov",
     "check:bail": "yarn lint:bail && npm run test:cov",
+    "check:types": "yarn tsc --noEmit",
     "clean": "rm -rf lib coverage npm-debug.log dist",
     "lint": "yarn run lint:bail --fix",
     "lint:bail": "eslint src --ext js,ts,tsx",
@@ -70,6 +71,7 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.18",
+    "@types/jscodeshift": "^0.6.3",
     "@typescript-eslint/eslint-plugin": "^2.0.0",
     "@typescript-eslint/parser": "^2.3.3",
     "codecov": "^3.6.1",

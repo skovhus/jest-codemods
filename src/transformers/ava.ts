@@ -1,6 +1,8 @@
 /**
  * Codemod for transforming AVA tests into Jest.
  */
+import * as jscodeshift from 'jscodeshift'
+
 import { PROP_WITH_SECONDS_ARGS } from '../utils/consts'
 import finale from '../utils/finale'
 import { removeRequireAndImport } from '../utils/imports'
@@ -53,7 +55,7 @@ const avaToJestMethods = {
   only: 'test.only',
 }
 
-export default function avaToJest(fileInfo, api, options) {
+const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
   const j = api.jscodeshift
   const ast = j(fileInfo.source)
 
@@ -79,7 +81,10 @@ export default function avaToJest(fileInfo, api, options) {
         })
         .forEach(p => {
           const args = p.node.arguments
-          const oldPropertyName = p.value.callee.property.name
+          const oldPropertyName =
+            p.value.callee.type === 'MemberExpression' &&
+            p.value.callee.property.type === 'Identifier' &&
+            p.value.callee.property.name
           const newPropertyName = tPropertiesMap[oldPropertyName]
           if (typeof newPropertyName === 'undefined') {
             logWarning(`"t.${oldPropertyName}" is currently not supported`, p)
@@ -151,8 +156,10 @@ export default function avaToJest(fileInfo, api, options) {
           callee: { name: testFunctionName },
         })
         .forEach(p => {
-          p.node.callee.name = 'test'
-          rewriteAssertionsAndTestArgument(j, p)
+          if (p.node.callee.type === 'Identifier') {
+            p.node.callee.name = 'test'
+            rewriteAssertionsAndTestArgument(j, p)
+          }
         })
 
       function mapPathToJestCallExpression(p) {
@@ -196,7 +203,7 @@ export default function avaToJest(fileInfo, api, options) {
             return null
           }
           if (identifier.name === testFunctionName) {
-            return p
+            return Boolean(p)
           }
           return null
         })
@@ -211,3 +218,5 @@ export default function avaToJest(fileInfo, api, options) {
 
   return finale(fileInfo, j, ast, options)
 }
+
+export default avaToJest

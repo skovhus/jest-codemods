@@ -8,7 +8,7 @@ jest.mock('./logger', () => args => mockedLogger(args))
 const j = jscodeshift
 const fileInfo = { path: 'a.test.js' }
 
-const getOptions = () => ({ quote: 'single', lineTerminator: '\n' })
+const getOptions = () => ({ quote: 'single', lineTerminator: '\n' } as const)
 
 it('rewrites proxyquire without noCallThru', () => {
   const ast = j(`
