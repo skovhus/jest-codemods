@@ -9,7 +9,7 @@ import finale from '../utils/finale'
 
 // The ascending ordering for which setup function should be used. For example,
 // if there are only `beforeEach` blocks, then that should be used to setup
-// the test context. However, if there is any `beforeAll` blocks, the test
+// the test context. However, if there are any `beforeAll` blocks, the test
 // context must be initialized in a `beforeAll` block so that it runs before.
 const rankedSetupFunctionNames = ['beforeEach', 'before', 'beforeAll']
 const testFunctionNames = ['after', 'afterEach', 'it', 'test', 'afterAll'].concat(
