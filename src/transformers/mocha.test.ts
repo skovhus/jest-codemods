@@ -10,9 +10,9 @@ beforeEach(() => {
   console.warn = v => consoleWarnings.push(v)
 })
 
-function testChanged(msg, source, expectedOutput) {
+function testChanged(msg, source, expectedOutput, options = {}) {
   test(msg, () => {
-    const result = wrappedPlugin(source)
+    const result = wrappedPlugin(source, options)
     expect(result).toBe(expectedOutput)
     expect(consoleWarnings).toEqual([])
   })
@@ -161,4 +161,78 @@ suite('suite', () => {
 describe('suite', () => {
 })
     `
+)
+
+testChanged(
+  'adds any type to the test context with typescript (tsx)',
+  `
+describe('describe', function () {
+  beforeEach(function () {
+    this.hello = 'hi';
+  });
+
+  context('context', () => {
+    it('it', function () {
+      console.log(this.hello);
+    });
+  })
+})
+`,
+  `
+describe('describe', () => {
+  let testContext: any;
+
+  beforeEach(() => {
+    testContext = {};
+  });
+
+  beforeEach(() => {
+    testContext.hello = 'hi';
+  });
+
+  describe('context', () => {
+    test('it', () => {
+      console.log(testContext.hello);
+    });
+  })
+})
+`,
+  { parser: 'tsx' }
+)
+
+testChanged(
+  'adds any type to the test context with typescript (ts)',
+  `
+describe('describe', function () {
+  beforeEach(function () {
+    this.hello = 'hi';
+  });
+
+  context('context', () => {
+    it('it', function () {
+      console.log(this.hello);
+    });
+  })
+})
+`,
+  `
+describe('describe', () => {
+  let testContext: any;
+
+  beforeEach(() => {
+    testContext = {};
+  });
+
+  beforeEach(() => {
+    testContext.hello = 'hi';
+  });
+
+  describe('context', () => {
+    test('it', () => {
+      console.log(testContext.hello);
+    });
+  })
+})
+`,
+  { parser: 'ts' }
 )

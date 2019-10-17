@@ -15,5 +15,5 @@ export function runPlugin(plugin: jscodeshift.Transform, source: string, options
 }
 
 export function wrapPlugin(plugin: jscodeshift.Transform) {
-  return (source: string, options = {}) => runPlugin(plugin, source, options)
+  return (source: string, options = {}) => runPlugin(plugin, source, options) || null
 }
