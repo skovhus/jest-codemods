@@ -410,16 +410,22 @@ testChanged(
   'transforms before blocks',
   `
   before(function () {
-      this.hello = 'hi';
+    this.hello = 'hi';
+  });
+
+  beforeEach(function () {
+    this.goodbye = 'bye';
   });
 
   afterEach(function () {
-      console.log(this.hello);
+    console.log(this.hello);
+    console.log(this.goodbye);
   });
 
   describe('context', () => {
       it('should work', function () {
           console.log(this.hello);
+          console.log(this.goodbye);
       });
   });
 `,
@@ -427,20 +433,26 @@ testChanged(
   let testContext;
 
   before(() => {
-      testContext = {};
+    testContext = {};
   });
 
   before(() => {
-      testContext.hello = 'hi';
+    testContext.hello = 'hi';
+  });
+
+  beforeEach(() => {
+    testContext.goodbye = 'bye';
   });
 
   afterEach(() => {
-      console.log(testContext.hello);
+    console.log(testContext.hello);
+    console.log(testContext.goodbye);
   });
 
   describe('context', () => {
       it('should work', () => {
           console.log(testContext.hello);
+          console.log(testContext.goodbye);
       });
   });
 `

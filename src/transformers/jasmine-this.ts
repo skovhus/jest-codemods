@@ -7,6 +7,10 @@ import { NodePath } from 'recast'
 
 import finale from '../utils/finale'
 
+// The ascending ordering for which setup function should be used. For example,
+// if there are only `beforeEach` blocks, then that should be used to setup
+// the test context. However, if there is any `beforeAll` blocks, the test
+// context must be initialized in a `beforeAll` block so that it runs before.
 const rankedSetupFunctionNames = ['beforeEach', 'before', 'beforeAll']
 const testFunctionNames = ['after', 'afterEach', 'it', 'test', 'afterAll'].concat(
   rankedSetupFunctionNames
@@ -38,6 +42,10 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
       callExpressionPath.value.callee.type === 'Identifier' &&
       acceptedFunctionNames.indexOf(callExpressionPath.value.callee.name) > -1
 
+    // Keep track of the setup function with the highest precedence. When the
+    // function that that we are in is one of the setup function names and it's
+    // of higher precedence, then update to setup the test context with the
+    // correct setup function.
     if (
       isWithin &&
       rankedSetupFunctionNames.indexOf(callExpressionPath.value.callee.name) >
