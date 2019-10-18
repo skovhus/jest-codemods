@@ -11,10 +11,15 @@ import finale from '../utils/finale'
 // if there are only `beforeEach` blocks, then that should be used to setup
 // the test context. However, if there are any `beforeAll` blocks, the test
 // context must be initialized in a `beforeAll` block so that it runs before.
-const rankedSetupFunctionNames = ['beforeEach', 'before', 'beforeAll']
-const testFunctionNames = ['after', 'afterEach', 'it', 'test', 'afterAll'].concat(
-  rankedSetupFunctionNames
-)
+const rankedSetupFunctionNames = ['beforeEach', 'beforeAll']
+const testFunctionNames = [
+  'after',
+  'afterEach',
+  'it',
+  'test',
+  'afterAll',
+  'before',
+].concat(rankedSetupFunctionNames)
 const allFunctionNames = ['describe'].concat(testFunctionNames)
 const ignoredIdentifiers = ['retries', 'skip', 'slow', 'timeout']
 const contextName = 'testContext'

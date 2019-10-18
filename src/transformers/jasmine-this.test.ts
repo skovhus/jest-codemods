@@ -409,7 +409,7 @@ describe('context', () => {
 testChanged(
   'transforms before blocks',
   `
-  before(function () {
+  beforeAll(function () {
     this.hello = 'hi';
   });
 
@@ -432,11 +432,11 @@ testChanged(
   `
   let testContext;
 
-  before(() => {
+  beforeAll(() => {
     testContext = {};
   });
 
-  before(() => {
+  beforeAll(() => {
     testContext.hello = 'hi';
   });
 
