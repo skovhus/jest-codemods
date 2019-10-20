@@ -407,6 +407,58 @@ describe('context', () => {
 )
 
 testChanged(
+  'transforms before blocks',
+  `
+  beforeAll(function () {
+    this.hello = 'hi';
+  });
+
+  beforeEach(function () {
+    this.goodbye = 'bye';
+  });
+
+  afterEach(function () {
+    console.log(this.hello);
+    console.log(this.goodbye);
+  });
+
+  describe('context', () => {
+      it('should work', function () {
+          console.log(this.hello);
+          console.log(this.goodbye);
+      });
+  });
+`,
+  `
+  let testContext;
+
+  beforeAll(() => {
+    testContext = {};
+  });
+
+  beforeAll(() => {
+    testContext.hello = 'hi';
+  });
+
+  beforeEach(() => {
+    testContext.goodbye = 'bye';
+  });
+
+  afterEach(() => {
+    console.log(testContext.hello);
+    console.log(testContext.goodbye);
+  });
+
+  describe('context', () => {
+      it('should work', () => {
+          console.log(testContext.hello);
+          console.log(testContext.goodbye);
+      });
+  });
+`
+)
+
+testChanged(
   'does not transform mocha specific methods',
   `
 describe('foo', function () {

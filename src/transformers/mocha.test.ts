@@ -236,3 +236,79 @@ describe('describe', () => {
 `,
   { parser: 'ts' }
 )
+
+testChanged(
+  'transforms this',
+  `
+// @flow
+describe('describe', function () {
+  before(function() {
+    this.hello = 'hi';
+  });
+  afterAll(function () {
+    console.log(this.hello);
+  });
+  beforeEach(function () {
+    this.goodbye = 'bye';
+  });
+  afterEach(function () {
+    console.log(this.hello);
+  });
+
+  before('some text', () => {});
+  after('some text', () => {});
+  beforeEach('some text', () => {});
+  afterEach('some text', () => {});
+
+  context('context', () => {
+    it('it', function () {
+      console.log(this.hello);
+      console.log(this.goodbye);
+    });
+    specify('specify', function () {
+      console.log(this.hello);
+      console.log(this.goodbye);
+    })
+  })
+})
+`,
+  `
+// @flow
+describe('describe', () => {
+  let testContext;
+
+  beforeAll(() => {
+    testContext = {};
+  });
+
+  beforeAll(() => {
+    testContext.hello = 'hi';
+  });
+  afterAll(() => {
+    console.log(testContext.hello);
+  });
+  beforeEach(() => {
+    testContext.goodbye = 'bye';
+  });
+  afterEach(() => {
+    console.log(testContext.hello);
+  });
+
+  beforeAll(() => {});
+  afterAll(() => {});
+  beforeEach(() => {});
+  afterEach(() => {});
+
+  describe('context', () => {
+    test('it', () => {
+      console.log(testContext.hello);
+      console.log(testContext.goodbye);
+    });
+    test('specify', () => {
+      console.log(testContext.hello);
+      console.log(testContext.goodbye);
+    })
+  })
+})
+`
+)
