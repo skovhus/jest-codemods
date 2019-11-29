@@ -134,11 +134,12 @@ To get started, run:
 
 When developing:
 
-	yarn run check  # (runs lint and unit test)
-	yarn run lint
-	yarn run test
-	yarn run test:cov
-	yarn run test:watch
+	yarn verify  # (build/lint/test)
+	yarn build
+	yarn lint
+	yarn test
+	yarn test:cov
+	yarn test:watch
 
 
 ## License
