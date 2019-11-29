@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/* eslint-disable jest/expect-expect */
 
 let execaReturnValue
 jest.setMock('execa', {

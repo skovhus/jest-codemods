@@ -168,9 +168,17 @@ export default function transformer(fileInfo, api, options) {
   const typeOf = (path, value, args, containsNot) => {
     switch (args[0].value) {
       case 'null':
-        return createCall('toBeNull', [], updateExpect(value, node => node))
+        return createCall(
+          'toBeNull',
+          [],
+          updateExpect(value, node => node)
+        )
       case 'undefined':
-        return createCall('toBeUndefined', [], updateExpect(value, node => node))
+        return createCall(
+          'toBeUndefined',
+          [],
+          updateExpect(value, node => node)
+        )
       case 'array': {
         const parentExpressionStatement = findParentOfType(path, 'ExpressionStatement')
         if (

@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/* eslint-disable jest/expect-expect */
 import chalk from 'chalk'
 
 import { wrapPlugin } from '../utils/test-helpers'
