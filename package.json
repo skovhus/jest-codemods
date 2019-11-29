@@ -60,7 +60,7 @@
     "codemods"
   ],
   "dependencies": {
-    "chalk": "^2.4.2",
+    "chalk": "^3.0.0",
     "execa": "^2.1.0",
     "globby": "^10.0.1",
     "inquirer": "^7.0.0",

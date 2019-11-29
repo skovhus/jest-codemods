@@ -5,7 +5,7 @@ import chalk from 'chalk'
 import { wrapPlugin } from '../utils/test-helpers'
 import plugin from './tape'
 
-chalk.enabled = false
+chalk.level = 0
 const wrappedPlugin = wrapPlugin(plugin)
 
 let consoleWarnings = []

@@ -4,7 +4,7 @@ import jscodeshift from 'jscodeshift'
 
 import finale from './finale'
 
-chalk.enabled = false
+chalk.level = 0
 
 let consoleWarnings = []
 beforeEach(() => {
