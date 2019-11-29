@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import { wrapPlugin } from '../utils/test-helpers'
 import plugin from './jasmine-globals'
 
-chalk.enabled = false
+chalk.level = 0
 const wrappedPlugin = wrapPlugin(plugin)
 
 function testChanged(msg, source, expectedOutput) {
