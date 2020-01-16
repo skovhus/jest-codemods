@@ -15,10 +15,16 @@ Usage:      npx jest-codemods <path> [options]
 
 Examples:   npx jest-codemods src
             npx jest-codemods src/**/*.test.js
+            npx jest-codemods src/**/*.test.js --parser=babel
 
 Options:
-  -f, --force       Bypass Git safety checks and force codemods to run
-  -d, --dry         Dry run (no changes are made to files)`,
+  -f, --force             Bypass Git safety checks and force codemods to run
+  -d, --dry               Dry run (no changes are made to files)
+  --parser                The parser to use (babel, flow, ts, tsx)
+  --transformer           The transformer to use (ava, chai-assert, chai-should, expect-js, expect, jasmine-globals, jasmine-this, mocha, should, tape)
+  --skipImportDetection   Keep using the global object for assertions
+  --standaloneMode        Use explicit require calls instead of globals
+  --mochaAssertion        Use assertion transformations with Mocha (chai-assert, chai-should, expect-js, expect, should)`,
   {
     boolean: ['force', 'dry'],
     string: ['_'],
@@ -37,6 +43,21 @@ Options:
       dry: {
         type: 'boolean',
         alias: 'd',
+      },
+      parser: {
+        type: 'string',
+      },
+      transformer: {
+        type: 'string',
+      },
+      skipImportDetection: {
+        type: 'boolean',
+      },
+      standaloneMode: {
+        type: 'boolean',
+      },
+      mochaAssertion: {
+        type: 'string',
       },
     },
   }
@@ -140,6 +161,33 @@ const PARSER_INQUIRER_CHOICES: { name: string; value: Parser }[] = [
   },
 ]
 
+const MOCHA_ASSERTION_INQUIRER_CHOICES = [
+  {
+    name: 'Chai: Assert Syntax',
+    value: TRANSFORMER_CHAI_ASSERT,
+  },
+  {
+    name: 'Chai: Should/Expect BDD Syntax',
+    value: TRANSFORMER_CHAI_SHOULD,
+  },
+  {
+    name: 'Expect.js (by Automattic)',
+    value: TRANSFORMER_EXPECT_JS,
+  },
+  {
+    name: 'Expect@1.x (by mjackson)',
+    value: TRANSFORMER_EXPECT_1,
+  },
+  {
+    name: 'Should.js',
+    value: TRANSFORMER_SHOULD,
+  },
+  {
+    name: 'None',
+    value: null,
+  },
+]
+
 function supportFailure(supportedItems) {
   console.log(`\nCurrently, jest-codemods only has support for ${supportedItems}.`)
   console.log(
@@ -152,12 +200,23 @@ function expandFilePathsIfNeeded(filesBeforeExpansion) {
   return shouldExpandFiles ? globby.sync(filesBeforeExpansion) : filesBeforeExpansion
 }
 
+const isValidParser = PARSER_INQUIRER_CHOICES.map(c => c.value).includes(cli.flags.parser)
+
+const isValidTransformer = TRANSFORMER_INQUIRER_CHOICES.map(c => c.value).includes(
+  cli.flags.transformer
+)
+
+const isValidMochaAssertion = MOCHA_ASSERTION_INQUIRER_CHOICES.map(c => c.value).includes(
+  cli.flags.mochaAssertion
+)
+
 inquirer
   .prompt([
     {
       type: 'list',
       name: 'parser',
       message: 'Which parser do you want to use?',
+      when: () => !isValidParser,
       pageSize: PARSER_INQUIRER_CHOICES.length,
       choices: PARSER_INQUIRER_CHOICES,
     },
@@ -165,6 +224,7 @@ inquirer
       type: 'list',
       name: 'transformer',
       message: 'Which test library would you like to migrate from?',
+      when: () => !isValidTransformer,
       pageSize: TRANSFORMER_INQUIRER_CHOICES.length,
       choices: TRANSFORMER_INQUIRER_CHOICES,
     },
@@ -173,6 +233,7 @@ inquirer
       type: 'list',
       message:
         'Are you using the global object for assertions (i.e. without requiring them)',
+      when: () => cli.flags.skipImportDetection === undefined,
       choices: [
         {
           name: `No, I use import/require statements for my current assertion library`,
@@ -188,6 +249,7 @@ inquirer
       name: 'standaloneMode',
       type: 'list',
       message: 'Will you be using Jest on Node.js as your test runner?',
+      when: () => cli.flags.standaloneMode === undefined,
       choices: [
         {
           name: 'Yes, use the globals provided by Jest (recommended)',
@@ -203,33 +265,9 @@ inquirer
       type: 'list',
       name: 'mochaAssertion',
       message: 'Would you like to include assertion transformations with Mocha?',
-      when: ({ transformer }) => TRANSFORMER_MOCHA === transformer,
-      choices: [
-        {
-          name: 'Chai: Assert Syntax',
-          value: TRANSFORMER_CHAI_ASSERT,
-        },
-        {
-          name: 'Chai: Should/Expect BDD Syntax',
-          value: TRANSFORMER_CHAI_SHOULD,
-        },
-        {
-          name: 'Expect.js (by Automattic)',
-          value: TRANSFORMER_EXPECT_JS,
-        },
-        {
-          name: 'Expect@1.x (by mjackson)',
-          value: TRANSFORMER_EXPECT_1,
-        },
-        {
-          name: 'Should.js',
-          value: TRANSFORMER_SHOULD,
-        },
-        {
-          name: 'None',
-          value: null,
-        },
-      ],
+      when: ({ transformer }) =>
+        TRANSFORMER_MOCHA === transformer && !isValidMochaAssertion,
+      choices: MOCHA_ASSERTION_INQUIRER_CHOICES,
     },
     {
       type: 'input',
@@ -252,8 +290,7 @@ inquirer
       mochaAssertion,
       skipImportDetection,
       standaloneMode,
-    } = answers
-
+    } = Object.assign({}, cli.flags, answers)
     if (transformer === 'other') {
       return supportFailure('AVA, Chai, Expect.js, Expect@1.x, Mocha, Should.js and Tape')
     }
