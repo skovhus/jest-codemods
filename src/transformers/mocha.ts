@@ -9,7 +9,7 @@ const methodMap = {
   context: 'describe',
   specify: 'test',
   test: 'test',
-  it: 'test',
+  it: 'it',
   before: 'beforeAll',
   beforeEach: 'beforeEach',
   setup: 'beforeEach',
@@ -20,7 +20,7 @@ const methodMap = {
   suiteTeardown: 'afterAll',
 }
 
-const jestMethodsWithDescriptionsAllowed = new Set(['test', 'describe'])
+const jestMethodsWithDescriptionsAllowed = new Set(['test', 'it', 'describe'])
 
 const methodModifiers = ['only', 'skip']
 

@@ -34,6 +34,7 @@ describe('describe', () => {
   afterEach('some text', () => {});
 
   context('context', () => {
+    test('test', () => {});
     it('it', () => {});
     specify('specify', () => {})
   })
@@ -53,7 +54,8 @@ describe('describe', () => {
   afterEach(() => {});
 
   describe('context', () => {
-    test('it', () => {});
+    test('test', () => {});
+    it('it', () => {});
     test('specify', () => {})
   })
 })
@@ -70,12 +72,14 @@ suite('suite', () => {
   setup(() => {});
   teardown(() => {});
   test(() => {});
+  it(() => {});
 
   suiteSetup('description', () => {});
   suiteTeardown('description', () => {});
   setup('description', () => {});
   teardown('description', () => {});
   test('description', () => {});
+  it('description', () => {});
 })
 `,
   `
@@ -86,12 +90,14 @@ describe('suite', () => {
   beforeEach(() => {});
   afterEach(() => {});
   test(() => {});
+  it(() => {});
 
   beforeAll(() => {});
   afterAll(() => {});
   beforeEach(() => {});
   afterEach(() => {});
   test('description', () => {});
+  it('description', () => {});
 })
 `
 )
@@ -102,12 +108,14 @@ testChanged(
 // @flow
 suite.only('only suite', () => {
   test.only('only test', () => {});
+  it.only('only test', () => {});
 });
 `,
   `
 // @flow
 describe.only('only suite', () => {
   test.only('only test', () => {});
+  it.only('only test', () => {});
 });
 `
 )
@@ -119,6 +127,8 @@ testChanged(
 suite.skip('skip suite', () => {
   test.skip('skip test', () => {});
   test('test will be skipped');
+  it.skip('skip test', () => {});
+  it('test will be skipped');
 });
 `,
   `
@@ -126,6 +136,8 @@ suite.skip('skip suite', () => {
 describe.skip('skip suite', () => {
   test.skip('skip test', () => {});
   test.skip('test will be skipped', () => {});
+  it.skip('skip test', () => {});
+  it.skip('test will be skipped', () => {});
 });
 `
 )
@@ -138,12 +150,18 @@ context('test suite', () => {
     test('test', () => {
         const foo = setup();
     });
+    it('test', () => {
+        const foo = setup();
+    });
 });
 `,
   `
 const setup = () => {};
 describe('test suite', () => {
     test('test', () => {
+        const foo = setup();
+    });
+    it('test', () => {
         const foo = setup();
     });
 });
@@ -172,6 +190,9 @@ describe('describe', function () {
   });
 
   context('context', () => {
+    test('test', function () {
+      console.log(this.hello);
+    });
     it('it', function () {
       console.log(this.hello);
     });
@@ -191,7 +212,10 @@ describe('describe', () => {
   });
 
   describe('context', () => {
-    test('it', () => {
+    test('test', () => {
+      console.log(testContext.hello);
+    });
+    it('it', () => {
       console.log(testContext.hello);
     });
   })
@@ -209,6 +233,9 @@ describe('describe', function () {
   });
 
   context('context', () => {
+    test('test', function () {
+      console.log(this.hello);
+    });
     it('it', function () {
       console.log(this.hello);
     });
@@ -228,7 +255,10 @@ describe('describe', () => {
   });
 
   describe('context', () => {
-    test('it', () => {
+    test('test', () => {
+      console.log(testContext.hello);
+    });
+    it('it', () => {
       console.log(testContext.hello);
     });
   })
@@ -261,6 +291,10 @@ describe('describe', function () {
   afterEach('some text', () => {});
 
   context('context', () => {
+    test('test', function () {
+      console.log(this.hello);
+      console.log(this.goodbye);
+    });
     it('it', function () {
       console.log(this.hello);
       console.log(this.goodbye);
@@ -300,7 +334,11 @@ describe('describe', () => {
   afterEach(() => {});
 
   describe('context', () => {
-    test('it', () => {
+    test('test', () => {
+      console.log(testContext.hello);
+      console.log(testContext.goodbye);
+    });
+    it('it', () => {
       console.log(testContext.hello);
       console.log(testContext.goodbye);
     });
