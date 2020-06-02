@@ -326,7 +326,7 @@ import test from 'ava';
 test.todo('this should be a test some day');
 `,
   `
-test('TODO: this should be a test some day');
+test.todo('this should be a test some day');
 `
 )
 
