@@ -1,31 +1,54 @@
 version: 2
 
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: circleci/node:10
+
+_steps:
+  save_npm_cache: &save_npm_cache
+    save_cache:
+      paths:
+        - node_modules
+      key: v1-dependencies-{{ checksum "package.json" }}
+
+  restore_npm_cache: &restore_npm_cache
+    restore_cache:
+      keys:
+        - v1-dependencies-{{ checksum "package.json" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+
 jobs:
   verify:
-    docker:
-      - image: circleci/node:10
-
-    working_directory: ~/repo
-
+    <<: *defaults
     steps:
       - checkout
-
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          - v1-dependencies-
-
+      - *restore_npm_cache
       - run: yarn install
-
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-
+      - *save_npm_cache
       - run: yarn run ci
-      
+
+  deploy:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_npm_cache
+      - run: yarn install
+      - *save_npm_cache
+      - run: if [ -z  "$NPM_TOKEN" ]; then exit 1; fi
+      - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
+      - run: bash release.sh
+
 workflows:
   version: 2
   main_workflow:
     jobs:
       - verify
+      - deploy:
+          requires:
+            - verify
+          filters:
+            branches:
+              only:
+                - master

@@ -73,7 +73,7 @@ export function executeTransformations({
   transformers: string[]
   transformerArgs?: string[]
 }) {
-  transformers.forEach(t => {
+  transformers.forEach((t) => {
     executeTransformation({
       files,
       flags,

@@ -33,7 +33,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
 
     ast
       .find(j.CallExpression)
-      .filter(path => {
+      .filter((path) => {
         const match = path.value
         if (
           match.callee.type === 'CallExpression' &&
@@ -56,7 +56,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
 
         return match.callee.name === importVariableName
       })
-      .forEach(outerCallExpression => {
+      .forEach((outerCallExpression) => {
         const args = outerCallExpression.node.arguments
         if (args.length === 0) {
           // proxyquire is called with no arguments
@@ -83,7 +83,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
         mocks.add(requireFile)
 
         if (mocksNode.type === 'ObjectExpression') {
-          mocksNode.properties.forEach(o => {
+          mocksNode.properties.forEach((o) => {
             const jestMockStatement = getJestMockStatement({
               j,
               mockName: o.key,
@@ -98,8 +98,8 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
             .find(j.VariableDeclarator, {
               id: { name: mocksNode.name },
             })
-            .filter(path => path.node.init.type === 'ObjectExpression')
-            .forEach(path => {
+            .filter((path) => path.node.init.type === 'ObjectExpression')
+            .forEach((path) => {
               mocksObjectExpression = path.node.init
             })
 
@@ -112,7 +112,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
             return
           }
 
-          mocksObjectExpression.properties.forEach(o => {
+          mocksObjectExpression.properties.forEach((o) => {
             const mockName = o.key
             const jestMockStatement = getJestMockStatement({
               j,

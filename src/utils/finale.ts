@@ -8,7 +8,7 @@ import proxyquireTransformer from './proxyquire'
 import detectQuoteStyle from './quote-style'
 
 function detectIncompatiblePackages(fileInfo, j, ast) {
-  ;['sinon', 'testdouble'].forEach(pkg => {
+  ;['sinon', 'testdouble'].forEach((pkg) => {
     if (hasRequireOrImport(j, ast, pkg)) {
       logger(fileInfo, `Usage of package "${pkg}" might be incompatible with Jest`)
     }
@@ -27,10 +27,10 @@ function updateJestImports(j, ast, isStandaloneMode, testFunctionName = 'jest') 
       callee: {
         type: 'MemberExpression',
         object: { type: 'Identifier', name: testFunctionName },
-        property: { name: p => JEST_MOCK_PROPERTIES.has(p) },
+        property: { name: (p) => JEST_MOCK_PROPERTIES.has(p) },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       const { callee } = path.node
       if (isStandaloneMode) {
         const mockLocalName = 'mock'

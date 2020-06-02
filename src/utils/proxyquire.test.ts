@@ -4,7 +4,7 @@ import jscodeshift from 'jscodeshift'
 import proxyquireTransformer from './proxyquire'
 
 const mockedLogger = jest.fn()
-jest.mock('./logger', () => args => mockedLogger(args))
+jest.mock('./logger', () => (args) => mockedLogger(args))
 const j = jscodeshift
 const fileInfo = { path: 'a.test.js' }
 

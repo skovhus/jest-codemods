@@ -10,10 +10,10 @@ export default function detectQuoteStyle(j, ast) {
 
   ast
     .find(j.Literal, {
-      value: v => typeof v === 'string',
-      raw: v => typeof v === 'string',
+      value: (v) => typeof v === 'string',
+      raw: (v) => typeof v === 'string',
     })
-    .forEach(p => {
+    .forEach((p) => {
       // The raw value is from the original babel source
       const quote = p.value.raw[0]
       if (quote === '"') {

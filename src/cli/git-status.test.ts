@@ -10,6 +10,7 @@ jest.setMock('is-git-clean', {
   },
 })
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const checkGitStatus = require('./git-status').default
 
 const _process: any = process

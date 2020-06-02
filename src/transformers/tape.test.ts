@@ -11,7 +11,7 @@ const wrappedPlugin = wrapPlugin(plugin)
 let consoleWarnings = []
 beforeEach(() => {
   consoleWarnings = []
-  console.warn = v => consoleWarnings.push(v)
+  console.warn = (v) => consoleWarnings.push(v)
 })
 
 function testChanged(msg, source, expectedOutput, options = {}) {

@@ -80,7 +80,7 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
             property: ({ name }) => !tPropertiesNotMapped.has(name),
           },
         })
-        .forEach(p => {
+        .forEach((p) => {
           const args = p.node.arguments
           const oldPropertyName =
             p.value.callee.type === 'MemberExpression' &&
@@ -156,7 +156,7 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
         .find(j.CallExpression, {
           callee: { name: testFunctionName },
         })
-        .forEach(p => {
+        .forEach((p) => {
           if (p.node.callee.type === 'Identifier') {
             p.node.callee.name = 'test'
             rewriteAssertionsAndTestArgument(j, p)
@@ -169,7 +169,7 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
 
         // List like ['test', 'serial', 'cb']
         const avaMethods = getMemberExpressionElements(p.node.callee).filter(
-          e => e !== 'serial' && e !== testFunctionName && e !== 'cb'
+          (e) => e !== 'serial' && e !== testFunctionName && e !== 'cb'
         )
 
         if (avaMethods.length === 1) {
@@ -193,7 +193,7 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
             type: 'MemberExpression',
           },
         })
-        .filter(p => {
+        .filter((p) => {
           const identifier = getIdentifierFromExpression(p.node.callee)
           if (identifier === null) {
             return null
@@ -203,14 +203,14 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
           }
           return null
         })
-        .forEach(p => {
+        .forEach((p) => {
           rewriteAssertionsAndTestArgument(j, p)
         })
         .replaceWith(mapPathToJestCallExpression)
     },
   ]
 
-  transforms.forEach(t => t())
+  transforms.forEach((t) => t())
 
   return finale(fileInfo, j, ast, options)
 }

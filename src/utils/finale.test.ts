@@ -9,7 +9,7 @@ chalk.level = 0
 let consoleWarnings = []
 beforeEach(() => {
   consoleWarnings = []
-  console.warn = v => consoleWarnings.push(v)
+  console.warn = (v) => consoleWarnings.push(v)
 })
 
 function testChanged(msg, source, expectedOutput, options = {}, expectedErrors = []) {

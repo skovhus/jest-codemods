@@ -150,12 +150,12 @@ export default function expectTransformer(fileInfo, api, options) {
     })
 
   const splitChainedMatchers = () =>
-    getMatchers().forEach(path => {
+    getMatchers().forEach((path) => {
       splitChainedMatcherPath(j, path)
     })
 
   const updateMatchers = () =>
-    getMatchers().forEach(path => {
+    getMatchers().forEach((path) => {
       if (!standaloneMode) {
         path.parentPath.node.callee.object.callee.name = EXPECT
       }
@@ -217,7 +217,7 @@ ${keys}.forEach(e => {
       .find(j.CallExpression, {
         callee: {
           type: 'Identifier',
-          name: name => expectSpyFunctions.has(name),
+          name: (name) => expectSpyFunctions.has(name),
         },
       })
       .forEach(({ value }) => {
@@ -236,7 +236,7 @@ ${keys}.forEach(e => {
         },
         property: { type: 'Identifier' },
       })
-      .forEach(path => {
+      .forEach((path) => {
         const { name } = path.value.property
         if (name === 'createSpy') {
           path.value.property.name = 'fn'
@@ -256,7 +256,7 @@ ${keys}.forEach(e => {
         },
         property: { type: 'Identifier', name: 'spyOn' },
       })
-      .forEach(path => {
+      .forEach((path) => {
         const parentAssignment =
           findParentOfType(path, 'VariableDeclarator') ||
           findParentOfType(path, 'AssignmentExpression')
@@ -361,10 +361,10 @@ ${keys}.forEach(e => {
         },
         property: {
           type: 'Identifier',
-          name: name => JEST_MOCK_PROPERTIES.has(name),
+          name: (name) => JEST_MOCK_PROPERTIES.has(name),
         },
       })
-      .forEach(path => {
+      .forEach((path) => {
         const spyVariable = findParentVariableDeclaration(path)
         if (spyVariable) {
           spyVariables.push(spyVariable.value.id.name)
@@ -380,10 +380,10 @@ ${keys}.forEach(e => {
       .find(j.MemberExpression, {
         object: {
           type: 'Identifier',
-          name: name => spyVariables.indexOf(name) >= 0,
+          name: (name) => spyVariables.indexOf(name) >= 0,
         },
       })
-      .forEach(path => {
+      .forEach((path) => {
         const { property } = path.value
         let spyProperty = null
         if (property.type === 'Identifier') {
@@ -409,10 +409,10 @@ ${keys}.forEach(e => {
           name: expectFunctionName,
         },
         property: {
-          name: name => unsupportedExpectProperties.has(name),
+          name: (name) => unsupportedExpectProperties.has(name),
         },
       })
-      .forEach(path => {
+      .forEach((path) => {
         logWarning(`"${path.value.property.name}" is currently not supported`, path)
       })
 

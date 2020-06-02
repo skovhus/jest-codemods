@@ -128,12 +128,12 @@ export default function transformer(fileInfo, api, options) {
 
   const isShouldMemberExpression = traverseMemberExpressionUtil(
     j,
-    node => node.type === 'Identifier' && node.name === 'should'
+    (node) => node.type === 'Identifier' && node.name === 'should'
   )
 
   const isExpectMemberExpression = traverseMemberExpressionUtil(
     j,
-    node => node.type === j.CallExpression.name && node.callee.name === 'expect'
+    (node) => node.type === j.CallExpression.name && node.callee.name === 'expect'
   )
 
   const logWarning = (msg, node) => logger(fileInfo, msg, node)
@@ -142,13 +142,13 @@ export default function transformer(fileInfo, api, options) {
 
   const chaiExtensionUsage = root.find(j.CallExpression, {
     callee: {
-      object: node => node.type === 'Identifier' && node.name === chai,
-      property: node => node.type === 'Identifier' && node.name === 'use',
+      object: (node) => node.type === 'Identifier' && node.name === chai,
+      property: (node) => node.type === 'Identifier' && node.name === 'use',
     },
   })
 
   if (chaiExtensionUsage.length > 0) {
-    chaiExtensionUsage.forEach(node => {
+    chaiExtensionUsage.forEach((node) => {
       logWarning('Unsupported Chai Extension "chai.use()"', node)
     })
     return
@@ -160,7 +160,7 @@ export default function transformer(fileInfo, api, options) {
     mutations += 1
   }
 
-  const isExpectCall = node =>
+  const isExpectCall = (node) =>
     node.name === 'expect' ||
     (node.type === j.MemberExpression.name && isExpectCall(node.object)) ||
     (node.type === j.CallExpression.name && isExpectCall(node.callee))
@@ -171,13 +171,13 @@ export default function transformer(fileInfo, api, options) {
         return createCall(
           'toBeNull',
           [],
-          updateExpect(value, node => node)
+          updateExpect(value, (node) => node)
         )
       case 'undefined':
         return createCall(
           'toBeUndefined',
           [],
-          updateExpect(value, node => node)
+          updateExpect(value, (node) => node)
         )
       case 'array': {
         const parentExpressionStatement = findParentOfType(path, 'ExpressionStatement')
@@ -197,7 +197,7 @@ export default function transformer(fileInfo, api, options) {
             ? j.memberExpression(j.identifier('not'), newCallExpression)
             : newCallExpression
 
-          topExpression.object = updateExpect(value, node => node)
+          topExpression.object = updateExpect(value, (node) => node)
 
           return null
         }
@@ -205,7 +205,7 @@ export default function transformer(fileInfo, api, options) {
         return createCall(
           'toBe',
           [j.booleanLiteral(containsNot ? false : true)],
-          updateExpect(value, node =>
+          updateExpect(value, (node) =>
             j.callExpression(
               j.memberExpression(j.identifier('Array'), j.identifier('isArray')),
               [node]
@@ -217,7 +217,7 @@ export default function transformer(fileInfo, api, options) {
         return createCall(
           'toBe',
           args,
-          updateExpect(value, node => j.unaryExpression('typeof', node)),
+          updateExpect(value, (node) => j.unaryExpression('typeof', node)),
           containsNot
         )
       default: {
@@ -231,7 +231,7 @@ export default function transformer(fileInfo, api, options) {
         return createCall(
           'toBeInstanceOf',
           [j.identifier(constructor)],
-          updateExpect(value, node => node),
+          updateExpect(value, (node) => node),
           containsNot
         )
       }
@@ -240,7 +240,7 @@ export default function transformer(fileInfo, api, options) {
 
   // TODO: not sure if this is even required for chai...
   // E.g. is should(x).true valid?
-  const isPrefix = name => assertPrefixes.has(name)
+  const isPrefix = (name) => assertPrefixes.has(name)
 
   function parseArgs(args) {
     if (args.length === 1 && args[0].type === j.ObjectExpression.name) {
@@ -263,7 +263,7 @@ export default function transformer(fileInfo, api, options) {
     }
   }
 
-  const createLeadingComments = rest => comment => {
+  const createLeadingComments = (rest) => (comment) => {
     if (comment.type === 'Literal') {
       addLeadingComment(rest, j.commentLine(` ${comment.value}`))
       return
@@ -272,11 +272,7 @@ export default function transformer(fileInfo, api, options) {
     if (comment.type === 'TemplateLiteral') {
       addLeadingComment(
         rest,
-        j.commentLine(
-          ` ${j(comment)
-            .toSource()
-            .replace(/`/g, '')}`
-        )
+        j.commentLine(` ${j(comment).toSource().replace(/`/g, '')}`)
       )
       return
     }
@@ -287,7 +283,7 @@ export default function transformer(fileInfo, api, options) {
   function getRestWithLengthHandled(p, rest) {
     const containsLength = chainContains('length', p.value.callee, isPrefix)
     const newRest = containsLength
-      ? updateExpect(rest, node => j.memberExpression(node, j.identifier('length')))
+      ? updateExpect(rest, (node) => j.memberExpression(node, j.identifier('length')))
       : rest
     if (newRest.arguments) {
       // Add expect's second argument as a comment (if one exists)
@@ -325,15 +321,15 @@ export default function transformer(fileInfo, api, options) {
           name: 'should',
         },
       })
-      .filter(p => p.node.object)
-      .replaceWith(p => j.callExpression(j.identifier('expect'), [p.node.object]))
+      .filter((p) => p.node.object)
+      .replaceWith((p) => j.callExpression(j.identifier('expect'), [p.node.object]))
       .size()
 
   const shouldIdentifierToExpect = () =>
     root
       .find(j.CallExpression)
-      .filter(p => isShouldMemberExpression(p.value.callee))
-      .replaceWith(p => {
+      .filter((p) => isShouldMemberExpression(p.value.callee))
+      .replaceWith((p) => {
         const { callee } = p.value
         const [args0, args1] = p.node.arguments
 
@@ -364,11 +360,11 @@ export default function transformer(fileInfo, api, options) {
       root
         .find(j.MemberExpression, {
           property: {
-            name: name => members.indexOf(name.toLowerCase()) !== -1,
+            name: (name) => members.indexOf(name.toLowerCase()) !== -1,
           },
         })
-        .filter(p => findParentOfType(p, 'ExpressionStatement'))
-        .filter(p => {
+        .filter((p) => findParentOfType(p, 'ExpressionStatement'))
+        .filter((p) => {
           const { value } = p
           const propertyName = value.property.name.toLowerCase()
 
@@ -376,14 +372,14 @@ export default function transformer(fileInfo, api, options) {
           return !(propertyName === 'ok' && !chainContains('to', value, 'to'))
         })
 
-    getMembers().forEach(p => {
+    getMembers().forEach((p) => {
       if (p.parentPath.value.type === j.CallExpression.name) {
         p.parentPath.replace(p.value)
       }
     })
 
     return getMembers()
-      .replaceWith(p => {
+      .replaceWith((p) => {
         const { value } = p
         const rest = getAllBefore(isPrefix, value, 'should')
 
@@ -413,7 +409,7 @@ export default function transformer(fileInfo, api, options) {
             return createCall(
               'toBe',
               [j.booleanLiteral(!containsNot)],
-              updateExpect(value, node => {
+              updateExpect(value, (node) => {
                 return createCallChain(['isFinite'], [node])
               })
             )
@@ -423,7 +419,7 @@ export default function transformer(fileInfo, api, options) {
             return createCall(
               'toBe',
               [j.booleanLiteral(!containsNot)],
-              updateExpect(value, node => {
+              updateExpect(value, (node) => {
                 return createCallChain(
                   ['Object', mapValueNameToObjectMethod[propertyName]],
                   [node]
@@ -448,7 +444,7 @@ export default function transformer(fileInfo, api, options) {
               return createCall(
                 'toHaveLength',
                 [j.literal(0)],
-                updateExpect(value, node => {
+                updateExpect(value, (node) => {
                   if (
                     node.type === j.ObjectExpression.name ||
                     node.type === j.Identifier.name
@@ -482,12 +478,12 @@ export default function transformer(fileInfo, api, options) {
         callee: {
           type: j.MemberExpression.name,
           property: {
-            name: name => fns.indexOf(name.toLowerCase()) !== -1,
+            name: (name) => fns.indexOf(name.toLowerCase()) !== -1,
           },
           object: isExpectCall,
         },
       })
-      .replaceWith(p => {
+      .replaceWith((p) => {
         const { value } = p
 
         const restRaw = getAllBefore(isPrefix, value.callee, 'should')
@@ -555,7 +551,7 @@ export default function transformer(fileInfo, api, options) {
                   [j.arrayExpression(args)]
                 ),
               ],
-              updateExpect(value, node => node),
+              updateExpect(value, (node) => node),
               false
             )
           }
@@ -599,7 +595,7 @@ export default function transformer(fileInfo, api, options) {
             return createCall(
               'toEqual',
               [createCallChain(['expect', 'arrayContaining'], parseArgs(args))],
-              updateExpect(value, node => {
+              updateExpect(value, (node) => {
                 if (node.type === j.ObjectExpression.name) {
                   return createCallChain(['Object', 'keys'], [node])
                 }
@@ -629,7 +625,7 @@ export default function transformer(fileInfo, api, options) {
             return createCall(
               'toBeTruthy',
               [],
-              updateExpect(value, node =>
+              updateExpect(value, (node) =>
                 j.callExpression(
                   j.memberExpression(node, j.identifier('hasOwnProperty')),
                   [args[0]]
@@ -641,7 +637,7 @@ export default function transformer(fileInfo, api, options) {
               ? createCall(
                   'toBeUndefined',
                   [],
-                  updateExpect(value, node =>
+                  updateExpect(value, (node) =>
                     j.callExpression(
                       j.memberExpression(
                         j.identifier('Object'),
@@ -655,7 +651,7 @@ export default function transformer(fileInfo, api, options) {
               : createCall(
                   'toEqual',
                   [args[1]],
-                  updateExpect(value, node =>
+                  updateExpect(value, (node) =>
                     j.callExpression(
                       j.memberExpression(
                         j.identifier('Object'),
@@ -679,11 +675,11 @@ export default function transformer(fileInfo, api, options) {
   root
     .find(j.MemberExpression, {
       property: {
-        name: name => unsupportedProperties.has(name),
+        name: (name) => unsupportedProperties.has(name),
       },
     })
-    .filter(p => isExpectMemberExpression(p.value))
-    .forEach(p => {
+    .filter((p) => isExpectMemberExpression(p.value))
+    .forEach((p) => {
       const assertion = p.value.property.name
       logWarning(`Unsupported Chai Assertion "${assertion}"`, p)
     })

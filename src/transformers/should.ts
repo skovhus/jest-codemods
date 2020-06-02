@@ -14,7 +14,7 @@ export default function transformer(fileInfo, api, options) {
 
   const isShouldMemberExpression = traverseMemberExpressionUtil(
     j,
-    node =>
+    (node) =>
       (node.type === j.CallExpression.name && node.callee.name === 'should') ||
       (node.type === j.Identifier.name && node.name === 'should')
   )
@@ -24,7 +24,7 @@ export default function transformer(fileInfo, api, options) {
    * TODO: not sure if this is even required for chai...
    */
   function injectMissingPrefix() {
-    const injector = p => {
+    const injector = (p) => {
       const { property } = p.parentPath.value
       if (property && property.type === j.Identifier.name) {
         if (property.name !== 'to') {
@@ -37,7 +37,7 @@ export default function transformer(fileInfo, api, options) {
     root
       .find(j.CallExpression, {
         callee: {
-          name: name => ['expect', 'should'].indexOf(name) >= 0,
+          name: (name) => ['expect', 'should'].indexOf(name) >= 0,
         },
       })
       .forEach(injector)
@@ -59,7 +59,7 @@ export default function transformer(fileInfo, api, options) {
           name: 'should',
         },
       })
-      .forEach(p => {
+      .forEach((p) => {
         p.value.callee.name = 'expect'
       })
   }
@@ -68,11 +68,11 @@ export default function transformer(fileInfo, api, options) {
     root
       .find(j.MemberExpression, {
         property: {
-          name: name => Object.keys(assertionRemappings).indexOf(name) >= 0,
+          name: (name) => Object.keys(assertionRemappings).indexOf(name) >= 0,
         },
       })
-      .filter(p => isShouldMemberExpression(p.value))
-      .forEach(p => {
+      .filter((p) => isShouldMemberExpression(p.value))
+      .forEach((p) => {
         const { property } = p.value
         property.name = assertionRemappings[property.name]
       })

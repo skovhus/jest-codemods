@@ -1,6 +1,6 @@
 {
   "name": "jest-codemods",
-  "version": "0.22.1",
+  "version": "0.23.0",
   "description": "Codemods for migrating test files to Jest",
   "license": "MIT",
   "repository": "skovhus/jest-codemods",
@@ -11,7 +11,7 @@
   },
   "bin": "bin/jest-codemods.js",
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "files": [
     "bin",
@@ -23,8 +23,8 @@
     "lint": "yarn run lint:bail --fix",
     "lint:bail": "eslint src --ext js,ts,tsx",
     "prepublishOnly": "yarn clean && yarn verify:bail",
-    "test:cov": "yarn test -- --coverage",
-    "test:watch": "yarn test -- --watch",
+    "test:cov": "yarn test --coverage",
+    "test:watch": "yarn test --watch",
     "test": "jest --runInBand",
     "verify": "yarn lint && yarn build && yarn test:cov",
     "verify:bail": "yarn lint:bail && yarn verify",
@@ -57,33 +57,35 @@
     "codemods"
   ],
   "dependencies": {
-    "chalk": "^3.0.0",
-    "execa": "^2.1.0",
-    "globby": "^10.0.1",
-    "inquirer": "^7.0.0",
+    "@babel/core": "7.4.5",
+    "@babel/preset-env": "^7.1.6",
+    "chalk": "^4.0.0",
+    "execa": "^4.0.2",
+    "globby": "^11.0.1",
+    "inquirer": "^7.1.0",
     "is-git-clean": "^1.1.0",
-    "jscodeshift": "^0.6.4",
-    "meow": "^5.0.0",
-    "update-notifier": "^3.0.1"
+    "jscodeshift": "^0.9.0",
+    "meow": "^7.0.1",
+    "update-notifier": "^4.1.0"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.23",
-    "@types/jscodeshift": "^0.6.3",
-    "@typescript-eslint/eslint-plugin": "^2.9.0",
-    "@typescript-eslint/parser": "^2.9.0",
-    "codecov": "^3.6.1",
-    "eslint": "^6.7.1",
-    "eslint-config-prettier": "^6.7.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-jest": "^23.0.5",
-    "eslint-plugin-prettier": "^3.1.1",
-    "eslint-plugin-simple-import-sort": "^5.0.0",
-    "husky": "^3.1.0",
-    "jest": "^24.9.0",
-    "lint-staged": "^9.5.0",
-    "prettier": "^1.19.1",
-    "ts-jest": "^24.2.0",
-    "typescript": "^3.7.2"
+    "@types/jest": "^25.2.3",
+    "@types/jscodeshift": "^0.7.1",
+    "@types/update-notifier": "^4.1.0",
+    "@typescript-eslint/eslint-plugin": "^3.1.0",
+    "@typescript-eslint/parser": "^3.1.0",
+    "codecov": "^3.7.0",
+    "eslint": "^7.1.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-jest": "^23.13.2",
+    "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-simple-import-sort": "^5.0.3",
+    "husky": "^4.2.5",
+    "jest": "^26.0.1",
+    "lint-staged": "^10.2.7",
+    "prettier": "^2.0.5",
+    "ts-jest": "^26.1.0",
+    "typescript": "^3.9.3"
   },
   "jest": {
     "preset": "ts-jest",

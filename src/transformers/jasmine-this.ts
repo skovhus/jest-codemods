@@ -108,17 +108,17 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
     )
   }
 
-  const getValidThisExpressions = node => {
+  const getValidThisExpressions = (node) => {
     return j(node)
       .find(j.MemberExpression, {
         object: {
           type: 'ThisExpression',
         },
         property: {
-          name: name => ignoredIdentifiers.indexOf(name) === -1,
+          name: (name) => ignoredIdentifiers.indexOf(name) === -1,
         },
       })
-      .filter(path => isWithinSpecificFunctions(path, allFunctionNames, true))
+      .filter((path) => isWithinSpecificFunctions(path, allFunctionNames, true))
   }
 
   const mutateScope = (ast: Collection<any>, body) => {
@@ -131,12 +131,12 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
             type: 'ThisExpression',
           },
         })
-        .filter(path => isWithinSpecificFunctions(path, allFunctionNames, true))
+        .filter((path) => isWithinSpecificFunctions(path, allFunctionNames, true))
         .replaceWith(replaceThisExpression)
         .size()
     }
 
-    const replaceThisExpression = path => {
+    const replaceThisExpression = (path) => {
       const { name } = path.value.property
 
       replacedIdentifiers.push(name)
@@ -188,9 +188,9 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
     addDeclarations()
   }
 
-  const mutateDescribe = path => {
+  const mutateDescribe = (path) => {
     const functionExpression = path.value.arguments.find(
-      node =>
+      (node) =>
         node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression'
     )
     const functionBody = functionExpression.body
@@ -204,16 +204,16 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
       .find(j.CallExpression, {
         callee: {
           type: 'Identifier',
-          name: name => testFunctionNames.indexOf(name) > -1,
+          name: (name) => testFunctionNames.indexOf(name) > -1,
         },
       }) // Find only lifecyle methods which are in the root scope
       .filter(
-        path =>
+        (path) =>
           path.parentPath.value.type === 'ExpressionStatement' &&
           Array.isArray(path.parentPath.parentPath.value) &&
           path.parentPath.parentPath.parentPath.value.type === 'Program'
       )
-      .filter(path => getValidThisExpressions(path.value).size() > 0)
+      .filter((path) => getValidThisExpressions(path.value).size() > 0)
       .size()
 
     if (topLevelLifecycleMethods > 0) {
@@ -233,7 +233,7 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
           name: 'describe',
         },
       })
-      .filter(path => getValidThisExpressions(path.value).size() > 0)
+      .filter((path) => getValidThisExpressions(path.value).size() > 0)
       .forEach(mutateDescribe)
       .size()
   }
@@ -241,9 +241,11 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
   const updateFunctionExpressions = () => {
     return root
       .find(j.FunctionExpression)
-      .filter(path => isFunctionExpressionWithinSpecificFunctions(path, allFunctionNames))
-      .filter(path => !path.value.generator)
-      .replaceWith(path => {
+      .filter((path) =>
+        isFunctionExpressionWithinSpecificFunctions(path, allFunctionNames)
+      )
+      .filter((path) => !path.value.generator)
+      .replaceWith((path) => {
         const newFn = j.arrowFunctionExpression(
           path.value.params,
           path.value.body,

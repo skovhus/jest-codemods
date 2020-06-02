@@ -20,15 +20,6 @@ Options:
   -f, --force       Bypass Git safety checks and force codemods to run
   -d, --dry         Dry run (no changes are made to files)`,
   {
-    boolean: ['force', 'dry'],
-    string: ['_'],
-    alias: {
-      f: 'force',
-      h: 'help',
-      d: 'dry',
-    },
-  },
-  {
     flags: {
       force: {
         type: 'boolean',
@@ -42,7 +33,18 @@ Options:
   }
 )
 
-updateNotifier({ pkg: cli.pkg }).notify({ defer: false })
+function getValidPackage() {
+  const { name, version } = cli.pkg
+  if (!name) {
+    throw new Error('Did not find name in package.json')
+  }
+  if (!version) {
+    throw new Error('Did not find version in package.json')
+  }
+  return { name, version }
+}
+
+updateNotifier({ pkg: getValidPackage() }).notify({ defer: false })
 
 if (!cli.flags.dry) {
   checkGitStatus(cli.flags.force)
@@ -148,7 +150,7 @@ function supportFailure(supportedItems) {
 }
 
 function expandFilePathsIfNeeded(filesBeforeExpansion) {
-  const shouldExpandFiles = filesBeforeExpansion.some(file => file.includes('*'))
+  const shouldExpandFiles = filesBeforeExpansion.some((file) => file.includes('*'))
   return shouldExpandFiles ? globby.sync(filesBeforeExpansion) : filesBeforeExpansion
 }
 
@@ -237,14 +239,14 @@ inquirer
       message: 'On which files or directory should the codemods be applied?',
       when: () => !cli.input.length,
       default: '.',
-      filter: files =>
+      filter: (files) =>
         files
           .trim()
           .split(/\s+/)
-          .filter(v => v),
+          .filter((v) => v),
     },
   ])
-  .then(answers => {
+  .then((answers) => {
     const {
       files,
       transformer,

@@ -37,7 +37,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       const spyType = path.node.callee.property.name
       switch (spyType) {
         // `jasmine.createSpy().and.callFake(*)` is equivalent of
@@ -78,7 +78,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       // make it `jest.fn()`
       path.node.callee = j.memberExpression(j.identifier('jest'), j.identifier('fn'))
       path.node.arguments = []
@@ -98,7 +98,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       path.node.expression = j.callExpression(
         j.memberExpression(
           path.node.expression, // add .mockImplementation(() => {}); call
@@ -128,7 +128,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       const spyType = path.node.callee.property.name
       switch (spyType) {
         // if it's `spyOn().and.callThrough()`
@@ -163,7 +163,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
       //   find all `spyOn` calls
       callee: { type: 'Identifier', name: 'spyOn' },
     })
-    .forEach(path => {
+    .forEach((path) => {
       // and make them `jest.spyOn()`
       path.node.callee = j.memberExpression(j.identifier('jest'), j.identifier('spyOn'))
     })
@@ -180,7 +180,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       // replace `.count()` with `.length`
       path.node.callee.property.name = 'length'
       // add extra `.mock` property that jest uses:
@@ -200,7 +200,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         name: 'callCount',
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       // and make them `stuff.mock.calls.length`
       path.node.property.name = 'length'
       path.node.object = j.memberExpression(path.node.object, j.identifier('mock'))
@@ -215,7 +215,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         name: 'mostRecentCall',
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       // turn it into `stuff.mock.calls[stuff.mock.calls.length - 1]`
       path.node.object = j.memberExpression(path.node.object, j.identifier('mock'))
       path.node.object = j.memberExpression(path.node.object, j.identifier('calls'))
@@ -245,7 +245,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       const expressionMockCalls = j.memberExpression(
         j.memberExpression(path.node.callee.object.object, j.identifier('mock')),
         j.identifier('calls')
@@ -276,7 +276,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       // remove args, since jest calls are array of arrays
       // `stuff.mostRecentCall[0]`
       path.node.object.object && (path.node.object = path.node.object.object)
@@ -293,7 +293,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       // make them `stuff.mock.calls[*]
       path.node.object.object && (path.node.object = path.node.object.object)
       path.node.object = j.memberExpression(path.node.object, j.identifier('mock'))
@@ -318,7 +318,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       const expressionMockCalls = j.memberExpression(
         j.memberExpression(path.node.callee.object.object, j.identifier('mock')),
         j.identifier('calls')
@@ -336,7 +336,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         name: 'andCallFake',
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       path.node.property.name = 'mockImplementation'
     })
 
@@ -348,7 +348,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         name: 'andReturn',
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       path.node.property.name = 'mockReturnValue'
     })
 
@@ -363,7 +363,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       j(path).replaceWith(path.node.callee.object)
     })
 
@@ -387,7 +387,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .forEach(path => {
+    .forEach((path) => {
       const usageType = path.node.callee.property.name
       switch (usageType) {
         case 'install': {
@@ -439,7 +439,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
     'stringMatching',
   ]
 
-  jasmineToExpectFunctionNames.forEach(functionName => {
+  jasmineToExpectFunctionNames.forEach((functionName) => {
     // jasmine.<jasmineToExpectFunctionName>(*)
     root
       .find(j.CallExpression, {
@@ -455,7 +455,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
           },
         },
       })
-      .forEach(path => {
+      .forEach((path) => {
         // `jasmine.<jasmineToExpectFunctionName>(*)` is equivalent of
         // `expect.<jasmineToExpectFunctionName>(*)`
         path.node.callee.object.name = 'expect'
@@ -477,12 +477,12 @@ export default function jasmineGlobals(fileInfo, api, options) {
       },
     })
     .filter(
-      path =>
+      (path) =>
         path.node.arguments.length === 2 &&
         path.node.arguments[1].type === 'ArrayExpression'
     )
-    .forEach(path => {
-      const properties = path.node.arguments[1].elements.map(arg =>
+    .forEach((path) => {
+      const properties = path.node.arguments[1].elements.map((arg) =>
         j.objectProperty(
           j.literal(arg.value),
           j.callExpression(
