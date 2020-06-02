@@ -35,7 +35,7 @@ function rewriteFailingAssertion(j, path) {
           property: { name: 'fail' },
         },
       })
-      .forEach(pFail => {
+      .forEach((pFail) => {
         pFail.node.callee = j.identifier('done.fail')
       })
       .size() > 0
@@ -58,7 +58,7 @@ function rewriteEndCallback(j, path) {
           property: { name: 'end' },
         },
       })
-      .filter(p => {
+      .filter((p) => {
         // if t.end is in the scope of the test function we remove it
         const outerParent = p.parent.parent.parent.node
         const inTestScope =
@@ -132,25 +132,25 @@ export function rewriteAssertionsAndTestArgument(j, path) {
 export function rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName) {
   ast
     .find(j.CallExpression, {
-      callee: callee =>
+      callee: (callee) =>
         callee.name === testFunctionName ||
         (callee.object && callee.object.name === testFunctionName),
     })
-    .forEach(p => {
+    .forEach((p) => {
       // The last arg is the test callback
       const lastArg = p.value.arguments[p.value.arguments.length - 1]
       const lastArgParam = lastArg && lastArg.params && lastArg.params[0]
       if (lastArgParam && lastArgParam.type === 'ObjectPattern') {
         const objectPattern = lastArg.params[0]
-        const keys = objectPattern.properties.map(prop => prop.key.name)
+        const keys = objectPattern.properties.map((prop) => prop.key.name)
         lastArg.params[0] = j.identifier('t')
 
-        keys.forEach(key => {
+        keys.forEach((key) => {
           j(lastArg)
             .find(j.CallExpression, {
               callee: { name: key },
             })
-            .forEach(assertion => {
+            .forEach((assertion) => {
               j(assertion).replaceWith(
                 j.callExpression(
                   j.memberExpression(j.identifier('t'), j.identifier(key)),
@@ -171,11 +171,11 @@ export function rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName)
 export function detectUnsupportedNaming(fileInfo, j, ast, testFunctionName) {
   ast
     .find(j.CallExpression, {
-      callee: callee =>
+      callee: (callee) =>
         callee.name === testFunctionName ||
         (callee.object && callee.object.name === testFunctionName),
     })
-    .forEach(p => {
+    .forEach((p) => {
       const lastArg = p.value.arguments[p.value.arguments.length - 1]
       if (lastArg && lastArg.params && lastArg.params[0]) {
         const lastArgName = lastArg.params[0].name

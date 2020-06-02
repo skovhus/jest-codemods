@@ -50,10 +50,12 @@ module.exports = {
     'no-console': 'off',
     'no-warning-comments': ['warn', { terms: ['fixme'], location: 'start' }],
     'no-unused-vars': 'off', // replaced by @typescript-eslint/no-unused-vars
+    '@typescript-eslint/no-empty-function': 'off',
 
     // FIXME: enable
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
-};
+}

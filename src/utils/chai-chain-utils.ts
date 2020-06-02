@@ -1,6 +1,6 @@
 import { JEST_MATCHER_TO_MAX_ARGS } from './consts'
 
-export const createCallUtil = j => (
+export const createCallUtil = (j) => (
   fnName: string,
   args: any,
   rest: any,
@@ -19,9 +19,9 @@ export const createCallUtil = j => (
   )
 }
 
-export const chainContainsUtil = j => (fnName, node, end) => {
+export const chainContainsUtil = (j) => (fnName, node, end) => {
   let curr = node
-  const checkEnd = typeof end === 'function' ? end : name => name === end
+  const checkEnd = typeof end === 'function' ? end : (name) => name === end
 
   while (
     curr.type === j.MemberExpression.name &&
@@ -34,7 +34,7 @@ export const chainContainsUtil = j => (fnName, node, end) => {
   return curr.type === j.MemberExpression.name && curr.property.name === fnName
 }
 
-export const getNodeBeforeMemberExpressionUtil = j => (equalsMemberName, node, end) => {
+export const getNodeBeforeMemberExpressionUtil = (j) => (equalsMemberName, node, end) => {
   let rest = node
 
   while (
@@ -56,7 +56,7 @@ export const getNodeBeforeMemberExpressionUtil = j => (equalsMemberName, node, e
   return rest
 }
 
-export const getExpectNodeUtil = j => node => {
+export const getExpectNodeUtil = (j) => (node) => {
   let curr = node
 
   while (
@@ -73,7 +73,7 @@ export const getExpectNodeUtil = j => node => {
   return curr
 }
 
-export const updateExpectUtil = j => (node, fn: Function) => {
+export const updateExpectUtil = (j) => (node, fn: (a: any) => any) => {
   const expectNode = getExpectNodeUtil(j)(node)
 
   if (expectNode == null || expectNode.arguments == null) {
@@ -85,7 +85,7 @@ export const updateExpectUtil = j => (node, fn: Function) => {
   return j.callExpression(j.identifier('expect'), args)
 }
 
-export const createCallChainUtil = j => (chain, args) => {
+export const createCallChainUtil = (j) => (chain, args) => {
   const arr = chain.reverse()
 
   let val = arr.pop()

@@ -148,7 +148,7 @@ function supportFailure(supportedItems) {
 }
 
 function expandFilePathsIfNeeded(filesBeforeExpansion) {
-  const shouldExpandFiles = filesBeforeExpansion.some(file => file.includes('*'))
+  const shouldExpandFiles = filesBeforeExpansion.some((file) => file.includes('*'))
   return shouldExpandFiles ? globby.sync(filesBeforeExpansion) : filesBeforeExpansion
 }
 
@@ -237,14 +237,14 @@ inquirer
       message: 'On which files or directory should the codemods be applied?',
       when: () => !cli.input.length,
       default: '.',
-      filter: files =>
+      filter: (files) =>
         files
           .trim()
           .split(/\s+/)
-          .filter(v => v),
+          .filter((v) => v),
     },
   ])
-  .then(answers => {
+  .then((answers) => {
     const {
       files,
       transformer,

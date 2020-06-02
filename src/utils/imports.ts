@@ -17,10 +17,7 @@ export function addRequireOrImport(j: any, ast: any, localName: string, pkg: str
     )
   }
 
-  ast
-    .find(j.Program)
-    .get('body', 0)
-    .insertBefore(requireStatement)
+  ast.find(j.Program).get('body', 0).insertBefore(requireStatement)
 }
 
 export function addRequireOrImportOnceFactory(j: any, ast: any) {
@@ -37,9 +34,9 @@ export function findRequires(j: any, ast: any, pkg: string) {
   return ast
     .find(j.CallExpression, {
       callee: { name: 'require' },
-      arguments: arg => arg[0].value === pkg,
+      arguments: (arg) => arg[0].value === pkg,
     })
-    .filter(p => p.value.arguments.length === 1)
+    .filter((p) => p.value.arguments.length === 1)
 }
 
 export function findImports(j, ast, pkg) {
@@ -73,14 +70,14 @@ function findParentPathMemberRequire(path) {
  */
 export function getRequireOrImportName(j: any, ast: any, pkg: string) {
   let localName = null
-  findRequires(j, ast, pkg).forEach(p => {
+  findRequires(j, ast, pkg).forEach((p) => {
     const variableDeclarationPath = findParentVariableDeclaration(p)
     if (variableDeclarationPath) {
       localName = variableDeclarationPath.value.id.name
     }
   })
 
-  findImports(j, ast, pkg).forEach(p => {
+  findImports(j, ast, pkg).forEach((p) => {
     const pathSpecifier = p.value.specifiers[0]
     if (pathSpecifier && pathSpecifier.type === 'ImportDefaultSpecifier') {
       localName = pathSpecifier.local.name
@@ -99,7 +96,7 @@ export function removeDefaultImport(j: any, ast: any, pkg: string) {
   const { comments } = getBodyNode()
 
   let localName = null
-  findImports(j, ast, pkg).forEach(p => {
+  findImports(j, ast, pkg).forEach((p) => {
     const pathSpecifier = p.value.specifiers[0]
     if (pathSpecifier && pathSpecifier.type === 'ImportDefaultSpecifier') {
       localName = pathSpecifier.local.name
@@ -135,7 +132,7 @@ export function removeRequireAndImport(
 
   let localName = null
   let importName = null
-  findRequires(j, ast, pkg).forEach(p => {
+  findRequires(j, ast, pkg).forEach((p) => {
     const variableDeclarationPath = findParentVariableDeclaration(p)
     const parentMember = findParentPathMemberRequire(p)
 
@@ -168,7 +165,7 @@ export function removeRequireAndImport(
     ) {
       const { properties } = variableDeclarationPath.value.id
 
-      const index = properties.findIndex(prop => {
+      const index = properties.findIndex((prop) => {
         return prop.key.type === 'Identifier' && prop.key.name === specifier
       })
 
@@ -200,14 +197,14 @@ export function removeRequireAndImport(
      */
     if (variableDeclarationPath && specifier) {
       const memberUsagesOfPkg = ast.find(j.MemberExpression, {
-        object: node =>
+        object: (node) =>
           node &&
           node.type === 'Identifier' &&
           node.name === variableDeclarationPath.value.id.name,
       })
 
       const initUsagesOfPkg = ast.find(j.VariableDeclarator, {
-        init: node =>
+        init: (node) =>
           node &&
           node.type === 'Identifier' &&
           node.name === variableDeclarationPath.value.id.name,
@@ -219,15 +216,15 @@ export function removeRequireAndImport(
       // const { expect } = chai;
       ast
         .find(j.VariableDeclarator, {
-          id: node => node.type === 'ObjectPattern',
-          init: node =>
+          id: (node) => node.type === 'ObjectPattern',
+          init: (node) =>
             node &&
             node.type === 'Identifier' &&
             node.name === variableDeclarationPath.value.id.name,
         })
-        .forEach(p => {
+        .forEach((p) => {
           const index = p.value.id.properties.findIndex(
-            prop => prop.key.type === 'Identifier' && prop.key.name === specifier
+            (prop) => prop.key.type === 'Identifier' && prop.key.name === specifier
           )
 
           if (index >= 0) {
@@ -248,15 +245,15 @@ export function removeRequireAndImport(
       // const expect = chai.expect;
       ast
         .find(j.MemberExpression, {
-          object: node =>
+          object: (node) =>
             variableDeclarationPath.value &&
             node.type === 'Identifier' &&
             node.name === variableDeclarationPath.value.id.name,
-          property: node => node.type === 'Identifier' && node.name === specifier,
+          property: (node) => node.type === 'Identifier' && node.name === specifier,
         })
-        .map(p => findVariableDeclarator(p))
+        .map((p) => findVariableDeclarator(p))
         .filter(Boolean)
-        .forEach(p => {
+        .forEach((p) => {
           localName = p.value.id.name
           p.prune()
           if (usagesOfPkg <= 1) {
@@ -266,7 +263,7 @@ export function removeRequireAndImport(
     }
   })
 
-  findImports(j, ast, pkg).forEach(p => {
+  findImports(j, ast, pkg).forEach((p) => {
     const pathSpecifier = p.value.specifiers[0]
     importName = pathSpecifier && pathSpecifier.imported && pathSpecifier.imported.name
 

@@ -49,9 +49,7 @@ const TYPE_OF_MATCHES = [
   'boolean',
   'symbol',
 ]
-const MATCHER_METHODS = Object.keys(MATCHES)
-  .concat(SPECIAL_MATCHES)
-  .concat(NOT_SUPPORTED)
+const MATCHER_METHODS = Object.keys(MATCHES).concat(SPECIAL_MATCHES).concat(NOT_SUPPORTED)
 
 const EXPECT_JS = 'expect.js'
 
@@ -77,13 +75,13 @@ export default function expectJsTransfomer(fileInfo, api, options) {
         type: 'CallExpression',
         callee: {
           type: 'MemberExpression',
-          property: node => {
+          property: (node) => {
             return node.type === 'Identifier' && MATCHER_METHODS.indexOf(node.name) !== -1
           },
         },
       },
     })
-    .replaceWith(path => {
+    .replaceWith((path) => {
       const callExpression = path.value.expression
       const expectCall = getExpectCallExpression(callExpression)
       if (!expectCall) {

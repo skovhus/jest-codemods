@@ -109,7 +109,7 @@ export default function tapeToJest(fileInfo, api, options) {
             property: ({ name }) => tPropertiesUnsupported.has(name),
           },
         })
-        .forEach(p => {
+        .forEach((p) => {
           const propertyName = p.value.callee.property.name
           if (propertyName.toLowerCase().indexOf('looseequal') >= 0) {
             logWarning(
@@ -128,7 +128,7 @@ export default function tapeToJest(fileInfo, api, options) {
             property: ({ name }) => unsupportedTestFunctionProperties.has(name),
           },
         })
-        .forEach(p => {
+        .forEach((p) => {
           const propertyName = p.value.callee.property.name
           logWarning(`"${propertyName}" is currently not supported`, p)
         })
@@ -142,7 +142,7 @@ export default function tapeToJest(fileInfo, api, options) {
               !tPropertiesUnsupported.has(name) && !tPropertiesNotMapped.has(name),
           },
         })
-        .forEach(p => {
+        .forEach((p) => {
           const args = p.node.arguments
           const oldPropertyName = p.value.callee.property.name
           const newPropertyName = tPropertiesMap[oldPropertyName]
@@ -202,7 +202,7 @@ export default function tapeToJest(fileInfo, api, options) {
             property: { name: 'comment' },
           },
         })
-        .forEach(p => {
+        .forEach((p) => {
           p.node.callee = 'console.log'
         })
     },
@@ -211,11 +211,11 @@ export default function tapeToJest(fileInfo, api, options) {
         .find(j.CallExpression, {
           callee: { name: testFunctionName },
         })
-        .forEach(p => {
+        .forEach((p) => {
           // Convert Tape option parameters, test([name], [opts], cb)
-          p.value.arguments.forEach(a => {
+          p.value.arguments.forEach((a) => {
             if (a.type === 'ObjectExpression') {
-              a.properties.forEach(tapeOption => {
+              a.properties.forEach((tapeOption) => {
                 const tapeOptionKey = tapeOption.key.name
                 const tapeOptionValue = tapeOption.value.value
                 if (tapeOptionKey === 'skip' && tapeOptionValue === true) {
@@ -232,7 +232,7 @@ export default function tapeToJest(fileInfo, api, options) {
               })
 
               p.value.arguments = p.value.arguments.filter(
-                pa => pa.type !== 'ObjectExpression'
+                (pa) => pa.type !== 'ObjectExpression'
               )
             }
           })
@@ -246,7 +246,7 @@ export default function tapeToJest(fileInfo, api, options) {
     },
   ]
 
-  transforms.forEach(t => t())
+  transforms.forEach((t) => t())
 
   return finale(fileInfo, j, ast, options)
 }

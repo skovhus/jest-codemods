@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import isGitClean from 'is-git-clean'
 
-export default function checkGitStatus(force) {
+export default function checkGitStatus(force = false) {
   let clean = false
   let errorMessage = 'Unable to determine if git directory is clean'
   try {

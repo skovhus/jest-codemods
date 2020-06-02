@@ -60,7 +60,7 @@ export function findParentOfType(path, type) {
 }
 
 export function traverseMemberExpressionUtil(j, nodeValidator) {
-  const traverseMemberExpression = node => {
+  const traverseMemberExpression = (node) => {
     if (!node) {
       return false
     }

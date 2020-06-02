@@ -17,7 +17,7 @@ function testChanged(msg, source, expectedOutput) {
 let consoleWarnings = []
 beforeEach(() => {
   consoleWarnings = []
-  console.warn = v => consoleWarnings.push(v)
+  console.warn = (v) => consoleWarnings.push(v)
 })
 
 testChanged(

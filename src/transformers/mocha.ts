@@ -43,7 +43,7 @@ const mochaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
 
   removeRequireAndImport(j, ast, 'mocha')
 
-  Object.keys(methodMap).forEach(mochaMethod => {
+  Object.keys(methodMap).forEach((mochaMethod) => {
     const jestMethod = methodMap[mochaMethod]
 
     ast
@@ -52,10 +52,10 @@ const mochaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
         callee: { type: 'Identifier', name: mochaMethod },
       })
       .filter(({ scope }) => !hasBinding(mochaMethod, scope))
-      .replaceWith(path => {
+      .replaceWith((path) => {
         let args = path.value.arguments
         if (!jestMethodsWithDescriptionsAllowed.has(jestMethod)) {
-          args = args.filter(a => a.type !== 'Literal')
+          args = args.filter((a) => a.type !== 'Literal')
         } else if (args.length === 1 && args[0].type === 'Literal') {
           const emptyArrowFunction = j.arrowFunctionExpression(
             [],
@@ -69,7 +69,7 @@ const mochaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
         return j.callExpression(j.identifier(jestMethod), args)
       })
 
-    methodModifiers.forEach(modifier => {
+    methodModifiers.forEach((modifier) => {
       ast
         .find(j.CallExpression, {
           type: 'CallExpression',
@@ -79,7 +79,7 @@ const mochaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
             property: { type: 'Identifier', name: modifier },
           },
         })
-        .replaceWith(path =>
+        .replaceWith((path) =>
           j.callExpression(
             j.memberExpression(j.identifier(jestMethod), j.identifier(modifier)),
             path.value.arguments
