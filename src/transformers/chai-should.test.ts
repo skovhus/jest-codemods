@@ -301,13 +301,15 @@ testChanged(
         expect('').to.be.empty;
         expect(v).to.be.empty;
         expect({}).to.be.empty;
-    `,
+        expect(wrapper.find('.failure-message').length).to.be.empty;
+  `,
   `
         expect([]).toHaveLength(0);
         expect('').toHaveLength(0);
         expect(Object.keys(v)).toHaveLength(0);
         expect(Object.keys({})).toHaveLength(0);
-    `
+        expect(wrapper.find('.failure-message')).toHaveLength(0);
+  `
 )
 
 testChanged(

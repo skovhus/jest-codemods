@@ -451,6 +451,15 @@ export default function transformer(fileInfo, api, options) {
                   ) {
                     return createCallChain(['Object', 'keys'], [node])
                   }
+
+                  if (
+                    node.type === j.MemberExpression.name &&
+                    node.property.type === 'Identifier' &&
+                    node.property.name === 'length'
+                  ) {
+                    return node.object
+                  }
+
                   return node
                 }),
                 containsNot
