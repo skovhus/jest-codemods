@@ -1,7 +1,6 @@
 version: 2
 
 defaults: &defaults
-  working_directory: ~/repo
   docker:
     - image: circleci/node:10
 
@@ -37,7 +36,7 @@ jobs:
       - run: yarn install
       - *save_npm_cache
       - run: if [ -z  "$NPM_TOKEN" ]; then exit 1; fi
-      - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
+      - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
       - run: bash release.sh
 
 workflows:
