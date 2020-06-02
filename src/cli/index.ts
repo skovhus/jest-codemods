@@ -33,7 +33,18 @@ Options:
   }
 )
 
-updateNotifier({ pkg: cli.pkg }).notify({ defer: false })
+function getValidPackage() {
+  const { name, version } = cli.pkg
+  if (!name) {
+    throw new Error('Did not find name in package.json')
+  }
+  if (!version) {
+    throw new Error('Did not find version in package.json')
+  }
+  return { name, version }
+}
+
+updateNotifier({ pkg: getValidPackage() }).notify({ defer: false })
 
 if (!cli.flags.dry) {
   checkGitStatus(cli.flags.force)

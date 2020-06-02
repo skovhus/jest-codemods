@@ -64,11 +64,12 @@
     "is-git-clean": "^1.1.0",
     "jscodeshift": "^0.9.0",
     "meow": "^7.0.1",
-    "update-notifier": "^3.0.1"
+    "update-notifier": "^4.1.0"
   },
   "devDependencies": {
     "@types/jest": "^25.2.3",
     "@types/jscodeshift": "^0.7.1",
+    "@types/update-notifier": "^4.1.0",
     "@typescript-eslint/eslint-plugin": "^3.1.0",
     "@typescript-eslint/parser": "^3.1.0",
     "codecov": "^3.7.0",
