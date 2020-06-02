@@ -11,7 +11,7 @@
   },
   "bin": "bin/jest-codemods.js",
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "files": [
     "bin",
@@ -23,8 +23,8 @@
     "lint": "yarn run lint:bail --fix",
     "lint:bail": "eslint src --ext js,ts,tsx",
     "prepublishOnly": "yarn clean && yarn verify:bail",
-    "test:cov": "yarn test -- --coverage",
-    "test:watch": "yarn test -- --watch",
+    "test:cov": "yarn test --coverage",
+    "test:watch": "yarn test --watch",
     "test": "jest --runInBand",
     "verify": "yarn lint && yarn build && yarn test:cov",
     "verify:bail": "yarn lint:bail && yarn verify",
@@ -62,13 +62,13 @@
     "globby": "^10.0.1",
     "inquirer": "^7.0.0",
     "is-git-clean": "^1.1.0",
-    "jscodeshift": "^0.6.4",
+    "jscodeshift": "^0.9.0",
     "meow": "^5.0.0",
     "update-notifier": "^3.0.1"
   },
   "devDependencies": {
     "@types/jest": "^24.0.23",
-    "@types/jscodeshift": "^0.6.3",
+    "@types/jscodeshift": "^0.7.1",
     "@typescript-eslint/eslint-plugin": "^2.9.0",
     "@typescript-eslint/parser": "^2.9.0",
     "codecov": "^3.6.1",
