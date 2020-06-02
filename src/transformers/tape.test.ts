@@ -361,6 +361,27 @@ test('my test', () => {
 `
 )
 
+testChanged(
+  `supports the todo option`,
+  `
+import test from 'tape';
+test({todo: true}, t => {
+    t.equal(1, 1);
+});
+test({todo: false}, t => {
+    t.equal(1, 1);
+});
+`,
+  `
+test.todo(() => {
+    expect(1).toBe(1);
+});
+test(() => {
+    expect(1).toBe(1);
+});
+`
+)
+
 test('not supported warnings: createStream', () => {
   wrappedPlugin(`
         import test from 'tape';

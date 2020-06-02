@@ -14,6 +14,8 @@ import {
 const SPECIAL_THROWS_CASE = '(special throws case)'
 const SPECIAL_PLAN_CASE = '(special plan case)'
 
+const SUPPORTED_TEST_METHODS = ['test.skip', 'test.todo']
+
 const tPropertiesMap = {
   ok: 'toBeTruthy',
   true: 'toBeTruthy',
@@ -220,6 +222,10 @@ export default function tapeToJest(fileInfo, api, options) {
                   p.value.callee.name = 'test.skip'
                 }
 
+                if (tapeOptionKey === 'todo' && tapeOptionValue === true) {
+                  p.value.callee.name = 'test.todo'
+                }
+
                 if (tapeOptionKey === 'timeout') {
                   logWarning('"timeout" option is currently not supported', p)
                 }
@@ -231,7 +237,7 @@ export default function tapeToJest(fileInfo, api, options) {
             }
           })
 
-          if (p.node.callee.name !== 'test.skip') {
+          if (!SUPPORTED_TEST_METHODS.includes(p.node.callee.name)) {
             p.node.callee.name = 'test'
           }
 

@@ -51,8 +51,9 @@ const avaToJestMethods = {
   after: 'afterAll',
   beforeEach: 'beforeEach',
   afterEach: 'afterEach',
-  skip: 'test.skip',
   only: 'test.only',
+  skip: 'test.skip',
+  todo: 'test.todo',
 }
 
 const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
@@ -164,7 +165,7 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
 
       function mapPathToJestCallExpression(p) {
         let jestMethod = 'test'
-        let jestMethodArgs = p.node.arguments
+        const jestMethodArgs = p.node.arguments
 
         // List like ['test', 'serial', 'cb']
         const avaMethods = getMemberExpressionElements(p.node.callee).filter(
@@ -173,12 +174,7 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
 
         if (avaMethods.length === 1) {
           const avaMethod = avaMethods[0]
-          if (avaMethod === 'todo') {
-            const firstArg = jestMethodArgs && jestMethodArgs[0]
-            if (firstArg.type === 'Literal') {
-              jestMethodArgs = [j.literal(`TODO: ${firstArg.value}`)]
-            }
-          } else if (avaMethod in avaToJestMethods) {
+          if (avaMethod in avaToJestMethods) {
             jestMethod = avaToJestMethods[avaMethod]
           } else {
             jestMethod = avaMethod
