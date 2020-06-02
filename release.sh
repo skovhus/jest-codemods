@@ -14,4 +14,4 @@ fi
 
 echo "Deploying version $version."
 
-npm publish
+yarn publish
