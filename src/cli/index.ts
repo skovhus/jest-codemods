@@ -20,15 +20,6 @@ Options:
   -f, --force       Bypass Git safety checks and force codemods to run
   -d, --dry         Dry run (no changes are made to files)`,
   {
-    boolean: ['force', 'dry'],
-    string: ['_'],
-    alias: {
-      f: 'force',
-      h: 'help',
-      d: 'dry',
-    },
-  },
-  {
     flags: {
       force: {
         type: 'boolean',
