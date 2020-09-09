@@ -10,17 +10,15 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function testChanged(msg, source, expectedOutput, options = {}) {
-  test(msg, () => {
-    const result = wrappedPlugin(source, options)
-    expect(result).toBe(expectedOutput)
-    expect(consoleWarnings).toEqual([])
-  })
+function assertTransformation(source, expectedOutput, options = {}) {
+  const result = wrappedPlugin(source, options)
+  expect(result).toBe(expectedOutput)
+  expect(consoleWarnings).toEqual([])
 }
 
-testChanged(
-  'maps BDD-style interface',
-  `
+test('maps BDD-style interface', () => {
+  assertTransformation(
+    `
 // @flow
 describe('describe', () => {
   before(() => {});
@@ -40,7 +38,7 @@ describe('describe', () => {
   })
 })
 `,
-  `
+    `
 // @flow
 describe('describe', () => {
   beforeAll(() => {});
@@ -60,11 +58,12 @@ describe('describe', () => {
   })
 })
 `
-)
+  )
+})
 
-testChanged(
-  'maps TDD-style interface',
-  `
+test('maps TDD-style interface', () => {
+  assertTransformation(
+    `
 // @flow
 suite('suite', () => {
   suiteSetup(() => {});
@@ -82,7 +81,7 @@ suite('suite', () => {
   it('description', () => {});
 })
 `,
-  `
+    `
 // @flow
 describe('suite', () => {
   beforeAll(() => {});
@@ -100,29 +99,31 @@ describe('suite', () => {
   it('description', () => {});
 })
 `
-)
+  )
+})
 
-testChanged(
-  'preserves exclusive tests',
-  `
+test('preserves exclusive tests', () => {
+  assertTransformation(
+    `
 // @flow
 suite.only('only suite', () => {
   test.only('only test', () => {});
   it.only('only test', () => {});
 });
 `,
-  `
+    `
 // @flow
 describe.only('only suite', () => {
   test.only('only test', () => {});
   it.only('only test', () => {});
 });
 `
-)
+  )
+})
 
-testChanged(
-  'preserves skipped tests',
-  `
+test('preserves skipped tests', () => {
+  assertTransformation(
+    `
 // @flow
 suite.skip('skip suite', () => {
   test.skip('skip test', () => {});
@@ -131,7 +132,7 @@ suite.skip('skip suite', () => {
   it('test will be skipped');
 });
 `,
-  `
+    `
 // @flow
 describe.skip('skip suite', () => {
   test.skip('skip test', () => {});
@@ -140,11 +141,12 @@ describe.skip('skip suite', () => {
   it.skip('test will be skipped', () => {});
 });
 `
-)
+  )
+})
 
-testChanged(
-  'preserves call expressions that are defined in scope',
-  `
+test('preserves call expressions that are defined in scope', () => {
+  assertTransformation(
+    `
 const setup = () => {};
 context('test suite', () => {
     test('test', () => {
@@ -155,7 +157,7 @@ context('test suite', () => {
     });
 });
 `,
-  `
+    `
 const setup = () => {};
 describe('test suite', () => {
     test('test', () => {
@@ -166,24 +168,26 @@ describe('test suite', () => {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'removes mocha import',
-  `
+test('removes mocha import', () => {
+  assertTransformation(
+    `
 import { describe, it } from 'mocha';
 suite('suite', () => {
 })
     `,
-  `
+    `
 describe('suite', () => {
 })
     `
-)
+  )
+})
 
-testChanged(
-  'adds any type to the test context with typescript (tsx)',
-  `
+test('adds any type to the test context with typescript (tsx)', () => {
+  assertTransformation(
+    `
 describe('describe', function () {
   beforeEach(function () {
     this.hello = 'hi';
@@ -199,7 +203,7 @@ describe('describe', function () {
   })
 })
 `,
-  `
+    `
 describe('describe', () => {
   let testContext: any;
 
@@ -221,12 +225,13 @@ describe('describe', () => {
   })
 })
 `,
-  { parser: 'tsx' }
-)
+    { parser: 'tsx' }
+  )
+})
 
-testChanged(
-  'adds any type to the test context with typescript (ts)',
-  `
+test('adds any type to the test context with typescript (ts)', () => {
+  assertTransformation(
+    `
 describe('describe', function () {
   beforeEach(function () {
     this.hello = 'hi';
@@ -242,7 +247,7 @@ describe('describe', function () {
   })
 })
 `,
-  `
+    `
 describe('describe', () => {
   let testContext: any;
 
@@ -264,12 +269,13 @@ describe('describe', () => {
   })
 })
 `,
-  { parser: 'ts' }
-)
+    { parser: 'ts' }
+  )
+})
 
-testChanged(
-  'transforms this',
-  `
+test('transforms this', () => {
+  assertTransformation(
+    `
 // @flow
 describe('describe', function () {
   before(function() {
@@ -306,7 +312,7 @@ describe('describe', function () {
   })
 })
 `,
-  `
+    `
 // @flow
 describe('describe', () => {
   let testContext;
@@ -349,4 +355,5 @@ describe('describe', () => {
   })
 })
 `
-)
+  )
+})

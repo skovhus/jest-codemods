@@ -7,16 +7,14 @@ import plugin from './jasmine-this'
 chalk.level = 0
 const wrappedPlugin = wrapPlugin(plugin)
 
-function testChanged(msg, source, expectedOutput, options = {}) {
-  test(msg, () => {
-    const result = wrappedPlugin(source, options)
-    expect(result).toBe(expectedOutput)
-  })
+function assertTransformation(source, expectedOutput, options = {}) {
+  const result = wrappedPlugin(source, options)
+  expect(result).toBe(expectedOutput)
 }
 
-testChanged(
-  'transforms simple cases',
-  `
+test('transforms simple cases', () => {
+  assertTransformation(
+    `
 describe('foo', function() {
     beforeEach(function() {
         this.foo = { id: 'FOO' };
@@ -30,7 +28,7 @@ describe('foo', function() {
     });
 });
 `,
-  `
+    `
 describe('foo', () => {
     let testContext;
 
@@ -50,11 +48,12 @@ describe('foo', () => {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'does not transform generator functions',
-  `
+test('does not transform generator functions', () => {
+  assertTransformation(
+    `
 describe('foo', function*() {
     beforeEach(function*() {
         this.foo = { id: 'FOO' };
@@ -68,7 +67,7 @@ describe('foo', function*() {
     });
 });
 `,
-  `
+    `
 describe('foo', function*() {
     let testContext;
 
@@ -88,11 +87,12 @@ describe('foo', function*() {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'transforms only test functions context',
-  `
+test('transforms only test functions context', () => {
+  assertTransformation(
+    `
 describe('foo', function() {
     const MockClass = function(options) {
         this.options = options;
@@ -129,7 +129,7 @@ describe('bar', function () {
   });
 });
 `,
-  `
+    `
 describe('foo', () => {
     let testContext;
 
@@ -172,11 +172,12 @@ describe('bar', () => {
   });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'transforms nested describes',
-  `
+test('transforms nested describes', () => {
+  assertTransformation(
+    `
 describe('foo', function() {
     beforeEach(function() {
         this.foo = { id: 'FOO' };
@@ -198,7 +199,7 @@ describe('foo', function() {
     });
 });
 `,
-  `
+    `
 describe('foo', () => {
     let testContext;
 
@@ -226,11 +227,12 @@ describe('foo', () => {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'transforms plain functions within lifecycle methods',
-  `
+test('transforms plain functions within lifecycle methods', () => {
+  assertTransformation(
+    `
 describe('foo', function() {
     beforeEach(function() {
         this.foo = { id: 'FOO' };
@@ -261,7 +263,7 @@ describe('foo', function() {
     });
 });
 `,
-  `
+    `
 describe('foo', () => {
     let testContext;
 
@@ -298,11 +300,12 @@ describe('foo', () => {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'transforms context within arrow functions',
-  `
+test('transforms context within arrow functions', () => {
+  assertTransformation(
+    `
 describe('foo', () => {
     beforeEach(function() {
         this.foo = { id: 'FOO' };
@@ -313,7 +316,7 @@ describe('foo', () => {
     });
 });
 `,
-  `
+    `
 describe('foo', () => {
     let testContext;
 
@@ -330,11 +333,12 @@ describe('foo', () => {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'transforms context within async functions',
-  `
+test('transforms context within async functions', () => {
+  assertTransformation(
+    `
 describe('foo', function () {
     beforeEach(async function() {
         this.foo = await globalPromise();
@@ -346,7 +350,7 @@ describe('foo', function () {
     });
 });
 `,
-  `
+    `
 describe('foo', () => {
     let testContext;
 
@@ -364,11 +368,12 @@ describe('foo', () => {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'original issue example',
-  `
+test('original issue example', () => {
+  assertTransformation(
+    `
 beforeEach(function () {
     this.hello = 'hi';
 });
@@ -383,7 +388,7 @@ describe('context', () => {
     });
 });
 `,
-  `
+    `
 let testContext;
 
 beforeEach(() => {
@@ -404,11 +409,12 @@ describe('context', () => {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'transforms before blocks',
-  `
+test('transforms before blocks', () => {
+  assertTransformation(
+    `
   beforeAll(function () {
     this.hello = 'hi';
   });
@@ -429,7 +435,7 @@ testChanged(
       });
   });
 `,
-  `
+    `
   let testContext;
 
   beforeAll(() => {
@@ -456,11 +462,12 @@ testChanged(
       });
   });
 `
-)
+  )
+})
 
-testChanged(
-  'does not transform mocha specific methods',
-  `
+test('does not transform mocha specific methods', () => {
+  assertTransformation(
+    `
 describe('foo', function () {
     it('should keep mocha methods', function() {
         this.timeout(500);
@@ -470,7 +477,7 @@ describe('foo', function () {
     });
 });
 `,
-  `
+    `
 describe('foo', () => {
     it('should keep mocha methods', () => {
         this.timeout(500);
@@ -480,11 +487,12 @@ describe('foo', () => {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'ignores a function in an array',
-  `
+test('ignores a function in an array', () => {
+  assertTransformation(
+    `
 describe('foo', function() {
     it('should tolerate an array of functions', function() {
         foo.apply(model, [
@@ -495,7 +503,7 @@ describe('foo', function() {
     });
 });
 `,
-  `
+    `
 describe('foo', () => {
     it('should tolerate an array of functions', () => {
         foo.apply(model, [
@@ -506,11 +514,12 @@ describe('foo', () => {
     });
 });
 `
-)
+  )
+})
 
-testChanged(
-  'adds any type to the test context with typescript (tsx)',
-  `
+test('adds any type to the test context with typescript (tsx)', () => {
+  assertTransformation(
+    `
   beforeEach(function () {
       this.hello = 'hi';
   });
@@ -525,7 +534,7 @@ testChanged(
       });
   });
   `,
-  `
+    `
   let testContext: any;
 
   beforeEach(() => {
@@ -546,12 +555,13 @@ testChanged(
       });
   });
   `,
-  { parser: 'tsx' }
-)
+    { parser: 'tsx' }
+  )
+})
 
-testChanged(
-  'adds any type to the test context with typescript (ts)',
-  `
+test('adds any type to the test context with typescript (ts)', () => {
+  assertTransformation(
+    `
 beforeEach(function () {
     this.hello = 'hi';
 });
@@ -566,7 +576,7 @@ describe('context', () => {
     });
 });
 `,
-  `
+    `
 let testContext: any;
 
 beforeEach(() => {
@@ -587,5 +597,6 @@ describe('context', () => {
     });
 });
 `,
-  { parser: 'ts' }
-)
+    { parser: 'ts' }
+  )
+})

@@ -6,23 +6,16 @@ import plugin from './jasmine-globals'
 
 chalk.level = 0
 const wrappedPlugin = wrapPlugin(plugin)
-
-function testChanged(msg, source, expectedOutput) {
-  test(msg, () => {
-    const result = wrappedPlugin(source)
-    expect(result).toBe(expectedOutput)
-  })
-}
-
 let consoleWarnings = []
+
 beforeEach(() => {
   consoleWarnings = []
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-testChanged(
-  'spyOn',
-  `
+test('spyOn', () => {
+  assertTransformation(
+    `
     jest.spyOn().mockReturnValue();
     spyOn(stuff).and.callThrough();
     spyOn(stuff).and.callFake(() => 'lol');
@@ -31,7 +24,7 @@ testChanged(
     spyOn(stuff);
     jest.spyOn().mockImplementation();
     `,
-  `
+    `
     jest.spyOn().mockReturnValue();
     jest.spyOn(stuff);
     jest.spyOn(stuff).mockImplementation(() => 'lol');
@@ -40,11 +33,12 @@ testChanged(
     jest.spyOn(stuff).mockImplementation(() => {});
     jest.spyOn().mockImplementation();
     `
-)
+  )
+})
 
-testChanged(
-  'jasmine.createSpy',
-  `
+test('jasmine.createSpy', () => {
+  assertTransformation(
+    `
     jasmine.createSpy();
     jasmine.createSpy('lmao');
     const spy = jasmine.createSpy();
@@ -52,7 +46,7 @@ testChanged(
     jasmine.createSpy().and.returnValue('lmao');
     const spy = jasmine.createSpy().and.returnValue('lmao');
     `,
-  `
+    `
     jest.fn();
     jest.fn();
     const spy = jest.fn();
@@ -60,7 +54,8 @@ testChanged(
     jest.fn(() => 'lmao');
     const spy = jest.fn(() => 'lmao');
     `
-)
+  )
+})
 
 test('not supported jasmine.createSpy().and.*', () => {
   wrappedPlugin(`
@@ -72,9 +67,9 @@ test('not supported jasmine.createSpy().and.*', () => {
   ])
 })
 
-testChanged(
-  '*.calls.count()',
-  `
+test('*.calls.count()', () => {
+  assertTransformation(
+    `
     someMock.calls.count();
     stuff.someMock.calls.count();
     getMock(stuff).calls.count();
@@ -87,7 +82,7 @@ testChanged(
     spyOn('stuff').andCallThrough();
     stuff.andCallThrough();
     `,
-  `
+    `
     someMock.mock.calls.length;
     stuff.someMock.mock.calls.length;
     getMock(stuff).mock.calls.length;
@@ -100,73 +95,79 @@ testChanged(
     jest.spyOn('stuff');
     stuff;
     `
-)
+  )
+})
 
-testChanged(
-  '*.mostRecentCall',
-  `
+test('*.mostRecentCall', () => {
+  assertTransformation(
+    `
     wyoming.cheyenne.stuff.mostRecentCall.args[0]
     georgia.atlanta.mostRecentCall.args.map(fn)
     `,
-  `
+    `
     wyoming.cheyenne.stuff.mock.calls[wyoming.cheyenne.stuff.mock.calls.length - 1][0]
     georgia.atlanta.mock.calls[georgia.atlanta.mock.calls.length - 1].map(fn)
     `
-)
+  )
+})
 
-testChanged(
-  '*.calls.mostRecent()',
-  `
+test('*.calls.mostRecent()', () => {
+  assertTransformation(
+    `
     const foo = someMock.calls.mostRecent();
     someMock.calls.mostRecent()[0];
 
     foo.mostRecent();
     `,
-  `
+    `
     const foo = someMock.mock.calls[someMock.mock.calls.length - 1];
     someMock.mock.calls[someMock.mock.calls.length - 1][0];
 
     foo.mostRecent();
     `
-)
+  )
+})
 
-testChanged(
-  '*.argsForCall',
-  `
+test('*.argsForCall', () => {
+  assertTransformation(
+    `
     oklahoma.argsForCall[0]
     idaho.argsForCall[0][1]
     `,
-  `
+    `
     oklahoma.mock.calls[0]
     idaho.mock.calls[0][1]
     `
-)
+  )
+})
 
-testChanged(
-  '*.calls.argsFor()',
-  `
+test('*.calls.argsFor()', () => {
+  assertTransformation(
+    `
     oklahoma.calls.argsFor(0)
     idaho.calls.argsFor(0)[1]
     `,
-  `
+    `
     oklahoma.mock.calls[0]
     idaho.mock.calls[0][1]
     `
-)
+  )
+})
 
-testChanged(
-  'jasmine.clock()',
-  `
+test('jasmine.clock()', () => {
+  assertTransformation(
+    `
     jasmine.clock().install();
     jasmine.clock().uninstall();
     jasmine.clock().tick(50);
     `,
-  `
+    `
     jest.useFakeTimers();
     jest.useRealTimers();
     jest.advanceTimersByTime(50);
     `
-)
+  )
+})
 
 test('not supported jasmine.clock()', () => {
   wrappedPlugin(`
@@ -180,49 +181,57 @@ test('not supported jasmine.clock()', () => {
   ])
 })
 
-testChanged(
-  'jasmine.<jasmineToExpectFunctionName>(*)',
-  `
+test('jasmine.<jasmineToExpectFunctionName>(*)', () => {
+  assertTransformation(
+    `
     jasmine.any(Function);
     jasmine.anything();
     jasmine.arrayContaining(['foo']);
     jasmine.objectContaining({ foo: 'bar' });
     jasmine.stringMatching('text');
     `,
-  `
+    `
     expect.any(Function);
     expect.anything();
     expect.arrayContaining(['foo']);
     expect.objectContaining({ foo: 'bar' });
     expect.stringMatching('text');
     `
-)
+  )
+})
 
-testChanged(
-  'createSpyObj',
-  `
+test('createSpyObj', () => {
+  assertTransformation(
+    `
     const spyObj = jasmine.createSpyObj('label', ['a', 'b', 'hyphen-ated']);
     `,
-  `
+    `
     const spyObj = {
         'a': jest.fn(),
         'b': jest.fn(),
         'hyphen-ated': jest.fn()
     };
     `
-)
+  )
+})
 
-testChanged(
-  'return value',
-  `
+test('return value', () => {
+  assertTransformation(
+    `
     focusMonitorMock = jasmine.createSpyObj('FocusMonitorMock', ['monitor', 'stopMonitoring']);
     focusMonitorMock.monitor.and.returnValue(of());
     `,
-  `
+    `
     focusMonitorMock = {
         'monitor': jest.fn(),
         'stopMonitoring': jest.fn()
     };
     focusMonitorMock.monitor.mockReturnValue(of());
     `
-)
+  )
+})
+
+function assertTransformation(source, expectedOutput) {
+  const result = wrappedPlugin(source)
+  expect(result).toBe(expectedOutput)
+}

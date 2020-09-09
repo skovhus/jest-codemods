@@ -14,66 +14,68 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function testChanged(msg, source, expectedOutput, options = {}) {
-  test(msg, () => {
-    const result = wrappedPlugin(source, options)
-    expect(result).toBe(expectedOutput)
-    expect(consoleWarnings).toEqual([])
-  })
+function testChanged(source, expectedOutput, options = {}) {
+  const result = wrappedPlugin(source, options)
+  expect(result).toBe(expectedOutput)
+  expect(consoleWarnings).toEqual([])
 }
 
-testChanged(
-  'does not touch code without tape require/import',
-  `
+test('does not touch code without tape require/import', () => {
+  testChanged(
+    `
 const test = require("testlib");
 test(t => {
     t.notOk(1);
 });`,
-  `
+    `
 const test = require("testlib");
 test(t => {
     t.notOk(1);
 });`
-)
+  )
+})
 
-testChanged(
-  'changes code without tape require/import if skipImportDetection is set',
-  `
+test('changes code without tape require/import if skipImportDetection is set', () => {
+  testChanged(
+    `
 test(t => {
     t.notOk(1);
 });`,
-  `
+    `
 test(t => {
     expect(1).toBeFalsy();
 });`,
-  { skipImportDetection: true }
-)
+    { skipImportDetection: true }
+  )
+})
 
-testChanged(
-  'CommonJs requires',
-  `
+test('CommonJs requires', () => {
+  testChanged(
+    `
 const test = require('tape');
 const x = 1;
 `,
-  `
+    `
 const x = 1;
 `
-)
+  )
+})
 
-testChanged(
-  'ES2015 imports',
-  `
+test('ES2015 imports', () => {
+  testChanged(
+    `
 import test from 'tape';
 const x = 1;
 `,
-  `
+    `
 const x = 1;
 `
-)
+  )
+})
 
-testChanged(
-  'maps assertions and comments',
-  `
+test('maps assertions and comments', () => {
+  testChanged(
+    `
 import test from 'tape';
 test((t) => {
     t.fail('msg');
@@ -129,7 +131,7 @@ test((t) => {
     t.comment('this is a comment...');
 });
 `,
-  `
+    `
 test(done => {
     done.fail('msg');
     expect(1).toBeTruthy();
@@ -183,11 +185,12 @@ test(done => {
     console.log('this is a comment...');
 });
 `
-)
+  )
+})
 
-testChanged(
-  'rewriting non standard naming of test function and t argument',
-  `
+test('rewriting non standard naming of test function and t argument', () => {
+  testChanged(
+    `
 import myTapeTest from "tape";
 myTapeTest("mytest", t => {
     t.ok("msg");
@@ -205,7 +208,7 @@ myTapeTest(function(t) {
     t.ok("msg");
 });
 `,
-  `
+    `
 test("mytest", () => {
     expect("msg").toBeTruthy();
 });
@@ -222,57 +225,61 @@ test(function() {
     expect("msg").toBeTruthy();
 });
 `
-)
+  )
+})
 
-testChanged(
-  'test options: removes',
-  `
+test('test options: removes', () => {
+  testChanged(
+    `
 import test from 'tape';
 test('mytest', {objectPrintDepth: 4, skip: false}, t => {
     t.ok('msg');
 });
 `,
-  `
+    `
 test('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
-)
+  )
+})
 
-testChanged(
-  'test options: skip',
-  `
+test('test options: skip', () => {
+  testChanged(
+    `
 import test from 'tape';
 test('mytest', {objectPrintDepth: 4, skip: true}, t => {
     t.ok('msg');
 });
 `,
-  `
+    `
 test.skip('mytest', () => {
     expect('msg').toBeTruthy();
 });
 `
-)
+  )
+})
 
-testChanged(
-  'removes t.end in scope of test function',
-  `
+test('removes t.end in scope of test function', () => {
+  testChanged(
+    `
 import test from 'tape';
 test('mytest', t => {
     t.equal(1, 1);
     t.end();
 });
 `,
-  `
+    `
 test('mytest', () => {
     expect(1).toBe(1);
 });
 `
-)
+  )
+})
 
-testChanged(
-  'keeps t.end in nested functions',
-  `
+test('keeps t.end in nested functions', () => {
+  testChanged(
+    `
 import test from 'tape';
 
 test(t => {
@@ -281,18 +288,19 @@ test(t => {
     }, 500);
 });
 `,
-  `
+    `
 test(done => {
     setTimeout(() => {
         done();
     }, 500);
 });
 `
-)
+  )
+})
 
-testChanged(
-  'removes t.pass but keeps t.fail',
-  `
+test('removes t.pass but keeps t.fail', () => {
+  testChanged(
+    `
 import test from 'tape'
 
 test(function(t) {
@@ -306,7 +314,7 @@ test('handles done.fail and done.pass', t => {
     }, 500);
 });
 `,
-  `
+    `
 test(function(done) {
     done.fail();
 });
@@ -317,11 +325,12 @@ test('handles done.fail and done.pass', done => {
     }, 500);
 });
 `
-)
+  )
+})
 
-testChanged(
-  't.throws',
-  `
+test('t.throws', () => {
+  testChanged(
+    `
 import test from 'tape';
 test(t => {
     t.throws(myfunc, 'should not throw');
@@ -330,7 +339,7 @@ test(t => {
     t.throws(myfunc, /err_reg_exp/i, 'should not throw');
 });
 `,
-  `
+    `
 test(() => {
     expect(myfunc).toThrow();
     expect(myfunc).toThrowError('xxx');
@@ -338,11 +347,12 @@ test(() => {
     expect(myfunc).toThrowError(/err_reg_exp/i);
 });
 `
-)
+  )
+})
 
-testChanged(
-  'destructured test argument',
-  `
+test('destructured test argument', () => {
+  testChanged(
+    `
 import test from 'tape';
 test(({ok}) => {
     ok('msg');
@@ -351,7 +361,7 @@ test('my test', ({equal}) => {
     equal('msg', 'other msg');
 });
 `,
-  `
+    `
 test(() => {
     expect('msg').toBeTruthy();
 });
@@ -359,11 +369,12 @@ test('my test', () => {
     expect('msg').toBe('other msg');
 });
 `
-)
+  )
+})
 
-testChanged(
-  `supports the todo option`,
-  `
+test(`supports the todo option`, () => {
+  testChanged(
+    `
 import test from 'tape';
 test({todo: true}, t => {
     t.equal(1, 1);
@@ -372,7 +383,7 @@ test({todo: false}, t => {
     t.equal(1, 1);
 });
 `,
-  `
+    `
 test.todo(() => {
     expect(1).toBe(1);
 });
@@ -380,7 +391,8 @@ test(() => {
     expect(1).toBe(1);
 });
 `
-)
+  )
+})
 
 test('not supported warnings: createStream', () => {
   wrappedPlugin(`
@@ -495,28 +507,30 @@ test('graciously warns about unknown destructured assertions', () => {
     `)
 })
 
-testChanged(
-  'supports renaming non standard import name',
-  `
+test('supports renaming non standard import name', () => {
+  testChanged(
+    `
 import foo from 'tape';
 foo(() => {});
 `,
-  `
+    `
 test(() => {});
 `
-)
+  )
+})
 
-testChanged(
-  'doesNotThrow works with `expected` argument',
-  `
+test('doesNotThrow works with `expected` argument', () => {
+  testChanged(
+    `
 import test from 'tape';
 test('foo', t => {
     t.doesNotThrow(() => {}, TypeError, 'foo');
 });
 `,
-  `
+    `
 test('foo', () => {
     expect(() => {}).not.toThrowError(TypeError);
 });
 `
-)
+  )
+})
