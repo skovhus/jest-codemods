@@ -65,6 +65,25 @@ export default function jasmineGlobals(fileInfo, api, options) {
 
   root
     .find(j.CallExpression, {
+      // find all `*.and.returnValue()`
+      callee: {
+        type: 'MemberExpression',
+        property: { type: 'Identifier', name: 'returnValue' },
+        object: {
+          type: 'MemberExpression',
+          property: { type: 'Identifier', name: 'and' },
+        },
+      },
+    })
+    .forEach((path) => {
+      // Rename mock function
+      path.node.callee.property.name = 'mockReturnValue'
+      // Remove '.and.' in between
+      path.node.callee.object = path.node.callee.object.object
+    })
+
+  root
+    .find(j.CallExpression, {
       // find all other `jasmine.createSpy` calls
       callee: {
         type: 'MemberExpression',

@@ -211,3 +211,18 @@ testChanged(
     };
     `
 )
+
+testChanged(
+  'return value',
+  `
+    focusMonitorMock = jasmine.createSpyObj('FocusMonitorMock', ['monitor', 'stopMonitoring']);
+    focusMonitorMock.monitor.and.returnValue(of());
+    `,
+  `
+    focusMonitorMock = {
+        'monitor': jest.fn(),
+        'stopMonitoring': jest.fn()
+    };
+    focusMonitorMock.monitor.mockReturnValue(of());
+    `
+)
