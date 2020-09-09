@@ -13,7 +13,7 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function assertTransformation(source, expectedOutput, options = {}) {
+function expectTransformation(source, expectedOutput, options = {}) {
   const result = wrappedPlugin(source, options)
   expect(result).toBe(expectedOutput)
   expect(consoleWarnings).toEqual([])
@@ -23,7 +23,7 @@ function assertTransformation(source, expectedOutput, options = {}) {
 }
 
 test('does not touch code without expect require/import', () => {
-  assertTransformation(
+  expectTransformation(
     `
     const test = require("testlib");
     test(t => {
@@ -40,7 +40,7 @@ test('does not touch code without expect require/import', () => {
 })
 
 test('changes code without expect require/import if skipImportDetection is set', () => {
-  assertTransformation(
+  expectTransformation(
     `
     test(t => {
       expect(stuff).toExist();
@@ -56,7 +56,7 @@ test('changes code without expect require/import if skipImportDetection is set',
 })
 
 test('maps expect matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect';
 
@@ -171,7 +171,7 @@ test('maps expect matchers', () => {
 })
 
 test('maps expect number matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect';
 
@@ -196,7 +196,7 @@ test('maps expect number matchers', () => {
 })
 
 test('maps expect contain matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect';
 
@@ -237,7 +237,7 @@ test('maps expect contain matchers', () => {
 })
 
 test('maps expect spy matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect';
 
@@ -258,7 +258,7 @@ test('maps expect spy matchers', () => {
 })
 
 test('maps spy creation calls', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect';
 
@@ -301,7 +301,7 @@ test('maps spy creation calls', () => {
 })
 
 test('maps spy methods on intitialized spies', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect';
 
@@ -358,7 +358,7 @@ test('maps spy methods on intitialized spies', () => {
 })
 
 test('maps spy methods on intitialized spies (spread import)', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import { createSpy, spyOn } from 'expect'
 
@@ -385,7 +385,7 @@ test('maps spy methods on intitialized spies (spread import)', () => {
 })
 
 test('maps spy array', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import { createSpy, spyOn } from 'expect'
 
@@ -416,7 +416,7 @@ test('maps spy array', () => {
 })
 
 test('renames non standard expect import name', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import exp from 'expect';
 
@@ -437,7 +437,7 @@ test('renames non standard expect import name', () => {
 })
 
 test('support chaining', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect';
 
@@ -461,7 +461,7 @@ test('support chaining', () => {
 })
 
 test('standaloneMode: keeps expect import', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import exp from 'expect';
 
@@ -483,7 +483,7 @@ test('standaloneMode: keeps expect import', () => {
 })
 
 test('standaloneMode: rewrites expect.spyOn (import)', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect';
 
@@ -516,7 +516,7 @@ test('standaloneMode: rewrites expect.spyOn (import)', () => {
 })
 
 test('standaloneMode: rewrites expect.spyOn (require)', () => {
-  assertTransformation(
+  expectTransformation(
     `
     const expect = require('expect');
 

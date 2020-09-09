@@ -14,14 +14,14 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function testChanged(source, expectedOutput, options = {}) {
+function expectTransformation(source, expectedOutput, options = {}) {
   const result = wrappedPlugin(source, options)
   expect(result).toBe(expectedOutput)
   expect(consoleWarnings).toEqual([])
 }
 
 test('does not touch code without tape require/import', () => {
-  testChanged(
+  expectTransformation(
     `
 const test = require("testlib");
 test(t => {
@@ -36,7 +36,7 @@ test(t => {
 })
 
 test('changes code without tape require/import if skipImportDetection is set', () => {
-  testChanged(
+  expectTransformation(
     `
 test(t => {
     t.notOk(1);
@@ -50,7 +50,7 @@ test(t => {
 })
 
 test('CommonJs requires', () => {
-  testChanged(
+  expectTransformation(
     `
 const test = require('tape');
 const x = 1;
@@ -62,7 +62,7 @@ const x = 1;
 })
 
 test('ES2015 imports', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 const x = 1;
@@ -74,7 +74,7 @@ const x = 1;
 })
 
 test('maps assertions and comments', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 test((t) => {
@@ -189,7 +189,7 @@ test(done => {
 })
 
 test('rewriting non standard naming of test function and t argument', () => {
-  testChanged(
+  expectTransformation(
     `
 import myTapeTest from "tape";
 myTapeTest("mytest", t => {
@@ -229,7 +229,7 @@ test(function() {
 })
 
 test('test options: removes', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 test('mytest', {objectPrintDepth: 4, skip: false}, t => {
@@ -245,7 +245,7 @@ test('mytest', () => {
 })
 
 test('test options: skip', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 test('mytest', {objectPrintDepth: 4, skip: true}, t => {
@@ -261,7 +261,7 @@ test.skip('mytest', () => {
 })
 
 test('removes t.end in scope of test function', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 test('mytest', t => {
@@ -278,7 +278,7 @@ test('mytest', () => {
 })
 
 test('keeps t.end in nested functions', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 
@@ -299,7 +299,7 @@ test(done => {
 })
 
 test('removes t.pass but keeps t.fail', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape'
 
@@ -329,7 +329,7 @@ test('handles done.fail and done.pass', done => {
 })
 
 test('t.throws', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 test(t => {
@@ -351,7 +351,7 @@ test(() => {
 })
 
 test('destructured test argument', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 test(({ok}) => {
@@ -373,7 +373,7 @@ test('my test', () => {
 })
 
 test(`supports the todo option`, () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 test({todo: true}, t => {
@@ -508,7 +508,7 @@ test('graciously warns about unknown destructured assertions', () => {
 })
 
 test('supports renaming non standard import name', () => {
-  testChanged(
+  expectTransformation(
     `
 import foo from 'tape';
 foo(() => {});
@@ -520,7 +520,7 @@ test(() => {});
 })
 
 test('doesNotThrow works with `expected` argument', () => {
-  testChanged(
+  expectTransformation(
     `
 import test from 'tape';
 test('foo', t => {

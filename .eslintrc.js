@@ -57,5 +57,11 @@ module.exports = {
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
+    'jest/expect-expect': [
+      'error',
+      {
+        assertFunctionNames: ['expect', 'expectTransformation'],
+      },
+    ],
   },
 }

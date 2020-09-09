@@ -13,14 +13,14 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function assertTransformation(source, expectedOutput, options = {}) {
+function expectTransformation(source, expectedOutput, options = {}) {
   const result = wrappedPlugin(source, options)
   expect(result).toBe(expectedOutput)
   expect(consoleWarnings).toEqual([])
 }
 
 test('does not touch code without ava require/import', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 const test = require("testlib");
@@ -39,7 +39,7 @@ test(t => {
 })
 
 test('changes code without require/import if skipImportDetection is set', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 test(t => {
@@ -58,7 +58,7 @@ test(t => {
 
 // TODO: jscodeshift adds semi colon when preserving first line comments :/
 test('maps assertions', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 import test from 'ava'
@@ -129,7 +129,7 @@ test('mapping', () => {
 })
 
 test('handles test setup/teardown modifiers', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import test from 'ava'
 
@@ -148,7 +148,7 @@ afterEach(() => {});
 })
 
 test('all tests are serial by default', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import test from 'ava'
 test.serial(t => {});
@@ -160,7 +160,7 @@ test(() => {});
 })
 
 test('handles skip/only modifiers and chaining', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import test from 'ava'
 
@@ -185,7 +185,7 @@ test.only(() => {});
 })
 
 test('removes t.pass, but keeps t.fail', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import test from 'ava'
 
@@ -222,7 +222,7 @@ test.only('handles done.fail and done.pass', done => {
 // TODO: semantics is not the same for t.end and done
 // t.end automatically checks for error as first argument (jasmine doesn't)
 test('callback tests', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import test from 'ava';
 test.cb(t => {
@@ -239,7 +239,7 @@ test(done => {
 
 // TODO: these hanging t variables should be removed or be renamed
 test('passing around t', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import test from 'ava'
 
@@ -278,7 +278,7 @@ function shouldFail2(t, message) {
 })
 
 test('keeps async and await', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import test from 'ava';
 
@@ -307,7 +307,7 @@ test(async function () {
 })
 
 test('destructured test argument', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import test from 'ava';
 test(({ok}) => {
@@ -329,7 +329,7 @@ test('my test', () => {
 })
 
 test('converts test.todo', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import test from 'ava';
 test.todo('this should be a test some day');
@@ -428,7 +428,7 @@ test('warns about too few AVA arguments', () => {
 })
 
 test('supports renaming non standard import name', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import foo from 'ava';
 foo(() => {});

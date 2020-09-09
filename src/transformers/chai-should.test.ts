@@ -13,14 +13,14 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function assertTransformation(source, expectedOutput) {
+function expectTransformation(source, expectedOutput) {
   const result = wrappedPlugin(source)
   expect(result).toBe(expectedOutput)
   expect(consoleWarnings).toEqual([])
 }
 
 test('removes imports and does basic conversions of should and expect', () => {
-  assertTransformation(
+  expectTransformation(
     `
         var expect = require('chai').expect;
 
@@ -43,7 +43,7 @@ test('removes imports and does basic conversions of should and expect', () => {
 })
 
 test('removes imports and does basic conversions of should and expect (2)', () => {
-  assertTransformation(
+  expectTransformation(
     `
         const { expect } = require('chai');
         var should = require('chai').should();
@@ -91,7 +91,7 @@ test('removes imports and does basic conversions of should and expect (2)', () =
 })
 
 test('removes imports (case where should is not assigned)', () => {
-  assertTransformation(
+  expectTransformation(
     `
         require('chai').should();
 
@@ -112,7 +112,7 @@ test('removes imports (case where should is not assigned)', () => {
 })
 
 test('Removes complicated import', () => {
-  assertTransformation(
+  expectTransformation(
     `
         const chai = require('chai');
         const expect = chai.expect;
@@ -126,7 +126,7 @@ test('Removes complicated import', () => {
 })
 
 test('converts "a-an"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect('test').to.be.a('string', 'error message');
         expect({ foo: 'bar' }).to.be.an('object');
@@ -169,7 +169,7 @@ test('converts "a-an"', () => {
 })
 
 test('converts "above"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(10).to.be.above(5);
         expect(10).to.be.gt(5);
@@ -184,7 +184,7 @@ test('converts "above"', () => {
 })
 
 test('converts "below"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(5).to.be.below(10);
         expect(5).to.be.below(10, 'error message');
@@ -207,7 +207,7 @@ test('converts "below"', () => {
 })
 
 test('converts "eql"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect({ foo: 'bar' }).to.eql({ foo: 'bar' });
         expect([1, 2, 3]).to.eql([1, 2, 3]);
@@ -228,7 +228,7 @@ test('converts "eql"', () => {
 })
 
 test('converts "equal"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect('hello').to.equal('hello');
         expect('hello', 'some message here explaining hello').to.equal('hello');
@@ -256,7 +256,7 @@ test('converts "equal"', () => {
 })
 
 test('converts "exist-defined"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(foo).to.exist;
         expect(bar).to.not.exist;
@@ -285,7 +285,7 @@ test('converts "exist-defined"', () => {
 })
 
 test('converts "extensible"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(nonExtensibleObject).to.not.be.extensible;
         expect({}).to.be.extensible;
@@ -304,7 +304,7 @@ test('converts "extensible"', () => {
 })
 
 test('converts "empty"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect([]).to.be.empty;
         expect('').to.be.empty;
@@ -323,7 +323,7 @@ test('converts "empty"', () => {
 })
 
 test('converts "false"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(false).to.be.false;
         expect(0).to.not.be.false;
@@ -338,7 +338,7 @@ test('converts "false"', () => {
 })
 
 test('converts "finite"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         (Infinity).should.not.be.finite;
         (-10).should.be.finite;
@@ -351,7 +351,7 @@ test('converts "finite"', () => {
 })
 
 test('converts "frozen"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(frozenObject).to.be.frozen;
         expect({}).to.not.be.frozen;
@@ -364,7 +364,7 @@ test('converts "frozen"', () => {
 })
 
 test('converts "string"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect('foobar').to.have.string('bar');
         expect('foobar').not.to.have.string('z');
@@ -381,7 +381,7 @@ test('converts "string"', () => {
 })
 
 test('converts "includes-contains"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect('foobar').to.contain('foo');
         expect([1, 2, 3]).to.include(2);
@@ -398,7 +398,7 @@ test('converts "includes-contains"', () => {
 })
 
 test('converts chained "includes-contains"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect([1, 2, 3]).to.be.an('array').that.includes(2);
         expect(arr).to.be.an('array').that.does.not.include(3);
@@ -411,7 +411,7 @@ test('converts chained "includes-contains"', () => {
 })
 
 test('converts empty array assertion', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(arr).to.be.an('array').that.is.empty;
     `,
@@ -422,7 +422,7 @@ test('converts empty array assertion', () => {
 })
 
 test('converts "instanceof"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(foo).to.be.an.instanceof(Foo);
         expect(foo).not.to.be.an.instanceof(Foo);
@@ -437,7 +437,7 @@ test('converts "instanceof"', () => {
 })
 
 test('converts "keys"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect([1, 2, 3]).to.have.all.keys(1, 2);
         expect({ foo: 1, bar: 2 }).to.have.all.keys({ bar: 6, foo: 7 });
@@ -454,14 +454,14 @@ test('converts "keys"', () => {
 })
 
 test('converts "least"', () => {
-  assertTransformation(
+  expectTransformation(
     `expect(10).to.be.at.least(10);`,
     `expect(10).toBeGreaterThanOrEqual(10);`
   )
 })
 
 test('converts "length"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect('foo').to.have.length(3);
         expect([1,2]).to.have.length(2);
@@ -482,7 +482,7 @@ test('converts "length"', () => {
 })
 
 test('converts "lengthof"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect([1, 2, 3]).to.have.lengthOf(3);
         expect('foobar').to.have.lengthOf(6);
@@ -497,14 +497,14 @@ test('converts "lengthof"', () => {
 })
 
 test('converts "match"', () => {
-  assertTransformation(
+  expectTransformation(
     `expect('foobar').to.match(/^foo/);`,
     `expect('foobar').toMatch(/^foo/);`
   )
 })
 
 test('converts "members"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect([1, 2, 3]).to.include.members([3, 2]);
         expect([1, 2, 3]).to.not.include.members([3, 2, 8]);
@@ -531,11 +531,11 @@ test('converts "members"', () => {
 })
 
 test('converts "most"', () => {
-  assertTransformation(`expect(5).to.be.at.most(5);`, `expect(5).toBeLessThanOrEqual(5);`)
+  expectTransformation(`expect(5).to.be.at.most(5);`, `expect(5).toBeLessThanOrEqual(5);`)
 })
 
 test('converts "nan"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect('foo').to.be.NaN;
         expect(4).not.to.be.NaN;
@@ -548,7 +548,7 @@ test('converts "nan"', () => {
 })
 
 test('converts "null"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(null).to.be.null;
         expect(undefined).to.not.be.null;
@@ -561,7 +561,7 @@ test('converts "null"', () => {
 })
 
 test('converts "ok"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect('everything').to.be.ok;
         expect(1).to.be.ok;
@@ -592,14 +592,14 @@ test('converts "ok"', () => {
 })
 
 test('converts "ownproperty"', () => {
-  assertTransformation(
+  expectTransformation(
     `expect('test').to.have.ownProperty('length')`,
     `expect('test'.hasOwnProperty('length')).toBeTruthy()`
   )
 })
 
 test('converts "ownpropertydescriptor"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect('test').to.have.ownPropertyDescriptor('length');
         expect('test').to.have.ownPropertyDescriptor('length', { enumerable: false, configurable: false, writable: false, value: 4 });
@@ -614,7 +614,7 @@ test('converts "ownpropertydescriptor"', () => {
 })
 
 test('converts "property"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(deepObj).to.have.deep.property("green.tea", "matcha");
         expect(obj).to.have.property("foo");
@@ -629,7 +629,7 @@ test('converts "property"', () => {
 })
 
 test('converts "sealed"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(sealedObject).to.be.sealed;
         expect({}).to.not.be.sealed;
@@ -642,7 +642,7 @@ test('converts "sealed"', () => {
 })
 
 test('converts "throw"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         const err = new ReferenceError('This is a bad function.');
         const fn = function() { throw err; };
@@ -667,7 +667,7 @@ test('converts "throw"', () => {
 })
 
 test('converts "true"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(true).to.be.true;
         expect(1).to.not.be.true;
@@ -682,7 +682,7 @@ test('converts "true"', () => {
 })
 
 test('converts "undefined"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(undefined).to.be.undefined;
         expect(undefined).to.equal(undefined);
@@ -701,7 +701,7 @@ test('converts "undefined"', () => {
 })
 
 test('converts "function"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(foo).to.be.a.function;
     `,
@@ -724,7 +724,7 @@ it('warns about using chai extensions', () => {
 })
 
 test('does not convert "empty"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(foo.empty).to.be.undefined;
         const foo = rx.Observable.empty;
@@ -737,7 +737,7 @@ test('does not convert "empty"', () => {
 })
 
 test('removes params to expect() except for the first', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(foo, 'Expected foo to be defined').to.exist;
         expect(foo, 'Expected foo to be defined').to.equal(true);
@@ -758,7 +758,7 @@ test('removes params to expect() except for the first', () => {
 })
 
 test('converts equal(null) to toBeNull()', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(actual).to.equal(null);
     `,
@@ -769,7 +769,7 @@ test('converts equal(null) to toBeNull()', () => {
 })
 
 test('converts "within"', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect(7).to.be.within(5, 10);
 
@@ -787,7 +787,7 @@ test('converts "within"', () => {
 })
 
 test('converts "within" with length', () => {
-  assertTransformation(
+  expectTransformation(
     `
         expect('foo').to.have.length.within(2, 4);
 

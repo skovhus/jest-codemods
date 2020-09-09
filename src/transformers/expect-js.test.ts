@@ -13,7 +13,7 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function assertTransformation(source, expectedOutput, options = {}) {
+function expectTransformation(source, expectedOutput, options = {}) {
   const result = wrappedPlugin(source, options)
   expect(result).toBe(expectedOutput)
   expect(consoleWarnings).toEqual([])
@@ -23,7 +23,7 @@ function assertTransformation(source, expectedOutput, options = {}) {
 }
 
 test('does not touch code without expect require/import', () => {
-  assertTransformation(
+  expectTransformation(
     `
     const test = require("testlib");
     test(t => {
@@ -40,7 +40,7 @@ test('does not touch code without expect require/import', () => {
 })
 
 test('changes code without expect require/import if skipImportDetection is set', () => {
-  assertTransformation(
+  expectTransformation(
     `
     test(t => {
       expect(stuff).to.be.ok();
@@ -56,7 +56,7 @@ test('changes code without expect require/import if skipImportDetection is set',
 })
 
 test('maps expect matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect.js';
 
@@ -105,7 +105,7 @@ test('maps expect matchers', () => {
 })
 
 test('does not map non expect.js matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect.js';
 
@@ -124,7 +124,7 @@ test('does not map non expect.js matchers', () => {
 })
 
 test('maps expect not matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect.js';
 
@@ -163,7 +163,7 @@ test('maps expect not matchers', () => {
 })
 
 test('maps expect number matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect.js';
 
@@ -190,7 +190,7 @@ test('maps expect number matchers', () => {
 })
 
 test('maps expect throw matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect.js';
 
@@ -253,7 +253,7 @@ test('maps expect throw matchers', () => {
 })
 
 test('maps expect fail matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect.js';
 
@@ -270,7 +270,7 @@ test('maps expect fail matchers', () => {
 })
 
 test('maps expect a and an matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect.js';
 
@@ -319,7 +319,7 @@ test('maps expect a and an matchers', () => {
 })
 
 test('maps expect within matchers', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect.js';
 
@@ -349,7 +349,7 @@ test('warns about unsupported matchers', () => {
 })
 
 test('standaloneMode: keeps Jest expect import', () => {
-  assertTransformation(
+  expectTransformation(
     `
     import expect from 'expect.js';
     import exp from 'expect';

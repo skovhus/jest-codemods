@@ -13,14 +13,14 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function assertTransformation(source, expectedOutput) {
+function expectTransformation(source, expectedOutput) {
   const result = wrappedPlugin(source)
   expect(result).toBe(expectedOutput)
   expect(consoleWarnings).toEqual([])
 }
 
 test('removes imports and does basic conversions of should.js', () => {
-  assertTransformation(
+  expectTransformation(
     `
         var should = require('should');
 
@@ -51,7 +51,7 @@ test('removes imports and does basic conversions of should.js', () => {
 })
 
 test('leaves code without should/expect', () => {
-  assertTransformation(
+  expectTransformation(
     `
         function test() {
             i.have.a.dream();

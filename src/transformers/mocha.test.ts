@@ -10,14 +10,14 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function assertTransformation(source, expectedOutput, options = {}) {
+function expectTransformation(source, expectedOutput, options = {}) {
   const result = wrappedPlugin(source, options)
   expect(result).toBe(expectedOutput)
   expect(consoleWarnings).toEqual([])
 }
 
 test('maps BDD-style interface', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 describe('describe', () => {
@@ -62,7 +62,7 @@ describe('describe', () => {
 })
 
 test('maps TDD-style interface', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 suite('suite', () => {
@@ -103,7 +103,7 @@ describe('suite', () => {
 })
 
 test('preserves exclusive tests', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 suite.only('only suite', () => {
@@ -122,7 +122,7 @@ describe.only('only suite', () => {
 })
 
 test('preserves skipped tests', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 suite.skip('skip suite', () => {
@@ -145,7 +145,7 @@ describe.skip('skip suite', () => {
 })
 
 test('preserves call expressions that are defined in scope', () => {
-  assertTransformation(
+  expectTransformation(
     `
 const setup = () => {};
 context('test suite', () => {
@@ -172,7 +172,7 @@ describe('test suite', () => {
 })
 
 test('removes mocha import', () => {
-  assertTransformation(
+  expectTransformation(
     `
 import { describe, it } from 'mocha';
 suite('suite', () => {
@@ -186,7 +186,7 @@ describe('suite', () => {
 })
 
 test('adds any type to the test context with typescript (tsx)', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('describe', function () {
   beforeEach(function () {
@@ -230,7 +230,7 @@ describe('describe', () => {
 })
 
 test('adds any type to the test context with typescript (ts)', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('describe', function () {
   beforeEach(function () {
@@ -274,7 +274,7 @@ describe('describe', () => {
 })
 
 test('transforms this', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 describe('describe', function () {

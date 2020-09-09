@@ -7,13 +7,13 @@ import plugin from './jasmine-this'
 chalk.level = 0
 const wrappedPlugin = wrapPlugin(plugin)
 
-function assertTransformation(source, expectedOutput, options = {}) {
+function expectTransformation(source, expectedOutput, options = {}) {
   const result = wrappedPlugin(source, options)
   expect(result).toBe(expectedOutput)
 }
 
 test('transforms simple cases', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('foo', function() {
     beforeEach(function() {
@@ -52,7 +52,7 @@ describe('foo', () => {
 })
 
 test('does not transform generator functions', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('foo', function*() {
     beforeEach(function*() {
@@ -91,7 +91,7 @@ describe('foo', function*() {
 })
 
 test('transforms only test functions context', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('foo', function() {
     const MockClass = function(options) {
@@ -176,7 +176,7 @@ describe('bar', () => {
 })
 
 test('transforms nested describes', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('foo', function() {
     beforeEach(function() {
@@ -231,7 +231,7 @@ describe('foo', () => {
 })
 
 test('transforms plain functions within lifecycle methods', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('foo', function() {
     beforeEach(function() {
@@ -304,7 +304,7 @@ describe('foo', () => {
 })
 
 test('transforms context within arrow functions', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('foo', () => {
     beforeEach(function() {
@@ -337,7 +337,7 @@ describe('foo', () => {
 })
 
 test('transforms context within async functions', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('foo', function () {
     beforeEach(async function() {
@@ -372,7 +372,7 @@ describe('foo', () => {
 })
 
 test('original issue example', () => {
-  assertTransformation(
+  expectTransformation(
     `
 beforeEach(function () {
     this.hello = 'hi';
@@ -413,7 +413,7 @@ describe('context', () => {
 })
 
 test('transforms before blocks', () => {
-  assertTransformation(
+  expectTransformation(
     `
   beforeAll(function () {
     this.hello = 'hi';
@@ -466,7 +466,7 @@ test('transforms before blocks', () => {
 })
 
 test('does not transform mocha specific methods', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('foo', function () {
     it('should keep mocha methods', function() {
@@ -491,7 +491,7 @@ describe('foo', () => {
 })
 
 test('ignores a function in an array', () => {
-  assertTransformation(
+  expectTransformation(
     `
 describe('foo', function() {
     it('should tolerate an array of functions', function() {
@@ -518,7 +518,7 @@ describe('foo', () => {
 })
 
 test('adds any type to the test context with typescript (tsx)', () => {
-  assertTransformation(
+  expectTransformation(
     `
   beforeEach(function () {
       this.hello = 'hi';
@@ -560,7 +560,7 @@ test('adds any type to the test context with typescript (tsx)', () => {
 })
 
 test('adds any type to the test context with typescript (ts)', () => {
-  assertTransformation(
+  expectTransformation(
     `
 beforeEach(function () {
     this.hello = 'hi';

@@ -14,7 +14,7 @@ beforeEach(() => {
 })
 
 test('spyOn', () => {
-  assertTransformation(
+  expectTransformation(
     `
     jest.spyOn().mockReturnValue();
     spyOn(stuff).and.callThrough();
@@ -37,7 +37,7 @@ test('spyOn', () => {
 })
 
 test('jasmine.createSpy', () => {
-  assertTransformation(
+  expectTransformation(
     `
     jasmine.createSpy();
     jasmine.createSpy('lmao');
@@ -68,7 +68,7 @@ test('not supported jasmine.createSpy().and.*', () => {
 })
 
 test('*.calls.count()', () => {
-  assertTransformation(
+  expectTransformation(
     `
     someMock.calls.count();
     stuff.someMock.calls.count();
@@ -99,7 +99,7 @@ test('*.calls.count()', () => {
 })
 
 test('*.mostRecentCall', () => {
-  assertTransformation(
+  expectTransformation(
     `
     wyoming.cheyenne.stuff.mostRecentCall.args[0]
     georgia.atlanta.mostRecentCall.args.map(fn)
@@ -112,7 +112,7 @@ test('*.mostRecentCall', () => {
 })
 
 test('*.calls.mostRecent()', () => {
-  assertTransformation(
+  expectTransformation(
     `
     const foo = someMock.calls.mostRecent();
     someMock.calls.mostRecent()[0];
@@ -129,7 +129,7 @@ test('*.calls.mostRecent()', () => {
 })
 
 test('*.argsForCall', () => {
-  assertTransformation(
+  expectTransformation(
     `
     oklahoma.argsForCall[0]
     idaho.argsForCall[0][1]
@@ -142,7 +142,7 @@ test('*.argsForCall', () => {
 })
 
 test('*.calls.argsFor()', () => {
-  assertTransformation(
+  expectTransformation(
     `
     oklahoma.calls.argsFor(0)
     idaho.calls.argsFor(0)[1]
@@ -155,7 +155,7 @@ test('*.calls.argsFor()', () => {
 })
 
 test('jasmine.clock()', () => {
-  assertTransformation(
+  expectTransformation(
     `
     jasmine.clock().install();
     jasmine.clock().uninstall();
@@ -182,7 +182,7 @@ test('not supported jasmine.clock()', () => {
 })
 
 test('jasmine.<jasmineToExpectFunctionName>(*)', () => {
-  assertTransformation(
+  expectTransformation(
     `
     jasmine.any(Function);
     jasmine.anything();
@@ -201,7 +201,7 @@ test('jasmine.<jasmineToExpectFunctionName>(*)', () => {
 })
 
 test('createSpyObj', () => {
-  assertTransformation(
+  expectTransformation(
     `
     const spyObj = jasmine.createSpyObj('label', ['a', 'b', 'hyphen-ated']);
     `,
@@ -216,7 +216,7 @@ test('createSpyObj', () => {
 })
 
 test('return value', () => {
-  assertTransformation(
+  expectTransformation(
     `
     focusMonitorMock = jasmine.createSpyObj('FocusMonitorMock', ['monitor', 'stopMonitoring']);
     focusMonitorMock.monitor.and.returnValue(of());
@@ -231,7 +231,7 @@ test('return value', () => {
   )
 })
 
-function assertTransformation(source, expectedOutput) {
+function expectTransformation(source, expectedOutput) {
   const result = wrappedPlugin(source)
   expect(result).toBe(expectedOutput)
 }

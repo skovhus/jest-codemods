@@ -13,14 +13,14 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function assertTransformation(source, expectedOutput, options = {}) {
+function expectTransformation(source, expectedOutput, options = {}) {
   const result = wrappedPlugin(source, options)
   expect(result).toBe(expectedOutput)
   expect(consoleWarnings).toEqual([])
 }
 
 test('does not change if chai is not imported', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 assert.equal(foo, bar, baz);
@@ -33,7 +33,7 @@ assert.equal(foo, bar, baz);
 })
 
 test('does not change if assert is not imported from chai', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 import { should } from 'chai';
@@ -46,7 +46,7 @@ import { should } from 'chai';
 })
 
 test('does not change if assert is not required from chai', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 const should = require('chai').should;
@@ -205,11 +205,11 @@ import { assert } from 'chai';`,
   )
 
   test('mappings', () => {
-    assertTransformation(mappingTest.input, mappingTest.output)
+    expectTransformation(mappingTest.input, mappingTest.output)
   })
 
   test('mapping without import if skipImportDetection is set', () => {
-    assertTransformation(
+    expectTransformation(
       mappingTest.input.replace("import { assert } from 'chai';\n", ''),
       mappingTest.output,
       { skipImportDetection: true }
@@ -248,7 +248,7 @@ assert.${assertion}(foo, bar, baz);`,
 })
 
 test('applies when chai default import used', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 import chai from 'chai';
@@ -262,7 +262,7 @@ expect(foo).toEqual(bar);
 })
 
 test('transforms renamed imports', () => {
-  assertTransformation(
+  expectTransformation(
     `
 // @flow
 import { assert as myCoolAssert } from 'chai';
