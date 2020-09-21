@@ -13,17 +13,15 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function testChanged(msg, source, expectedOutput) {
-  test(msg, () => {
-    const result = wrappedPlugin(source)
-    expect(result).toBe(expectedOutput)
-    expect(consoleWarnings).toEqual([])
-  })
+function expectTransformation(source, expectedOutput) {
+  const result = wrappedPlugin(source)
+  expect(result).toBe(expectedOutput)
+  expect(consoleWarnings).toEqual([])
 }
 
-testChanged(
-  'removes imports and does basic conversions of should.js',
-  `
+test('removes imports and does basic conversions of should.js', () => {
+  expectTransformation(
+    `
         var should = require('should');
 
         var user = {
@@ -37,7 +35,7 @@ testChanged(
         should.throws(foo, /^Description/);
         should(foo).be.undefined();
     `,
-  `
+    `
         var user = {
             name: 'tj'
           , pets: ['tobi', 'loki', 'jane', 'bandit']
@@ -49,15 +47,17 @@ testChanged(
         expect(foo).toThrowError(/^Description/);
         expect(foo).toBeUndefined();
     `
-)
+  )
+})
 
-testChanged(
-  'leaves code without should/expect',
-  `
+test('leaves code without should/expect', () => {
+  expectTransformation(
+    `
         function test() {
             i.have.a.dream();
             i.have.a.dream;
         }
         `,
-  null
-)
+    null
+  )
+})

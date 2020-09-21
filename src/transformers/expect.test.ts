@@ -13,51 +13,51 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function testChanged(msg, source, expectedOutput, options = {}) {
-  test(msg, () => {
-    const result = wrappedPlugin(source, options)
-    expect(result).toBe(expectedOutput)
-    expect(consoleWarnings).toEqual([])
+function expectTransformation(source, expectedOutput, options = {}) {
+  const result = wrappedPlugin(source, options)
+  expect(result).toBe(expectedOutput)
+  expect(consoleWarnings).toEqual([])
 
-    // Running it twice should yield same result
-    expect(wrappedPlugin(result, options)).toBe(result)
-  })
+  // Running it twice should yield same result
+  expect(wrappedPlugin(result, options)).toBe(result)
 }
 
-testChanged(
-  'does not touch code without expect require/import',
-  `
+test('does not touch code without expect require/import', () => {
+  expectTransformation(
+    `
     const test = require("testlib");
     test(t => {
       expect(stuff).toExist();
     })
     `,
-  `
+    `
     const test = require("testlib");
     test(t => {
       expect(stuff).toExist();
     })
     `
-)
+  )
+})
 
-testChanged(
-  'changes code without expect require/import if skipImportDetection is set',
-  `
+test('changes code without expect require/import if skipImportDetection is set', () => {
+  expectTransformation(
+    `
     test(t => {
       expect(stuff).toExist();
     })
     `,
-  `
+    `
     test(t => {
       expect(stuff).toBeTruthy();
     })
     `,
-  { skipImportDetection: true }
-)
+    { skipImportDetection: true }
+  )
+})
 
-testChanged(
-  'maps expect matchers',
-  `
+test('maps expect matchers', () => {
+  expectTransformation(
+    `
     import expect from 'expect';
 
     test(() => {
@@ -113,7 +113,7 @@ testChanged(
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `,
-  `
+    `
     test(() => {
       expect(stuff).toBeTruthy();
       expect(stuff).toBeTruthy();
@@ -167,11 +167,12 @@ testChanged(
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `
-)
+  )
+})
 
-testChanged(
-  'maps expect number matchers',
-  `
+test('maps expect number matchers', () => {
+  expectTransformation(
+    `
     import expect from 'expect';
 
     test(() => {
@@ -182,7 +183,7 @@ testChanged(
       expect(stuff).toBeGreaterThanOrEqualTo(42);
     });
     `,
-  `
+    `
     test(() => {
       expect(stuff).toBeLessThan(42);
       expect(stuff).toBeLessThan(42);
@@ -191,11 +192,12 @@ testChanged(
       expect(stuff).toBeGreaterThanOrEqual(42);
     });
     `
-)
+  )
+})
 
-testChanged(
-  'maps expect contain matchers',
-  `
+test('maps expect contain matchers', () => {
+  expectTransformation(
+    `
     import expect from 'expect';
 
     test(() => {
@@ -212,7 +214,7 @@ testChanged(
       expect({ a: 1, b: 2 }).toExcludeKeys([ 'c', 'd' ]);
     });
     `,
-  `
+    `
     test(() => {
       expect(stuff).toContain(1);
       expect(stuff).toContain(1);
@@ -231,11 +233,12 @@ testChanged(
       });
     });
     `
-)
+  )
+})
 
-testChanged(
-  'maps expect spy matchers',
-  `
+test('maps expect spy matchers', () => {
+  expectTransformation(
+    `
     import expect from 'expect';
 
     test(() => {
@@ -244,18 +247,19 @@ testChanged(
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `,
-  `
+    `
     test(() => {
       expect(stuff).toHaveBeenCalled();
       expect(stuff).not.toHaveBeenCalled();
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
     });
     `
-)
+  )
+})
 
-testChanged(
-  'maps spy creation calls',
-  `
+test('maps spy creation calls', () => {
+  expectTransformation(
+    `
     import expect from 'expect';
 
     test(() => {
@@ -274,7 +278,7 @@ testChanged(
       not.a.spy.andCall(fn);
     });
     `,
-  `
+    `
     test(() => {
       var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
@@ -293,11 +297,12 @@ testChanged(
       not.a.spy.andCall(fn);
     });
     `
-)
+  )
+})
 
-testChanged(
-  'maps spy methods on intitialized spies',
-  `
+test('maps spy methods on intitialized spies', () => {
+  expectTransformation(
+    `
     import expect from 'expect';
 
     test(() => {
@@ -323,7 +328,7 @@ testChanged(
       spy2.reset();
     });
     `,
-  `
+    `
     test(() => {
       var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
@@ -349,11 +354,12 @@ testChanged(
       spy2.mockClear();
     });
     `
-)
+  )
+})
 
-testChanged(
-  'maps spy methods on intitialized spies (spread import)',
-  `
+test('maps spy methods on intitialized spies (spread import)', () => {
+  expectTransformation(
+    `
     import { createSpy, spyOn } from 'expect'
 
     test(() => {
@@ -365,7 +371,7 @@ testChanged(
       spy2.reset();
     });
     `,
-  `
+    `
     test(() => {
       var spy1 = jest.fn();
       var spy2 = jest.spyOn(video, 'play');
@@ -375,11 +381,12 @@ testChanged(
       spy2.mockClear();
     });
     `
-)
+  )
+})
 
-testChanged(
-  'maps spy array',
-  `
+test('maps spy array', () => {
+  expectTransformation(
+    `
     import { createSpy, spyOn } from 'expect'
 
     test(() => {
@@ -393,7 +400,7 @@ testChanged(
       expect(inputs[1].calls.length).toEqual(1)
     });
     `,
-  `
+    `
     test(() => {
       const inputs = [
         jest.fn(props => <input {...props.input} />),
@@ -405,11 +412,12 @@ testChanged(
       expect(inputs[1].mock.calls.length).toEqual(1)
     });
     `
-)
+  )
+})
 
-testChanged(
-  'renames non standard expect import name',
-  `
+test('renames non standard expect import name', () => {
+  expectTransformation(
+    `
     import exp from 'expect';
 
     test(() => {
@@ -418,18 +426,19 @@ testChanged(
       exp(stuff).toHaveBeenCalledWith(1);
     });
     `,
-  `
+    `
     test(() => {
       expect(stuff).toHaveBeenCalled();
       expect(stuff).not.toHaveBeenCalled();
       expect(stuff).toHaveBeenCalledWith(1);
     });
     `
-)
+  )
+})
 
-testChanged(
-  'support chaining',
-  `
+test('support chaining', () => {
+  expectTransformation(
+    `
     import expect from 'expect';
 
     test(() => {
@@ -440,7 +449,7 @@ testChanged(
          .toBeMoreThan(42);
     });
     `,
-  `
+    `
     test(() => {
       expect(stuff).toBeTruthy();
       expect(typeof stuff).toBe('number');
@@ -448,32 +457,34 @@ testChanged(
       expect(stuff).toBeGreaterThan(42);
     });
     `
-)
+  )
+})
 
-testChanged(
-  'standaloneMode: keeps expect import',
-  `
+test('standaloneMode: keeps expect import', () => {
+  expectTransformation(
+    `
     import exp from 'expect';
 
     test(() => {
       exp(stuff).toHaveBeenCalled();
     });
     `,
-  `
+    `
     import exp from 'expect';
 
     test(() => {
       exp(stuff).toHaveBeenCalled();
     });
     `,
-  {
-    standaloneMode: true,
-  }
-)
+    {
+      standaloneMode: true,
+    }
+  )
+})
 
-testChanged(
-  'standaloneMode: rewrites expect.spyOn (import)',
-  `
+test('standaloneMode: rewrites expect.spyOn (import)', () => {
+  expectTransformation(
+    `
     import expect from 'expect';
 
     test(() => {
@@ -485,7 +496,7 @@ testChanged(
         expect(spy1.calls.length).toEqual(3);
     });
     `,
-  `
+    `
     import mock from 'jest-mock';
     import expect from 'expect';
 
@@ -498,14 +509,15 @@ testChanged(
         expect(spy1.mock.calls.length).toEqual(3);
     });
     `,
-  {
-    standaloneMode: true,
-  }
-)
+    {
+      standaloneMode: true,
+    }
+  )
+})
 
-testChanged(
-  'standaloneMode: rewrites expect.spyOn (require)',
-  `
+test('standaloneMode: rewrites expect.spyOn (require)', () => {
+  expectTransformation(
+    `
     const expect = require('expect');
 
     test(() => {
@@ -514,7 +526,7 @@ testChanged(
         expect(spy1.calls.length).toEqual(3);
     });
     `,
-  `
+    `
     const mock = require('jest-mock');
     const expect = require('expect');
 
@@ -524,10 +536,11 @@ testChanged(
         expect(spy1.mock.calls.length).toEqual(3);
     });
     `,
-  {
-    standaloneMode: true,
-  }
-)
+    {
+      standaloneMode: true,
+    }
+  )
+})
 
 test('warns about unsupported spy features', () => {
   wrappedPlugin(`

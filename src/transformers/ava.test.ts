@@ -13,53 +13,53 @@ beforeEach(() => {
   console.warn = (v) => consoleWarnings.push(v)
 })
 
-function testChanged(msg, source, expectedOutput, options = {}) {
-  test(msg, () => {
-    const result = wrappedPlugin(source, options)
-    expect(result).toBe(expectedOutput)
-    expect(consoleWarnings).toEqual([])
-  })
+function expectTransformation(source, expectedOutput, options = {}) {
+  const result = wrappedPlugin(source, options)
+  expect(result).toBe(expectedOutput)
+  expect(consoleWarnings).toEqual([])
 }
 
-testChanged(
-  'does not touch code without ava require/import',
-  `
+test('does not touch code without ava require/import', () => {
+  expectTransformation(
+    `
 // @flow
 const test = require("testlib");
 test(t => {
     t.notOk(1);
 })
 `,
-  `
+    `
 // @flow
 const test = require("testlib");
 test(t => {
     t.notOk(1);
 })
 `
-)
+  )
+})
 
-testChanged(
-  'changes code without require/import if skipImportDetection is set',
-  `
+test('changes code without require/import if skipImportDetection is set', () => {
+  expectTransformation(
+    `
 // @flow
 test(t => {
     t.notOk(1);
 })
 `,
-  `
+    `
 // @flow
 test(t => {
     expect(1).toBeFalsy();
 })
 `,
-  { skipImportDetection: true }
-)
+    { skipImportDetection: true }
+  )
+})
 
 // TODO: jscodeshift adds semi colon when preserving first line comments :/
-testChanged(
-  'maps assertions',
-  `
+test('maps assertions', () => {
+  expectTransformation(
+    `
 // @flow
 import test from 'ava'
 
@@ -93,7 +93,7 @@ test('mapping', (t) => {
   t.snapshot(abc, {}, "msg")
 })
 `,
-  `
+    `
 // @flow
 test('mapping', () => {
   const abc = { a: 'a', b: 'b', c: 'c' }
@@ -125,11 +125,12 @@ test('mapping', () => {
   expect(abc).toMatchSnapshot("msg")
 });
 `
-)
+  )
+})
 
-testChanged(
-  'handles test setup/teardown modifiers',
-  `
+test('handles test setup/teardown modifiers', () => {
+  expectTransformation(
+    `
 import test from 'ava'
 
 test.before(t => {});
@@ -137,28 +138,30 @@ test.after(t => {});
 test.beforeEach(t => {});
 test.afterEach(t => {});
 `,
-  `
+    `
 beforeAll(() => {});
 afterAll(() => {});
 beforeEach(() => {});
 afterEach(() => {});
 `
-)
+  )
+})
 
-testChanged(
-  'all tests are serial by default',
-  `
+test('all tests are serial by default', () => {
+  expectTransformation(
+    `
 import test from 'ava'
 test.serial(t => {});
 `,
-  `
+    `
 test(() => {});
 `
-)
+  )
+})
 
-testChanged(
-  'handles skip/only modifiers and chaining',
-  `
+test('handles skip/only modifiers and chaining', () => {
+  expectTransformation(
+    `
 import test from 'ava'
 
 test.only(t => {});
@@ -169,7 +172,7 @@ test.skip.serial(t => {});
 test.only.serial(t => {});
 test.serial.only(t => {});
 `,
-  `
+    `
 test.only(() => {});
 test.skip(() => {});
 
@@ -178,11 +181,12 @@ test.skip(() => {});
 test.only(() => {});
 test.only(() => {});
 `
-)
+  )
+})
 
-testChanged(
-  'removes t.pass, but keeps t.fail',
-  `
+test('removes t.pass, but keeps t.fail', () => {
+  expectTransformation(
+    `
 import test from 'ava'
 
 test('handles done.fail and done.pass', t => {
@@ -199,7 +203,7 @@ test.serial.only('handles done.fail and done.pass', t => {
     }, 500);
 });
 `,
-  `
+    `
 test('handles done.fail and done.pass', done => {
     setTimeout(() => {
         done.fail('no');
@@ -212,29 +216,31 @@ test.only('handles done.fail and done.pass', done => {
     }, 500);
 });
 `
-)
+  )
+})
 
 // TODO: semantics is not the same for t.end and done
 // t.end automatically checks for error as first argument (jasmine doesn't)
-testChanged(
-  'callback tests',
-  `
+test('callback tests', () => {
+  expectTransformation(
+    `
 import test from 'ava';
 test.cb(t => {
     fs.readFile('data.txt', t.end);
 });
 `,
-  `
+    `
 test(done => {
     fs.readFile('data.txt', done);
 });
 `
-)
+  )
+})
 
 // TODO: these hanging t variables should be removed or be renamed
-testChanged(
-  'passing around t',
-  `
+test('passing around t', () => {
+  expectTransformation(
+    `
 import test from 'ava'
 
 test('should pass', t => {
@@ -252,7 +258,7 @@ function shouldFail2(t, message) {
     })
 }
 `,
-  `
+    `
 test('should pass', () => {
     shouldFail(t, 'hi')
     return shouldFail2(t, 'hi')
@@ -268,11 +274,12 @@ function shouldFail2(t, message) {
     });
 }
 `
-)
+  )
+})
 
-testChanged(
-  'keeps async and await',
-  `
+test('keeps async and await', () => {
+  expectTransformation(
+    `
 import test from 'ava';
 
 test(async (t) => {
@@ -285,7 +292,7 @@ test(async function (t) {
     t.true(value);
 });
 `,
-  `
+    `
 test(async () => {
     const value = await promiseFn();
     expect(value).toBe(true);
@@ -296,11 +303,12 @@ test(async function () {
     expect(value).toBe(true);
 });
 `
-)
+  )
+})
 
-testChanged(
-  'destructured test argument',
-  `
+test('destructured test argument', () => {
+  expectTransformation(
+    `
 import test from 'ava';
 test(({ok}) => {
     ok('msg');
@@ -309,7 +317,7 @@ test('my test', ({is}) => {
     is('msg', 'other msg');
 });
 `,
-  `
+    `
 test(() => {
     expect('msg').toBeTruthy();
 });
@@ -317,18 +325,20 @@ test('my test', () => {
     expect('msg').toBe('other msg');
 });
 `
-)
+  )
+})
 
-testChanged(
-  'converts test.todo',
-  `
+test('converts test.todo', () => {
+  expectTransformation(
+    `
 import test from 'ava';
 test.todo('this should be a test some day');
 `,
-  `
+    `
 test.todo('this should be a test some day');
 `
-)
+  )
+})
 
 test('not supported warnings: skipping test setup/teardown hooks', () => {
   wrappedPlugin(`
@@ -417,13 +427,14 @@ test('warns about too few AVA arguments', () => {
   ])
 })
 
-testChanged(
-  'supports renaming non standard import name',
-  `
+test('supports renaming non standard import name', () => {
+  expectTransformation(
+    `
 import foo from 'ava';
 foo(() => {});
 `,
-  `
+    `
 test(() => {});
 `
-)
+  )
+})
