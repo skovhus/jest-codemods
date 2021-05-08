@@ -1,0 +1,8 @@
+.eslintignore
+.eslintrc.js
+.circleci
+codecov.yml
+*.sh
+*.gif
+tsconfig.json
+src
