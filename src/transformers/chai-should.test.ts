@@ -714,11 +714,12 @@ test('converts "function"', () => {
 test('converts "and"', () => {
   expectTransformation(
     `
-        expect(true).to.be.true.and.to.not.be.false;
+        expect(true).to.be.true.and.to.not.be.false.and.to.not.equal(1);
     `,
     `
         expect(true).toBe(true);
         expect(true).not.toBe(false);
+        expect(true).not.toBe(1);
     `
   )
 })
