@@ -711,6 +711,18 @@ test('converts "function"', () => {
   )
 })
 
+test('converts "and"', () => {
+  expectTransformation(
+    `
+        expect(true).to.be.true.and.to.not.be.false;
+    `,
+    `
+        expect(true).toBe(true);
+        expect(true).not.toBe(false);
+    `
+  )
+})
+
 it('warns about using chai extensions', () => {
   wrappedPlugin(`
         const chai = require('chai');
