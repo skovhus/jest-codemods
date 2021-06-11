@@ -40,7 +40,9 @@ To use the interactive CLI run
 
 	$ npx jest-codemods
 
-If you do not have `npx` installed, you can install the `jest-codemods` command globally by running `npm install -g jest-codemods`.
+If you do not have `npx` installed, you can install the `jest-codemods` command globally by running `npm install -g jest-codemods`. 
+
+Command line arguments can be used to bypass prompts. Invalid values for arguments will be ignored.
 
 For more options
 ```
@@ -50,10 +52,16 @@ $ npx jest-codemods --help
 
     Examples:   npx jest-codemods src
                 npx jest-codemods src/**/*.test.js
+                npx jest-codemods src/**/*.test.js --parser=babel --skipImportDetection=0 --standaloneMode
 
     Options:
-      -f, --force       Bypass Git safety checks and force codemods to run
-      -d, --dry         Dry run (no changes are made to files)
+      -f, --force             Bypass Git safety checks and force codemods to run
+      -d, --dry               Dry run (no changes are made to files)
+      --parser                The parser to use (babel, flow, ts, tsx)
+      --transformer           The transformer to use (ava,     chai-assert, chai-should, expect-js, expect, jasmine-globals,     jasmine-this, mocha, should, tape)
+      --skipImportDetection   Keep using the global object for     assertions
+      --standaloneMode        Use explicit require calls instead of     globals
+      --mochaAssertion        Use assertion transformations with Mocha (chai-assert, chai-should, expect-js, expect, should)
 ```
 
 To transform all test files in a directory run `jest-codemods .` in your terminal.
