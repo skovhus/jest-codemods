@@ -355,6 +355,19 @@ export default function transformer(fileInfo, api, options) {
       })
       .size()
 
+  const splitAndExpressions = () =>
+    root
+      .find(j.MemberExpression, {
+        property: {
+          type: j.Identifier.name,
+          name: 'and',
+        },
+      })
+      .filter((p) => p.node.object)
+      .replaceWith((p) => j.callExpression(j.identifier('expect'), [p.node.object]))
+      // .insertAfter((p) => j.callExpression(j.identifier('expect'), [p.node.object]))
+      .size()
+
   const updateMemberExpressions = () => {
     const getMembers = () =>
       root
@@ -678,6 +691,7 @@ export default function transformer(fileInfo, api, options) {
 
   mutations += shouldChainedToExpect()
   mutations += shouldIdentifierToExpect()
+  mutations += splitAndExpressions()
   mutations += updateCallExpressions()
   mutations += updateMemberExpressions()
 
