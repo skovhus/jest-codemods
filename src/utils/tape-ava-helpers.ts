@@ -1,9 +1,13 @@
+import { types } from 'recast'
+
 import logger from './logger'
 
+const { namedTypes } = types
 /**
  * Rewrite last argument of a given CallExpression path
  * @param  {jscodeshift} j
  * @param  {CallExpression} path
+ * @param  {string} newArgument
  */
 function renameTestFunctionArgument(j, path, newArgument) {
   const lastArg = path.node.arguments[path.node.arguments.length - 1]
@@ -164,6 +168,62 @@ export function rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName)
 }
 
 /**
+ * Rewrite Execution reference name if not 't'
+ *
+ * @param fileInfo
+ * @param {jscodeshift} j
+ * @param {Collection} ast
+ * @param {string} testFunctionName
+ */
+export function renameExecutionInterface(fileInfo, j, ast, testFunctionName) {
+  ast
+    .find(j.CallExpression, {
+      callee: (callee) =>
+        callee.name === testFunctionName ||
+        (callee.object && callee.object.name === testFunctionName),
+    })
+    .forEach((p) => {
+      const lastArg = p.value.arguments[p.value.arguments.length - 1]
+      if (lastArg?.params?.[0]) {
+        const lastArgName = lastArg.params[0].name
+        if (lastArgName === 't') {
+          return
+        }
+        j(p)
+          .find(j.Identifier, {
+            name: lastArgName,
+          })
+          .filter((path) => path.parent.node === lastArg)
+          .forEach((path) => {
+            path.get('name').replace('t')
+            const rootScope = path.scope
+            j(p)
+              .find(j.CallExpression, { callee: { object: { name: lastArgName } } })
+              .forEach((path) => {
+                let { scope } = path
+                while (scope && scope !== rootScope) {
+                  if (scope.declares(lastArgName)) {
+                    return
+                  }
+                  scope = scope.parent
+                }
+                const parent = path.parent.node
+                if (
+                  namedTypes.Property.check(parent) &&
+                  parent.shorthand &&
+                  !parent.method
+                ) {
+                  path.parent.get('shorthand').replace(false)
+                }
+
+                path.node.callee.object.name = 't'
+              })
+          })
+      }
+    })
+}
+
+/**
  * Validated that "t" is the test argument name.
  *
  * Example: 'test(x => {})' gives a warning.
@@ -191,3 +251,4 @@ export function detectUnsupportedNaming(fileInfo, j, ast, testFunctionName) {
       }
     })
 }
+

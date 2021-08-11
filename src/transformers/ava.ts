@@ -12,7 +12,7 @@ import {
   getMemberExpressionElements,
 } from '../utils/recast-helpers'
 import {
-  detectUnsupportedNaming,
+  renameExecutionInterface,
   rewriteAssertionsAndTestArgument,
   rewriteDestructuredTArgument,
 } from '../utils/tape-ava-helpers'
@@ -71,7 +71,7 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
 
   const transforms = [
     () => rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName),
-    () => detectUnsupportedNaming(fileInfo, j, ast, testFunctionName),
+    () => renameExecutionInterface(fileInfo, j, ast, testFunctionName),
     function updateAssertions() {
       ast
         .find(j.CallExpression, {
@@ -164,6 +164,25 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
         })
 
       function mapPathToJestCallExpression(p) {
+        let { scope } = p
+
+        const {
+          node: {
+            callee: {
+              object: { name },
+            },
+          },
+        } = p
+
+        while (scope) {
+          if (scope.declares(name)) {
+            return j.callExpression(
+              j.memberExpression(p.node.callee.object, p.node.callee.property),
+              p.node.arguments
+            )
+          }
+          scope = scope.parent
+        }
         let jestMethod = 'test'
         const jestMethodArgs = p.node.arguments
 

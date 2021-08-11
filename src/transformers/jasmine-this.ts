@@ -1,9 +1,9 @@
 /**
  * Codemod for transforming Jasmine `this` context into Jest v20+ compatible syntax.
  */
+import { NodePath } from 'ast-types'
 import * as jscodeshift from 'jscodeshift'
 import { Collection } from 'jscodeshift/src/Collection'
-import { NodePath } from 'recast'
 
 import finale from '../utils/finale'
 

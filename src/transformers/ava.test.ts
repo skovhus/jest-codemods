@@ -328,6 +328,71 @@ test('my test', () => {
   )
 })
 
+test('supports other test names', () => {
+  expectTransformation(
+    `
+import test from 'ava';
+
+test('my test', async (test) => {
+  test.is('msg', 'other msg');
+  const deeper = () => {
+    test.is('deeper', 'even deeper');
+  };
+  const willNotChange = (test) => {
+    test.is('notChanged', 'notChanged');
+  };
+  const alsoNoChange = () => {
+    const test = {};
+    test.is('notChanged', 'notChanged');
+  }
+});
+
+test('another test', async (x) => {
+  x.is('msg', 'other msg');
+  const deeper = () => {
+    x.is('deeper', 'even deeper');
+  };
+  const willNotChange = (x) => {
+    x.is('notChanged', 'notChanged');
+  };
+  const alsoNoChange = () => {
+    const x = {};
+    x.is('notChanged', 'notChanged');
+  }
+});
+`,
+    `
+test('my test', async () => {
+  expect('msg').toBe('other msg');
+  const deeper = () => {
+    expect('deeper').toBe('even deeper');
+  };
+  const willNotChange = (test) => {
+    test.is('notChanged', 'notChanged');
+  };
+  const alsoNoChange = () => {
+    const test = {};
+    test.is('notChanged', 'notChanged');
+  }
+});
+
+test('another test', async () => {
+  expect('msg').toBe('other msg');
+  const deeper = () => {
+    expect('deeper').toBe('even deeper');
+  };
+  const willNotChange = (x) => {
+    x.is('notChanged', 'notChanged');
+  };
+  const alsoNoChange = () => {
+    const x = {};
+    x.is('notChanged', 'notChanged');
+  }
+});
+`
+  )
+})
+
 test('converts test.todo', () => {
   expectTransformation(
     `
@@ -378,18 +443,6 @@ test('not supported warnings: unmapped t property', () => {
     `)
   expect(consoleWarnings).toEqual([
     'jest-codemods warning: (test.js line 4) "t.unknownAssert" is currently not supported',
-  ])
-})
-
-test('not supported warnings: non standard argument for test', () => {
-  wrappedPlugin(`
-        import test from 'ava';
-        test(x => {
-            x.equal(1, 1);
-        });
-    `)
-  expect(consoleWarnings).toEqual([
-    'jest-codemods warning: (test.js line 3) Argument to test function should be named "t" not "x"',
   ])
 })
 
