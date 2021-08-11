@@ -2,6 +2,7 @@
  * Codemod for transforming AVA tests into Jest.
  */
 import * as jscodeshift from 'jscodeshift'
+import { Identifier, MemberExpression } from 'jscodeshift'
 
 import { PROP_WITH_SECONDS_ARGS } from '../utils/consts'
 import finale from '../utils/finale'
@@ -12,7 +13,7 @@ import {
   getMemberExpressionElements,
 } from '../utils/recast-helpers'
 import {
-  detectUnsupportedNaming,
+  renameExecutionInterface,
   rewriteAssertionsAndTestArgument,
   rewriteDestructuredTArgument,
 } from '../utils/tape-ava-helpers'
@@ -71,7 +72,7 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
 
   const transforms = [
     () => rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName),
-    () => detectUnsupportedNaming(fileInfo, j, ast, testFunctionName),
+    () => renameExecutionInterface(fileInfo, j, ast, testFunctionName),
     function updateAssertions() {
       ast
         .find(j.CallExpression, {
@@ -164,12 +165,31 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
         })
 
       function mapPathToJestCallExpression(p) {
+        let { scope } = p
+
+        const {
+          node: {
+            callee: {
+              object: { name },
+            },
+          },
+        } = p
+
+        while (scope) {
+          if (scope.declares(name)) {
+            return j.callExpression(
+              j.memberExpression(p.node.callee.object, p.node.callee.property),
+              p.node.arguments
+            )
+          }
+          scope = scope.parent
+        }
         let jestMethod = 'test'
         const jestMethodArgs = p.node.arguments
 
-        // List like ['test', 'serial', 'cb']
+        // List like ['test', 'serial', 'cb', 'always']
         const avaMethods = getMemberExpressionElements(p.node.callee).filter(
-          (e) => e !== 'serial' && e !== testFunctionName && e !== 'cb'
+          (e) => e !== 'serial' && e !== testFunctionName && e !== 'cb' && e != 'always'
         )
 
         if (avaMethods.length === 1) {
@@ -180,6 +200,12 @@ const avaToJest: jscodeshift.Transform = (fileInfo, api, options) => {
             jestMethod = avaMethod
             logWarning(`Unknown AVA method "${avaMethod}"`, p)
           }
+        } else if (avaMethods[0] === 'context') {
+          let identifier: Identifier | MemberExpression = j.identifier(avaMethods[0])
+          avaMethods.slice(1).forEach((next) => {
+            identifier = j.memberExpression(identifier, j.identifier(next))
+          })
+          return j.callExpression(identifier, jestMethodArgs)
         } else if (avaMethods.length > 0) {
           logWarning('Skipping setup/teardown hooks is currently not supported', p)
         }
