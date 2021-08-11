@@ -45,18 +45,18 @@ test('jasmine.createSpy', () => {
     `
     jasmine.createSpy();
     jasmine.createSpy('lmao');
-    const spy = jasmine.createSpy();
+    const spy1 = jasmine.createSpy();
     jasmine.createSpy().and.callFake(arg => arg);
     jasmine.createSpy().and.returnValue('lmao');
-    const spy = jasmine.createSpy().and.returnValue('lmao');
+    const spy2 = jasmine.createSpy().and.returnValue('lmao');
     `,
     `
     jest.fn();
     jest.fn();
-    const spy = jest.fn();
+    const spy1 = jest.fn();
     jest.fn(arg => arg);
     jest.fn(() => 'lmao');
-    const spy = jest.fn(() => 'lmao');
+    const spy2 = jest.fn(() => 'lmao');
     `
   )
 })
