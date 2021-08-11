@@ -1,8 +1,5 @@
-import { types } from 'recast'
-
 import logger from './logger'
 
-const { namedTypes } = types
 /**
  * Rewrite last argument of a given CallExpression path
  * @param  {jscodeshift} j
@@ -209,14 +206,6 @@ export function renameExecutionInterface(fileInfo, j, ast, testFunctionName) {
                     return
                   }
                   scope = scope.parent
-                }
-                const parent = path.parent.node
-                if (
-                  namedTypes.Property.check(parent) &&
-                  parent.shorthand &&
-                  !parent.method
-                ) {
-                  path.parent.get('shorthand').replace(false)
                 }
 
                 path.node.callee.object.name = 't'
