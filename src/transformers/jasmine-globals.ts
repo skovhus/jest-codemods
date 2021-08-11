@@ -131,13 +131,13 @@ export default function jasmineGlobals(fileInfo, api, options) {
 
   root
     .find(j.CallExpression, {
-       // find *.and.*() expressions, e.g.
-       // - `spyOn().and.callThrough()`,
-       // - `spyOn().and.callFake(..)`
-       // - `existingSpy.and.callFake(..)`
-       // - `spyOn().and.returnValue(..)`
-       // - `existingSpy.and.returnValue(..)`
-       callee: {
+      // find *.and.*() expressions, e.g.
+      // - `spyOn().and.callThrough()`,
+      // - `spyOn().and.callFake(..)`
+      // - `existingSpy.and.callFake(..)`
+      // - `spyOn().and.returnValue(..)`
+      // - `existingSpy.and.returnValue(..)`
+      callee: {
         type: 'MemberExpression',
         object: {
           type: 'MemberExpression',
