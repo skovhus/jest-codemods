@@ -131,28 +131,25 @@ export default function jasmineGlobals(fileInfo, api, options) {
 
   root
     .find(j.CallExpression, {
-      // find spyOn().and.*() expressions
+      // find *.and.*() expressions, e.g.
+      // - `spyOn().and.callThrough()`,
+      // - `spyOn().and.callFake(..)`
+      // - `existingSpy.and.callFake(..)`
+      // - `spyOn().and.returnValue(..)`
+      // - `existingSpy.and.returnValue(..)`
       callee: {
         type: 'MemberExpression',
         object: {
           type: 'MemberExpression',
           property: { name: 'and' },
-          object: {
-            type: 'CallExpression',
-            callee: {
-              type: 'Identifier',
-              name: 'spyOn',
-            },
-          },
         },
       },
     })
     .forEach((path) => {
       const spyType = path.node.callee.property.name
       switch (spyType) {
-        // if it's `spyOn().and.callThrough()`
-        // we should remove it and make just `spyOn()`
-        // because jest calls through by default
+        // if it's `*.and.callThrough()` we should remove
+        // `and.callThrough()` because jest calls through by default
         case 'callThrough': {
           const { callee } = path.node.callee.object.object
           const arg = path.node.callee.object.object.arguments
@@ -160,15 +157,15 @@ export default function jasmineGlobals(fileInfo, api, options) {
           path.node.arguments = arg
           break
         }
-        // if it's `spyOn().and.callFake()` replace with jest's
-        // equivalent `spyOn().mockImplementation();
+        // if it's `*.and.callFake()`, replace with jest's
+        // equivalent `*.mockImplementation();
         case 'callFake': {
           path.node.callee.object = path.node.callee.object.object
           path.node.callee.property.name = 'mockImplementation'
           break
         }
-        // `spyOn().and.returnValue()` is equivalent of
-        // `jest.spyOn().mockReturnValue()`
+        // `*.and.returnValue()` is equivalent of jest
+        // `*.mockReturnValue()`
         case 'returnValue': {
           path.node.callee.object = path.node.callee.object.object
           path.node.callee.property.name = 'mockReturnValue'
