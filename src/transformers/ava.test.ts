@@ -491,3 +491,43 @@ test(() => {});
 `
   )
 })
+
+test('can handle after.always or afterEach.always', () => {
+  expectTransformation(
+    `
+import test from 'ava';
+
+test.after.always(t => {});
+test.afterEach.always(t => {});
+`,
+    `
+afterAll(() => {});
+afterEach(() => {});
+`
+  )
+})
+
+test('does not mess with the context', () => {
+  expectTransformation(
+    `
+import test from 'ava';
+
+test.beforeEach((test) => {
+  test.context.hello = () => console.log('hello');
+});
+
+test('uses context', test => {
+  test.context.hello();
+});
+`,
+    `
+beforeEach(() => {
+  test.context.hello = () => console.log('hello');
+});
+
+test('uses context', () => {
+  context.hello();
+});
+`
+  )
+})

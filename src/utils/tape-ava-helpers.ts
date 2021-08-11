@@ -11,6 +11,9 @@ const { namedTypes } = types
  */
 function renameTestFunctionArgument(j, path, newArgument) {
   const lastArg = path.node.arguments[path.node.arguments.length - 1]
+  if (!lastArg) {
+    return
+  }
   if (lastArg.type === 'ArrowFunctionExpression') {
     const arrowFunction = j.arrowFunctionExpression(
       [j.identifier(newArgument === '' ? '()' : newArgument)],
@@ -251,4 +254,3 @@ export function detectUnsupportedNaming(fileInfo, j, ast, testFunctionName) {
       }
     })
 }
-
