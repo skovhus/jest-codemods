@@ -2,7 +2,7 @@ import execa from 'execa'
 import path from 'path'
 
 export const transformerDirectory = path.join(__dirname, '../', 'transformers')
-export const jscodeshiftExecutable = require.resolve('.bin/jscodeshift')
+export const jscodeshiftExecutable = require.resolve('jscodeshift/bin/jscodeshift.js')
 
 type Flags = {
   dry?: boolean
@@ -50,7 +50,7 @@ function executeTransformation({
 
   console.log(`Executing command: jscodeshift ${args.join(' ')}`)
 
-  const result = execa.sync(jscodeshiftExecutable, args, {
+  const result = execa.sync('node', [jscodeshiftExecutable, ...args], {
     stdio: 'inherit',
     stripFinalNewline: false,
   })
