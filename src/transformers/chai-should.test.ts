@@ -869,5 +869,44 @@ it('leaves code without should/expect', () => {
   expect(result).toBeNull()
 })
 
+it('converts before, after and context to beforeAll, afterAll and describe', () => {
+  expectTransformation(
+    `
+        before(() => {
+          doSetup();
+        });
+
+        after(() => {
+          doTeardown();
+        });
+
+        describe('functionUnderTest', () => {
+          context('when something is the case', () => {
+            it('should behave', () => {
+              expect(false).to.be.false;
+            });
+          });
+        });
+    `,
+    `
+        beforeAll(() => {
+          doSetup();
+        });
+
+        afterAll(() => {
+          doTeardown();
+        });
+
+        describe('functionUnderTest', () => {
+          describe('when something is the case', () => {
+            it('should behave', () => {
+              expect(false).toBe(false);
+            });
+          });
+        });
+    `
+  )
+})
+
 // TODO: warn about chaining not working
 // E.g. expect({ foo: 'baz' }).to.have.property('foo').and.not.equal('bar');
