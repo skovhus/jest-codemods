@@ -112,6 +112,12 @@ const typeEqualityToConstructor = {
   uint8clampedarray: 'Uint8ClampedArray',
 }
 
+const chaiToJestGlobalMethods = {
+  before: 'beforeAll',
+  after: 'afterAll',
+  context: 'describe',
+}
+
 export const assertPrefixes = new Set(['to', 'with', 'that'])
 
 export default function transformer(fileInfo, api, options) {
@@ -676,10 +682,28 @@ export default function transformer(fileInfo, api, options) {
       })
       .size()
 
+  const updateGlobalCallExpressions = () =>
+    root
+      .find(j.CallExpression, {
+        callee: {
+          type: j.Identifier.name,
+          name: (name) => Object.keys(chaiToJestGlobalMethods).includes(name),
+        },
+      })
+      .replaceWith((p) => {
+        const { value } = p
+        return j.callExpression(
+          j.identifier(chaiToJestGlobalMethods[value.callee.name]),
+          value.arguments
+        )
+      })
+      .size()
+
   mutations += shouldChainedToExpect()
   mutations += shouldIdentifierToExpect()
   mutations += updateCallExpressions()
   mutations += updateMemberExpressions()
+  mutations += updateGlobalCallExpressions()
 
   root
     .find(j.MemberExpression, {
