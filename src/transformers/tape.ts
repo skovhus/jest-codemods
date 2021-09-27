@@ -177,7 +177,7 @@ export default function tapeToJest(fileInfo, api, options) {
           } else if (newPropertyName === SPECIAL_PLAN_CASE) {
             const condition = j.memberExpression(
               j.identifier('expect'),
-              j.callExpression(j.identifier('assertions'), [args[0]])
+              j.callExpression(j.identifier('assertions'), [args[0]]) // TODO add message from args[2]
             )
             return j(p).replaceWith(condition)
           } else {
@@ -186,8 +186,23 @@ export default function tapeToJest(fileInfo, api, options) {
             newCondition = j.callExpression(j.identifier(newPropertyName), conditionArgs)
           }
 
+          const keepCustomErrorMessage = true; // add custom message -> need jest-expect-message
+          /*
+            TODO
+            npm i -D jest-expect-message @types/jest-expect-message
+            echo "  setupFilesAfterEnv: ['jest-expect-message']," >>jest.config.js
+            # or
+            echo '"jest": { "setupFilesAfterEnv": ["jest-expect-message"] }' >>package.json
+          */
           const newExpression = j.memberExpression(
-            j.callExpression(j.identifier('expect'), [args[0]]),
+            j.callExpression(
+              j.identifier('expect'),
+              (
+                (keepCustomErrorMessage && args[2])
+                ? [args[0], args[2]]
+                : [args[0]]
+              )
+            ),
             newCondition
           )
 
