@@ -110,7 +110,7 @@ const TRANSFORMER_INQUIRER_CHOICES = [
     value: TRANSFORMER_SHOULD,
   },
   {
-    name: 'Tape',
+    name: 'Tape / Node-Tap',
     value: TRANSFORMER_TAPE,
   },
   {
