@@ -12,6 +12,7 @@ import {
 } from '../utils/tape-ava-helpers'
 
 const SPECIAL_THROWS_CASE = '(special throws case)'
+const SPECIAL_REJECTS_CASE = '(special rejects case)'
 const SPECIAL_PLAN_CASE = '(special plan case)'
 
 const SUPPORTED_TEST_METHODS = ['test.skip', 'test.todo']
@@ -62,6 +63,7 @@ const tPropertiesMap = {
   isInequivalent: 'not.toEqual',
 
   throws: SPECIAL_THROWS_CASE,
+  rejects: SPECIAL_REJECTS_CASE,
   doesNotThrow: SPECIAL_THROWS_CASE,
   plan: SPECIAL_PLAN_CASE,
 }
@@ -179,6 +181,10 @@ export default function tapeToJest(fileInfo, api, options) {
                 [args[1]]
               )
             }
+          } else if (newPropertyName == SPECIAL_REJECTS_CASE) {
+            newCondition = j.callExpression(j.identifier('rejects.toStrictEqual'), [
+              args[1],
+            ])
           } else if (newPropertyName === SPECIAL_PLAN_CASE) {
             const condition = j.memberExpression(
               j.identifier('expect'),
