@@ -356,7 +356,7 @@ test('t.rejects', () => {
 import test from 'tape';
 test(t => {
     t.rejects(myfunc, myerror);
-    t.rejects(myfunc, myerror, 'should not throw');
+    t.rejects(myfunc, myerror, 'should throw');
 });
 `,
     `
