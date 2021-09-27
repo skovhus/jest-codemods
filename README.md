@@ -10,7 +10,9 @@ Codemods that simplify migrating JavaScript and TypeScript test files from
 [Mocha](https://github.com/mochajs/mocha),
 [proxyquire](https://github.com/thlorenz/proxyquire),
 [Should.js](https://github.com/tj/should.js/)
-and [Tape](https://github.com/substack/tape)
+[Tape](https://github.com/substack/tape)
+and
+[Node-Tap](https://github.com/tapjs/node-tap)
 to [Jest](https://facebook.github.io/jest/).
 
 [![Build Status](https://travis-ci.org/skovhus/jest-codemods.svg?branch=master)](https://travis-ci.org/skovhus/jest-codemods)
