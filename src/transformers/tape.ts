@@ -90,6 +90,11 @@ export default function tapeToJest(fileInfo, api, options) {
   let testFunctionName = removeRequireAndImport(j, ast, 'tape')
 
   if (!testFunctionName) {
+    // tape and tap have the same API
+    testFunctionName = removeRequireAndImport(j, ast, 'tap')
+  }
+
+  if (!testFunctionName) {
     // No Tape require/import were found
     if (!options.skipImportDetection) {
       return fileInfo.source
