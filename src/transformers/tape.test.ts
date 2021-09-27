@@ -350,6 +350,24 @@ test(() => {
   )
 })
 
+test('t.rejects', () => {
+  expectTransformation(
+    `
+import test from 'tape';
+test(t => {
+    t.rejects(myfunc, myerror);
+    t.rejects(myfunc, myerror, 'should not throw');
+});
+`,
+    `
+test(() => {
+    expect(myfunc).rejects.toStrictEqual(myerror);
+    expect(myfunc).rejects.toStrictEqual(myerror);
+});
+`
+  )
+})
+
 test('destructured test argument', () => {
   expectTransformation(
     `
