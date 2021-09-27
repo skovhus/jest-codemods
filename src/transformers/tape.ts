@@ -177,10 +177,9 @@ export default function tapeToJest(fileInfo, api, options) {
               )
             }
           } else if (newPropertyName == SPECIAL_REJECTS_CASE) {
-            newCondition = j.callExpression(
-              j.identifier('rejects.toStrictEqual'),
-              [args[1]]
-            )
+            newCondition = j.callExpression(j.identifier('rejects.toStrictEqual'), [
+              args[1],
+            ])
           } else if (newPropertyName === SPECIAL_PLAN_CASE) {
             const condition = j.memberExpression(
               j.identifier('expect'),
