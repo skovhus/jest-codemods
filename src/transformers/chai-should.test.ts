@@ -908,5 +908,36 @@ it('converts before, after and context to beforeAll, afterAll and describe', () 
   )
 })
 
+test('supports chai-arrays plugin', () => {
+  expectTransformation(
+    `
+        expect([1, 2, 3]).to.be.array();
+        expect(new Uint16Array([1])).to.be.Uint16Array();
+
+        expect([1, 2, 3]).to.be.ofSize(3);
+        expect([1, 2, 3]).not.to.be.ofSize(5);
+
+        expect([1, 2, 3]).to.be.containing(1);
+
+        expect([1, 2, 3]).to.be.containingAllOf([1, 3]);
+
+        expect([1, 2, 3]).to.be.equalTo([1, 2, 3]);
+    `,
+    `
+        expect(Array.isArray([1, 2, 3])).toBe(true);
+        expect(new Uint16Array([1])).toBeInstanceOf(Uint16Array);
+
+        expect([1, 2, 3]).toHaveLength(3);
+        expect([1, 2, 3]).not.toHaveLength(5);
+
+        expect([1, 2, 3]).toContain(1);
+
+        expect([1, 2, 3]).toEqual(expect.arrayContaining([1, 3]));
+
+        expect([1, 2, 3]).toEqual([1, 2, 3]);
+    `
+  )
+})
+
 // TODO: warn about chaining not working
 // E.g. expect({ foo: 'baz' }).to.have.property('foo').and.not.equal('bar');
