@@ -55,7 +55,21 @@ const fns = [
   'gte',
   'lte',
   'within',
-]
+
+  // https://www.chaijs.com/plugins/chai-arrays/ plugin:
+  'array',
+  'Uint8Array',
+  'Uint16Array',
+  'Uint32Array',
+  'Uint8ClampedArray',
+
+  'ofSize',
+  'equalTo',
+  'containing',
+  'containingAllOf',
+  // TODO: containingAnyOf
+  // TODO: sorted
+].map((name) => name.toLowerCase())
 
 const members = [
   'ok',
@@ -510,7 +524,9 @@ export default function transformer(fileInfo, api, options) {
         const numberOfArgs = args.length
         const [firstArg] = args
 
-        switch (p.value.callee.property.name.toLowerCase()) {
+        const propertyName = value.callee.property.name.toLowerCase()
+
+        switch (propertyName) {
           case 'eq':
           case 'equal':
           case 'equals':
@@ -570,13 +586,30 @@ export default function transformer(fileInfo, api, options) {
               false
             )
           }
+          case 'containing':
+            return createCall('toContain', args, rest, containsNot)
+          case 'containingallof':
+            return createCall(
+              'toEqual',
+              [
+                createCallChain(
+                  containsNot
+                    ? ['expect', 'not', 'arrayContaining']
+                    : ['expect', 'arrayContaining'],
+                  [j.arrayExpression(args[0].elements)]
+                ),
+              ],
+              updateExpect(value, (node) => node),
+              false
+            )
           case 'eql':
             if (numberOfArgs === 1 && args[0].type === 'Literal') {
               return createCall('toBe', args, rest, containsNot)
             } else {
               return createCall('toEqual', args, rest, containsNot)
             }
-
+          case 'equalto':
+            return createCall('toEqual', args, rest, containsNot)
           case 'above':
           case 'greaterthan':
           case 'gt':
@@ -633,6 +666,7 @@ export default function transformer(fileInfo, api, options) {
             return createCall('toBeInstanceOf', args, rest, containsNot)
           case 'length':
           case 'lengthof':
+          case 'ofsize':
             return createCall('toHaveLength', args, restRaw, containsNot)
           case 'property':
             return createCall('toHaveProperty', args, rest, containsNot)
@@ -676,6 +710,13 @@ export default function transformer(fileInfo, api, options) {
                     )
                   )
                 )
+
+          case 'array':
+          case 'uint8array':
+          case 'uint16array':
+          case 'uint32array':
+          case 'uint8clampedarray':
+            return typeOf(p, value, [{ value: propertyName }], containsNot)
           default:
             return value
         }
