@@ -159,13 +159,14 @@ test(() => {});
   )
 })
 
-test('handles skip/only modifiers and chaining', () => {
+test('handles skip/only/failing modifiers and chaining', () => {
   expectTransformation(
     `
 import test from 'ava'
 
 test.only(t => {});
 test.skip(t => {});
+test.failing(t => {});
 
 test.serial.skip(t => {});
 test.skip.serial(t => {});
@@ -174,6 +175,7 @@ test.serial.only(t => {});
 `,
     `
 test.only(() => {});
+test.skip(() => {});
 test.skip(() => {});
 
 test.skip(() => {});
@@ -455,16 +457,6 @@ test('warns about some conflicting packages', () => {
     `)
   expect(consoleWarnings).toEqual([
     'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
-  ])
-})
-
-test('warns about unknown AVA functions', () => {
-  wrappedPlugin(`
-        import test from 'ava';
-        test.failing(t => {});
-    `)
-  expect(consoleWarnings).toEqual([
-    'jest-codemods warning: (test.js line 3) Unknown AVA method "failing"',
   ])
 })
 

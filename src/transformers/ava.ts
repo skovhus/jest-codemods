@@ -54,6 +54,7 @@ const avaToJestMethods = {
   afterEach: 'afterEach',
   only: 'test.only',
   skip: 'test.skip',
+  failing: 'test.skip',
   todo: 'test.todo',
 }
 
