@@ -100,3 +100,8 @@ export const createCallChainUtil = (j) => (chain, args) => {
 
   return j.callExpression(curr, args)
 }
+
+export const isExpectCallUtil = (j, node) =>
+  node.name === 'expect' ||
+  (node.type === j.MemberExpression.name && isExpectCallUtil(j, node.object)) ||
+  (node.type === j.CallExpression.name && isExpectCallUtil(j, node.callee))
