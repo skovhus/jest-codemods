@@ -83,6 +83,7 @@ $ jscodeshift -t node_modules/jest-codemods/dist/transformers/jasmine-this.js te
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/mocha.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/should.js test-folder
 $ jscodeshift -t node_modules/jest-codemods/dist/transformers/tape.js test-folder
+$ jscodeshift -t node_modules/jest-codemods/dist/transformers/sinon.js test-folder
 ```
 
 ## Test environment: Jest on Node.js or other
