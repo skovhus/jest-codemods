@@ -10,7 +10,14 @@ import detectQuoteStyle from './quote-style'
 function detectIncompatiblePackages(fileInfo, j, ast) {
   ;['sinon', 'testdouble'].forEach((pkg) => {
     if (hasRequireOrImport(j, ast, pkg)) {
-      logger(fileInfo, `Usage of package "${pkg}" might be incompatible with Jest`)
+      const msg = `Usage of package "${pkg}" might be incompatible with Jest`
+      if (pkg === 'sinon') {
+        return logger(
+          fileInfo,
+          `${msg}; it's recommended the sinon transformer is run first`
+        )
+      }
+      logger(fileInfo, msg)
     }
   })
 }

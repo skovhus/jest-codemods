@@ -60,6 +60,7 @@ const TRANSFORMER_JASMINE_THIS = 'jasmine-this'
 const TRANSFORMER_MOCHA = 'mocha'
 const TRANSFORMER_SHOULD = 'should'
 const TRANSFORMER_TAPE = 'tape'
+const TRANSFORMER_SINON = 'sinon'
 
 const ALL_TRANSFORMERS = [
   // TRANSFORMER_CHAI_SHOULD & TRANSFORMER_SHOULD doesn't have import detection
@@ -70,6 +71,7 @@ const ALL_TRANSFORMERS = [
   TRANSFORMER_MOCHA,
   TRANSFORMER_TAPE,
   TRANSFORMER_JASMINE_THIS,
+  TRANSFORMER_SINON,
 ]
 
 const TRANSFORMER_INQUIRER_CHOICES = [
@@ -112,6 +114,10 @@ const TRANSFORMER_INQUIRER_CHOICES = [
   {
     name: 'Tape / Node-Tap',
     value: TRANSFORMER_TAPE,
+  },
+  {
+    name: 'Sinon',
+    value: TRANSFORMER_SINON,
   },
   {
     name: 'All of the above (use with care)!',

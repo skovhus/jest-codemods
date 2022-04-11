@@ -133,7 +133,7 @@ testChanged(
   unsupportedExample,
   {},
   [
-    'jest-codemods warning: (test.js) Usage of package "sinon" might be incompatible with Jest',
+    'jest-codemods warning: (test.js) Usage of package "sinon" might be incompatible with Jest; it\'s recommended the sinon transformer is run first',
     'jest-codemods warning: (test.js) Usage of package "testdouble" might be incompatible with Jest',
   ]
 )
