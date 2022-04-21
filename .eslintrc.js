@@ -6,7 +6,6 @@ module.exports = {
     'plugin:jest/recommended',
     'plugin:@typescript-eslint/recommended',
     'prettier',
-    'prettier/@typescript-eslint',
   ],
   env: {
     node: true,
@@ -14,16 +13,7 @@ module.exports = {
   },
   root: true,
   rules: {
-    'prettier/prettier': [
-      'error',
-      {
-        trailingComma: 'es5',
-        singleQuote: true,
-        printWidth: 90,
-        semi: false,
-        tabWidth: 2,
-      },
-    ],
+    'prettier/prettier': 'error',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
@@ -43,7 +33,8 @@ module.exports = {
     ],
     'prefer-const': 'error',
     'prefer-template': 'error',
-    'simple-import-sort/sort': 'error',
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
 
     'no-underscore-dangle': 'off',
     'no-param-reassign': 'off',
@@ -51,6 +42,7 @@ module.exports = {
     'no-warning-comments': ['warn', { terms: ['fixme'], location: 'start' }],
     'no-unused-vars': 'off', // replaced by @typescript-eslint/no-unused-vars
     '@typescript-eslint/no-empty-function': 'off',
+    'jest/valid-title': 'off',
 
     // FIXME: enable
     '@typescript-eslint/explicit-function-return-type': 'off',
