@@ -9,6 +9,10 @@ export const PROP_WITH_SECONDS_ARGS = [
 
 export const JEST_MATCHER_TO_MAX_ARGS = {
   toBe: 1,
+  toBeCalled: 0,
+  toBeCalledTimes: 1,
+  toBeCalledWith: Infinity,
+  toBeLastCalledWith: Infinity,
   toBeCloseTo: 2,
   toBeDefined: 0,
   toBeFalsy: 0,
