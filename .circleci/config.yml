@@ -2,7 +2,7 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: circleci/node:10
+    - image: cimg/node:12.22.12
 
 _steps:
   save_npm_cache: &save_npm_cache

@@ -1,23 +1,19 @@
 import { JEST_MATCHER_TO_MAX_ARGS } from './consts'
 
-export const createCallUtil = (j) => (
-  fnName: string,
-  args: any,
-  rest: any,
-  containsNot?: boolean
-) => {
-  const expression = containsNot ? j.memberExpression(rest, j.identifier('not')) : rest
+export const createCallUtil =
+  (j) => (fnName: string, args: any, rest: any, containsNot?: boolean) => {
+    const expression = containsNot ? j.memberExpression(rest, j.identifier('not')) : rest
 
-  const numberOfArgs = JEST_MATCHER_TO_MAX_ARGS[fnName]
-  if (typeof numberOfArgs === 'undefined') {
-    throw new Error(`Unknown matcher "${fnName}" (JEST_MATCHER_TO_MAX_ARGS)`)
+    const numberOfArgs = JEST_MATCHER_TO_MAX_ARGS[fnName]
+    if (typeof numberOfArgs === 'undefined') {
+      throw new Error(`Unknown matcher "${fnName}" (JEST_MATCHER_TO_MAX_ARGS)`)
+    }
+
+    return j.memberExpression(
+      expression,
+      j.callExpression(j.identifier(fnName), args.slice(0, numberOfArgs))
+    )
   }
-
-  return j.memberExpression(
-    expression,
-    j.callExpression(j.identifier(fnName), args.slice(0, numberOfArgs))
-  )
-}
 
 export const chainContainsUtil = (j) => (fnName, node, end) => {
   let curr = node

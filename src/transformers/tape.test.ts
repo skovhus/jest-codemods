@@ -228,7 +228,7 @@ test(function() {
   )
 })
 
-test('test options: removes', () => {
+test('options: removes', () => {
   expectTransformation(
     `
 import test from 'tape';
@@ -244,7 +244,7 @@ test('mytest', () => {
   )
 })
 
-test('test options: skip', () => {
+test('options: skip', () => {
   expectTransformation(
     `
 import test from 'tape';

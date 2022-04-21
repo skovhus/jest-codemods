@@ -11,7 +11,7 @@
   },
   "bin": "bin/jest-codemods.js",
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "files": [
     "bin",
@@ -28,12 +28,8 @@
     "test": "jest --runInBand",
     "verify": "yarn lint && yarn build && yarn test:cov",
     "verify:bail": "yarn lint:bail && yarn verify",
-    "ci": "yarn verify:bail && codecov"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "ci": "yarn verify:bail && codecov",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "*.js": [
@@ -69,23 +65,23 @@
     "update-notifier": "^4.1.0"
   },
   "devDependencies": {
-    "@types/jest": "^25.2.3",
-    "@types/jscodeshift": "^0.7.1",
-    "@types/update-notifier": "^4.1.0",
-    "@typescript-eslint/eslint-plugin": "^3.1.0",
-    "@typescript-eslint/parser": "^3.1.0",
-    "codecov": "^3.7.0",
-    "eslint": "^7.1.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-jest": "^23.13.2",
-    "eslint-plugin-prettier": "^3.1.3",
-    "eslint-plugin-simple-import-sort": "^5.0.3",
-    "husky": "^4.2.5",
-    "jest": "^26.0.1",
-    "lint-staged": "^10.2.7",
-    "prettier": "^2.0.5",
-    "ts-jest": "^26.1.0",
-    "typescript": "^3.9.3"
+    "@types/jest": "^27.4.1",
+    "@types/jscodeshift": "^0.11.4",
+    "@types/update-notifier": "^5.1.0",
+    "@typescript-eslint/eslint-plugin": "^5.20.0",
+    "@typescript-eslint/parser": "^5.20.0",
+    "codecov": "^3.8.3",
+    "eslint": "^8.13.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-jest": "^26.1.4",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "husky": "^7.0.4",
+    "jest": "^27.5.1",
+    "lint-staged": "^12.4.0",
+    "prettier": "^2.6.2",
+    "ts-jest": "^27.1.4",
+    "typescript": "^4.6.3"
   },
   "jest": {
     "preset": "ts-jest",
