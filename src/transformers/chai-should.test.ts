@@ -19,16 +19,6 @@ function expectTransformation(source, expectedOutput) {
   expect(consoleWarnings).toEqual([])
 }
 
-// test.only('TEST DEBUG', () => {
-//   const arr = ['a', 'b', 'c']
-//   // expect(arr).toContain('a')
-//   // expect(arr).toEqual(expect.arrayContaining(['a']))
-//   // const a = 'a'
-//   const a = ['a']
-//   expect(arr).toEqual(expect.arrayContaining(a))
-//   // expect(arr).toContain(a)
-// })
-
 test('chai-enzyme: handle .to.contain(JSXElement)', () => {
   expectTransformation(
     `
