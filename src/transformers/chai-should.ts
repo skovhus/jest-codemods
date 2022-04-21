@@ -4,6 +4,7 @@ import {
   createCallUtil,
   getExpectNodeUtil,
   getNodeBeforeMemberExpressionUtil,
+  isExpectCallUtil,
   updateExpectUtil,
 } from '../utils/chai-chain-utils'
 import finale from '../utils/finale'
@@ -23,70 +24,84 @@ function addLeadingComment(node, comment) {
 }
 
 const fns = [
-  'keys',
-  'a',
-  'an',
-  'instanceof',
-  'lengthof',
-  'length',
-  'equal',
-  'equals',
-  'throw',
-  'include',
-  'includes',
-  'contain',
-  'contains',
-  'eql',
-  'eq',
-  'above',
-  'gt',
-  'greaterthan',
-  'least',
-  'below',
-  'lessthan',
-  'lt',
-  'most',
-  'match',
-  'string',
-  'members',
-  'property',
-  'ownproperty',
-  'ownpropertydescriptor',
-  'gte',
-  'lte',
-  'within',
-
-  // https://www.chaijs.com/plugins/chai-arrays/ plugin:
-  'array',
-  'Uint8Array',
   'Uint16Array',
   'Uint32Array',
+  'Uint8Array',
   'Uint8ClampedArray',
-
-  'ofSize',
-  'equalTo',
+  'a',
+  'above',
+  'an',
+  'array',
+  'below',
+  'callCount', // sinon-chai
+  'calledWith', // sinon-chai
+  'calledWithMatch', // sinon-chai
+  'calledWithExactly', // sinon-chai
+  'descendants', // chai-enzyme
+  'contain',
   'containing',
   'containingAllOf',
+  'contains',
+  'eq',
+  'eql',
+  'eqls',
+  'equal',
+  'equalTo',
+  'equals',
+  'exactly', // sinon-chai
+  'greaterthan',
+  'gt',
+  'gte',
+  'include',
+  'includes',
+  'instanceof',
+  'key',
+  'keys',
+  'least',
+  'length',
+  'lengthof',
+  'lessthan',
+  'lt',
+  'lte',
+  'match',
+  'members',
+  'most',
+  'ofSize',
+  'ownproperty',
+  'ownpropertydescriptor',
+  'present', // chai-enzyme
+  'prop', // chai-enzyme
+  'property',
+  'props', // chai-enzyme
+  'state', // chai-enzyme
+  'string',
+  'throw',
+  'type', // chai-enzyme
+  'within',
+  // https://www.chaijs.com/plugins/chai-arrays/ plugin:
   // TODO: containingAnyOf
-  // TODO: sorted
 ].map((name) => name.toLowerCase())
 
 const members = [
-  'ok',
-  'true',
-  'false',
-  'extensible',
-  'finite',
-  'function',
-  'frozen',
-  'sealed',
-  'null',
-  'undefined',
-  'exist',
-  'empty',
-  'nan',
+  'called', // sinon-chai
+  'calledOnce', // sinon-chai
+  'calledThrice', // sinon-chai
+  'calledTwice', // sinon-chai
   'defined',
-]
+  'empty',
+  'exist',
+  'extensible',
+  'false',
+  'finite',
+  'frozen',
+  'function',
+  'nan',
+  'null',
+  'ok',
+  'sealed',
+  'true',
+  'undefined',
+].map((name) => name.toLowerCase())
 
 const unsupportedProperties = new Set([
   'arguments',
@@ -180,10 +195,7 @@ export default function transformer(fileInfo, api, options) {
     mutations += 1
   }
 
-  const isExpectCall = (node) =>
-    node.name === 'expect' ||
-    (node.type === j.MemberExpression.name && isExpectCall(node.object)) ||
-    (node.type === j.CallExpression.name && isExpectCall(node.callee))
+  const isExpectCall = (node) => isExpectCallUtil(j, node)
 
   const typeOf = (path, value, args, containsNot) => {
     switch (args[0].value) {
@@ -191,13 +203,15 @@ export default function transformer(fileInfo, api, options) {
         return createCall(
           'toBeNull',
           [],
-          updateExpect(value, (node) => node)
+          updateExpect(value, (node) => node),
+          containsNot
         )
       case 'undefined':
         return createCall(
           'toBeUndefined',
           [],
-          updateExpect(value, (node) => node)
+          updateExpect(value, (node) => node),
+          containsNot
         )
       case 'array': {
         const parentExpressionStatement = findParentOfType(path, 'ExpressionStatement')
@@ -388,7 +402,7 @@ export default function transformer(fileInfo, api, options) {
           const { value } = p
           const propertyName = value.property.name.toLowerCase()
 
-          // Reject "ok" when it isn't  proceeded by "to"
+          // Reject "ok" when it isn't proceeded by "to"
           return !(propertyName === 'ok' && !chainContains('to', value, 'to'))
         })
 
@@ -488,17 +502,50 @@ export default function transformer(fileInfo, api, options) {
 
           case 'exist':
           case 'defined': {
+            if (propertyName === 'defined' && containsNot) {
+              return createCall('toBeDefined', [], rest, true)
+            }
+
             return containsNot
               ? createCall('toBeFalsy', [], rest)
               : createCall('toBeDefined', [], rest)
           }
           case 'function':
             return typeOf(p, value, [j.literal('function')], containsNot)
+          case 'called':
+            return createCall('toBeCalled', [], rest, containsNot)
+          case 'calledonce':
+            return createCall('toBeCalledTimes', [j.literal(1)], rest, containsNot)
+          case 'calledtwice':
+            return createCall('toBeCalledTimes', [j.literal(2)], rest, containsNot)
+          case 'calledthrice':
+            return createCall('toBeCalledTimes', [j.literal(3)], rest, containsNot)
           default:
             return value
         }
       })
       .size()
+  }
+
+  /* 
+    reverses `expect().not.to` -> `expect().to.not` to be
+    handled correctly by subsequent expression updates
+  */
+  const reverseNotToExpressions = () => {
+    root
+      .find(j.MemberExpression, {
+        object: {
+          object: {
+            callee: { name: 'expect' },
+          },
+          property: { name: 'not' },
+        },
+        property: { name: 'to' },
+      })
+      .forEach((np) => {
+        np.node.property.name = 'not'
+        np.node.object.property.name = 'to'
+      })
   }
 
   const updateCallExpressions = () =>
@@ -518,7 +565,6 @@ export default function transformer(fileInfo, api, options) {
         const restRaw = getAllBefore(isPrefix, value.callee, 'should')
         const rest = getRestWithLengthHandled(p, restRaw)
         const containsNot = chainContains('not', value.callee, isPrefix)
-        const containsDeep = chainContains('deep', value.callee, isPrefix)
         const containsAny = chainContains('any', value.callee, isPrefix)
         const args = value.arguments
         const numberOfArgs = args.length
@@ -527,13 +573,69 @@ export default function transformer(fileInfo, api, options) {
         const propertyName = value.callee.property.name.toLowerCase()
 
         switch (propertyName) {
+          case 'type':
+          case 'descendants': {
+            /* 
+              if `.not`: expect(wrapper.find(Foo)).toHaveLength(0)
+              else if `.exactly`: expect(wrapper.find(Foo)).toHaveLength(exactly.arg[0])
+              else: expect(wrapper.find(Foo).length).toBeGreaterThan(0)
+            */
+
+            let lengthArg
+            if (containsNot) {
+              // for .not, it should always be 0
+              lengthArg = 0
+            } else {
+              // if its an `.exactly`, use as length
+              let path = value.callee
+              // find next call expression
+              while (!path.callee) {
+                path = path.object
+              }
+              if (path.callee?.property?.name === 'exactly') {
+                lengthArg = path.arguments?.[0]?.value
+              }
+            }
+
+            const wrapNodeWithFind = (node) =>
+              j.callExpression(j.memberExpression(node, j.identifier('find')), args)
+
+            if (lengthArg != null) {
+              return createCall(
+                'toHaveLength',
+                [j.literal(lengthArg)],
+                updateExpect(value, wrapNodeWithFind)
+              )
+            }
+
+            return createCall(
+              'toBeGreaterThan',
+              [j.literal(0)],
+              updateExpect(value, (node) =>
+                j.memberExpression(wrapNodeWithFind(node), j.identifier('length'))
+              )
+            )
+          }
+          case 'callcount':
+            return createCall('toBeCalledTimes', args, rest, containsNot)
+          case 'calledwith':
+            return createCall('toBeCalledWith', args, rest, containsNot)
+          case 'calledwithmatch':
+            return createCall('toBeCalledWith', args.map(containing), rest, containsNot)
+          case 'calledwithexactly':
+            return createCall('toBeCalledWith', args, rest, containsNot)
+          case 'exactly':
+            // handle `expect(sinonSpy).to.have.called.exactly(3)`
+            if (chainContains('called', value.callee, isPrefix)) {
+              return createCall('toBeCalledTimes', [firstArg], rest, containsNot)
+            }
+            return value
+          case 'equalto':
+          case 'eqls':
+          case 'eql':
           case 'eq':
           case 'equal':
           case 'equals':
-            if (containsDeep) {
-              return createCall('toEqual', args, rest, containsNot)
-            }
-
             if (numberOfArgs === 1) {
               const { type } = firstArg
 
@@ -550,26 +652,58 @@ export default function transformer(fileInfo, api, options) {
               }
             }
 
-            return createCall('toBe', args, rest, containsNot)
+            return createCall('toEqual', args, rest, containsNot)
           case 'throw':
             return createCall('toThrowError', args, rest, containsNot)
           case 'string':
             return createCall('toContain', args, rest, containsNot)
+          case 'state':
+            return createCall(
+              'toHaveProperty',
+              args,
+              updateExpect(value, (node) =>
+                j.callExpression(j.memberExpression(node, j.identifier('state')), [])
+              ),
+              containsNot
+            )
           case 'include':
           case 'includes':
           case 'contain':
           case 'contains': {
-            if (args.length === 1 && args[0].type === j.ObjectExpression.name) {
+            const argType = args[0]?.type
+            if (args.length === 1 && argType === j.ObjectExpression.name) {
               return createCall('toMatchObject', args, rest, containsNot)
             }
 
             const expectNode = getExpectNode(value)
             if (expectNode != null) {
-              const isExpectParamStringLiteral =
-                expectNode.arguments[0].type === j.Literal.name
-              if (isExpectParamStringLiteral) {
+              // handle `expect([1, 2]).toContain(1)
+              if (expectNode.arguments[0].type === j.Literal.name) {
                 return createCall('toContain', args, rest, containsNot)
               }
+              // handle `expect(someArr).toContain(1)`
+              if (args.length === 1 && argType === j.Literal.name) {
+                return createCall(
+                  'toContain',
+                  args,
+                  updateExpect(value, (node) => node),
+                  containsNot
+                )
+              }
+            }
+
+            // handle `expect(wrapper).to.contain(<div />)`
+            if (args?.[0]?.type === j.JSXElement.name) {
+              return createCall(
+                'toEqual',
+                [j.identifier('true')],
+                updateExpect(value, (node) => {
+                  return j.callExpression(
+                    j.memberExpression(node, j.identifier('contains')),
+                    [args[0]]
+                  )
+                })
+              )
             }
 
             return createCall(
@@ -602,14 +736,6 @@ export default function transformer(fileInfo, api, options) {
               updateExpect(value, (node) => node),
               false
             )
-          case 'eql':
-            if (numberOfArgs === 1 && args[0].type === 'Literal') {
-              return createCall('toBe', args, rest, containsNot)
-            } else {
-              return createCall('toEqual', args, rest, containsNot)
-            }
-          case 'equalto':
-            return createCall('toEqual', args, rest, containsNot)
           case 'above':
           case 'greaterthan':
           case 'gt':
@@ -634,40 +760,102 @@ export default function transformer(fileInfo, api, options) {
             }
 
             return createCall('toEqual', args.map(containing), rest, containsNot)
-          case 'keys':
+          case 'key':
+            return createCall('toHaveProperty', args, rest, containsNot)
+          case 'keys': {
             if (containsAny) {
               logWarning('Unsupported Chai Assertion "any.keys"', p)
               return value
             }
 
+            const updateExpectFn = updateExpect(value, (node) => {
+              if (node.type === j.ArrayExpression.name) {
+                return node
+              }
+              return createCallChain(['Object', 'keys'], [node])
+            })
+
+            // handle single arguments, eg: `expect(serverConfig).to.have.all.keys('middleware')`
+            if (
+              args.length === 1 &&
+              [j.Literal.name, j.StringLiteral.name, j.Identifier.name].includes(
+                args[0].type
+              )
+            ) {
+              return createCall('toContain', args, updateExpectFn, containsNot)
+            }
+
             return createCall(
               'toEqual',
               [createCallChain(['expect', 'arrayContaining'], parseArgs(args))],
-              updateExpect(value, (node) => {
-                if (node.type === j.ObjectExpression.name) {
-                  return createCallChain(['Object', 'keys'], [node])
-                }
-                return node
-              }),
+              updateExpectFn,
               containsNot
             )
+          }
           case 'a':
-          case 'an':
+          case 'an': {
             if (!args.length) {
               return value
             }
 
-            if (args[0].type === 'Literal') {
+            const t = args[0].type
+            if (t === 'Literal' || t === 'StringLiteral') {
               return typeOf(p, value, args, containsNot)
             }
 
             return createCall('toBeInstanceOf', args, rest, containsNot)
+          }
           case 'instanceof':
             return createCall('toBeInstanceOf', args, rest, containsNot)
           case 'length':
           case 'lengthof':
           case 'ofsize':
             return createCall('toHaveLength', args, restRaw, containsNot)
+          case 'prop':
+            return createCall(
+              'toHaveProperty',
+              args,
+              updateExpect(value, (node) =>
+                j.callExpression(j.memberExpression(node, j.identifier('props')), [])
+              ),
+              containsNot
+            )
+          case 'props':
+            if (args[0].type === 'ArrayExpression') {
+              return createCall(
+                'toEqual',
+                [createCallChain(['expect', 'arrayContaining'], args)],
+                updateExpect(value, (node) =>
+                  createCallChain(
+                    ['Object', 'keys'],
+                    [
+                      j.callExpression(
+                        j.memberExpression(node, j.identifier('props')),
+                        []
+                      ),
+                    ]
+                  )
+                )
+              )
+            } else if (args[0].type === 'ObjectExpression') {
+              return createCall(
+                'toMatchObject',
+                args,
+                updateExpect(value, (node) =>
+                  j.callExpression(j.memberExpression(node, j.identifier('props')), [])
+                )
+              )
+            }
+            break
+          case 'present':
+            return createCall(
+              'toBeGreaterThan',
+              [j.literal(0)],
+              updateExpect(value, (node) =>
+                j.memberExpression(node, j.identifier('length'))
+              ),
+              containsNot
+            )
           case 'property':
             return createCall('toHaveProperty', args, rest, containsNot)
           case 'ownproperty':
@@ -717,6 +905,7 @@ export default function transformer(fileInfo, api, options) {
           case 'uint32array':
           case 'uint8clampedarray':
             return typeOf(p, value, [{ value: propertyName }], containsNot)
+
           default:
             return value
         }
@@ -740,6 +929,7 @@ export default function transformer(fileInfo, api, options) {
       })
       .size()
 
+  reverseNotToExpressions()
   mutations += shouldChainedToExpect()
   mutations += shouldIdentifierToExpect()
   mutations += updateCallExpressions()

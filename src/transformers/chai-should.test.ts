@@ -19,6 +19,102 @@ function expectTransformation(source, expectedOutput) {
   expect(consoleWarnings).toEqual([])
 }
 
+// test.only('TEST DEBUG', () => {
+//   const arr = ['a', 'b', 'c']
+//   // expect(arr).toContain('a')
+//   // expect(arr).toEqual(expect.arrayContaining(['a']))
+//   // const a = 'a'
+//   const a = ['a']
+//   expect(arr).toEqual(expect.arrayContaining(a))
+//   // expect(arr).toContain(a)
+// })
+
+test('chai-enzyme: handle .to.contain(JSXElement)', () => {
+  expectTransformation(
+    `
+    expect(wrapper).to.contain(<ImpressionLogger />)
+  `,
+    `
+    expect(wrapper.contains(<ImpressionLogger />)).toEqual(true)
+  `
+  )
+})
+
+test('chai-enzyme: handle .to.be.present', () => {
+  expectTransformation(
+    `
+        expect(wrapper).to.be.present()
+    `,
+    `
+        expect(wrapper.length).toBeGreaterThan(0)
+    `
+  )
+})
+
+test('chai-enzyme: handle .to.contain.keys', () => {
+  expectTransformation(
+    `
+        expect(wrapper.props()).to.contain.keys([
+          'verificationCodeInput',
+          'errorMessage',
+          'verifyEmail',
+          'sendVerificationCode',
+          'updateVerificationCodeInput',
+        ])
+    `,
+    `
+        expect(Object.keys(wrapper.props())).toEqual(expect.arrayContaining([
+          'verificationCodeInput',
+          'errorMessage',
+          'verifyEmail',
+          'sendVerificationCode',
+          'updateVerificationCodeInput',
+        ]))
+    `
+  )
+})
+
+test('chai-enzyme: handles .to.have.type', () => {
+  expectTransformation(
+    `
+        expect(wrapper).to.have.type(MockInnerComponent);
+    `,
+    `
+        expect(wrapper.find(MockInnerComponent).length).toBeGreaterThan(0);
+    `
+  )
+})
+
+test('chai-enzyme: handles .to.have.state', () => {
+  expectTransformation(
+    `
+        expect(wrapper).to.have.state('loading', false);
+        expect(wrapper).not.to.have.state('loading', false);
+    `,
+    `
+        expect(wrapper.state()).toHaveProperty('loading', false);
+        expect(wrapper.state()).not.toHaveProperty('loading', false);
+    `
+  )
+})
+
+test('chai-enzyme: handles descendants', () => {
+  expectTransformation(
+    `
+        expect(wrapper).to.have.exactly(2).descendants(foo);
+        expect(wrapper).to.have.descendants(foo);
+        expect(wrapper).to.have.descendants('div');
+        expect(wrapper).to.not.have.descendants(foo);
+    `,
+    `
+        expect(wrapper.find(foo)).toHaveLength(2);
+        expect(wrapper.find(foo).length).toBeGreaterThan(0);
+        expect(wrapper.find('div').length).toBeGreaterThan(0);
+        expect(wrapper.find(foo)).toHaveLength(0);
+    `
+  )
+})
+
 test('removes imports and does basic conversions of should and expect', () => {
   expectTransformation(
     `
@@ -34,8 +130,8 @@ test('removes imports and does basic conversions of should and expect', () => {
     `
         describe('Instantiating TextField', () => {
             it('should set the placeholder correctly', () => {
-                expect(textField.props.placeholder).toBe(PLACEHOLDER);
-                expect(textField.props.placeholder).not.toBe(PLACEHOLDER);
+                expect(textField.props.placeholder).toEqual(PLACEHOLDER);
+                expect(textField.props.placeholder).not.toEqual(PLACEHOLDER);
             });
         });
     `
@@ -70,13 +166,13 @@ test('removes imports and does basic conversions of should and expect (2)', () =
     `
         describe('Instantiating TextField', () => {
             it('should set the placeholder correctly', () => {
-                expect(textField.props.placeholder).toBe(PLACEHOLDER);
-                expect(textField.props.placeholder).not.toBe(PLACEHOLDER);
+                expect(textField.props.placeholder).toEqual(PLACEHOLDER);
+                expect(textField.props.placeholder).not.toEqual(PLACEHOLDER);
             });
 
             it('should inherit id prop', () => {
-                expect(dropdown.props.id).toBe(STANDARD_PROPS.id);
-                expect(dropdown.props.id).not.toBe(STANDARD_PROPS.id);
+                expect(dropdown.props.id).toEqual(STANDARD_PROPS.id);
+                expect(dropdown.props.id).not.toEqual(STANDARD_PROPS.id);
             });
 
             it('should map open prop to visible prop', () => {
@@ -104,8 +200,8 @@ test('removes imports (case where should is not assigned)', () => {
     `
         describe('Instantiating TextField', () => {
           it('should set the placeholder correctly', () => {
-              expect(textField.props.placeholder).toBe(PLACEHOLDER);
-              expect(textField.props.placeholder).not.toBe(PLACEHOLDER);
+              expect(textField.props.placeholder).toEqual(PLACEHOLDER);
+              expect(textField.props.placeholder).not.toEqual(PLACEHOLDER);
           });
         });`
   )
@@ -133,7 +229,9 @@ test('converts "a-an"', () => {
         expect({ foo: 'bar' }).to.be.an(Object);
         expect('xyz').to.be.a(String);
         expect(null).to.be.a('null');
+        expect(null).to.not.be.a('null');
         expect(undefined).to.be.an('undefined');
+        expect(undefined).not.to.be.an('undefined');
         expect(new Error()).to.be.an('error');
         expect(new Promise()).to.be.a('promise');
         expect(new Float32Array()).to.be.a('float32array');
@@ -145,6 +243,7 @@ test('converts "a-an"', () => {
         expect(baz).to.not.be.an('array');
 
         'test'.should.be.a('string');
+        expect(foo).to.be.a('function');
     `,
     `
         expect(typeof 'test').toBe('string');
@@ -152,7 +251,9 @@ test('converts "a-an"', () => {
         expect({ foo: 'bar' }).toBeInstanceOf(Object);
         expect('xyz').toBeInstanceOf(String);
         expect(null).toBeNull();
+        expect(null).not.toBeNull();
         expect(undefined).toBeUndefined();
+        expect(undefined).not.toBeUndefined();
         expect(new Error()).toBeInstanceOf(Error);
         expect(new Promise()).toBeInstanceOf(Promise);
         expect(new Float32Array()).toBeInstanceOf(Float32Array);
@@ -164,6 +265,7 @@ test('converts "a-an"', () => {
         expect(Array.isArray(baz)).toBe(false);
 
         expect(typeof 'test').toBe('string');
+        expect(foo).toBeInstanceOf(Function);
     `
   )
 })
@@ -206,6 +308,135 @@ test('converts "below"', () => {
   )
 })
 
+test('converts "called"', () => {
+  expectTransformation(
+    `
+        expect(sinonSpy).to.be.called;
+        expect(sinonSpy).not.to.be.called;
+        expect(sinonSpy).to.not.be.called;
+        expect(sinonSpy).to.be.not.called;
+    `,
+    `
+        expect(sinonSpy).toBeCalled();
+        expect(sinonSpy).not.toBeCalled();
+        expect(sinonSpy).not.toBeCalled();
+        expect(sinonSpy).not.toBeCalled();
+    `
+  )
+})
+
+test('converts "called.exactly(n)"', () => {
+  expectTransformation(
+    `
+        expect(sinonSpy).to.have.called.exactly(3)
+        expect(sinonSpy).to.not.have.called.exactly(3)
+        expect(sinonSpy).to.have.been.called.exactly(3)
+        expect(sinonSpy).to.not.have.been.called.exactly(3)
+    `,
+    `
+        expect(sinonSpy).toBeCalledTimes(3)
+        expect(sinonSpy).not.toBeCalledTimes(3)
+        expect(sinonSpy).toBeCalledTimes(3)
+        expect(sinonSpy).not.toBeCalledTimes(3)
+    `
+  )
+})
+
+test('converts "callCount"', () => {
+  expectTransformation(
+    `
+        expect(sinonSpy).to.have.callCount(1);
+        expect(sinonSpy).not.to.have.callCount(2);
+    `,
+    `
+        expect(sinonSpy).toBeCalledTimes(1);
+        expect(sinonSpy).not.toBeCalledTimes(2);
+    `
+  )
+})
+
+test('converts "calledOnce"', () => {
+  expectTransformation(
+    `
+        expect(sinonSpy).to.be.calledOnce;
+        expect(sinonSpy).not.to.be.calledOnce;
+    `,
+    `
+        expect(sinonSpy).toBeCalledTimes(1);
+        expect(sinonSpy).not.toBeCalledTimes(1);
+    `
+  )
+})
+
+test('converts "calledTwice"', () => {
+  expectTransformation(
+    `
+        expect(sinonSpy).to.be.calledTwice;
+        expect(sinonSpy).not.to.be.calledTwice;
+    `,
+    `
+        expect(sinonSpy).toBeCalledTimes(2);
+        expect(sinonSpy).not.toBeCalledTimes(2);
+    `
+  )
+})
+
+test('converts "calledThrice"', () => {
+  expectTransformation(
+    `
+        expect(sinonSpy).to.be.calledThrice;
+        expect(sinonSpy).not.to.be.calledThrice;
+    `,
+    `
+        expect(sinonSpy).toBeCalledTimes(3);
+        expect(sinonSpy).not.toBeCalledTimes(3);
+    `
+  )
+})
+
+test('converts "calledWith"', () => {
+  expectTransformation(
+    `
+        expect(sinonSpy).to.be.calledWith(1, 2, 3);
+        expect(sinonSpy).not.to.be.calledWith('a', 'b');
+    `,
+    `
+        expect(sinonSpy).toBeCalledWith(1, 2, 3);
+        expect(sinonSpy).not.toBeCalledWith('a', 'b');
+    `
+  )
+})
+
+it('converts "calledWithMatch"', () => {
+  expectTransformation(
+    `
+        expect(stub).to.have.been.calledWithMatch({
+          foo: 'foo',
+          bar: 1
+        });
+    `,
+    `
+        expect(stub).toBeCalledWith(expect.objectContaining({
+          foo: 'foo',
+          bar: 1
+        }));
+    `
+  )
+})
+
+test('converts "calledWithExactly"', () => {
+  expectTransformation(
+    `
+        expect(sinonSpy).to.be.calledWithExactly(1, 2, 3);
+        expect(sinonSpy).not.to.be.calledWithExactly('a', 'b');
+    `,
+    `
+        expect(sinonSpy).toBeCalledWith(1, 2, 3);
+        expect(sinonSpy).not.toBeCalledWith('a', 'b');
+    `
+  )
+})
+
 test('converts "eql"', () => {
   expectTransformation(
     `
@@ -221,8 +452,8 @@ test('converts "eql"', () => {
         expect([1, 2, 3]).toEqual([1, 2, 3]);
         expect(a).toEqual(a);
 
-        expect("123").toBe("123");
-        expect("123").not.toBe("123");
+        expect("123").toEqual("123");
+        expect("123").not.toEqual("123");
     `
   )
 })
@@ -241,16 +472,16 @@ test('converts "equal"', () => {
         should.not.equal('foo', 'bar');
     `,
     `
-        expect('hello').toBe('hello');
+        expect('hello').toEqual('hello');
         // some message here explaining hello
-        expect('hello').toBe('hello');
-        expect(42).toBe(42);
-        expect(1).not.toBe(true);
-        expect({ foo: 'bar' }).not.toBe({ foo: 'bar' });
+        expect('hello').toEqual('hello');
+        expect(42).toEqual(42);
+        expect(1).not.toEqual(true);
+        expect({ foo: 'bar' }).not.toEqual({ foo: 'bar' });
         expect({ foo: 'bar' }).toEqual({ foo: 'bar' });
 
-        expect('foo').toBe('foo');
-        expect('foo').not.toBe('bar');
+        expect('foo').toEqual('foo');
+        expect('foo').not.toEqual('bar');
     `
   )
 })
@@ -277,7 +508,7 @@ test('converts "exist-defined"', () => {
 
         expect(foo).toBeDefined();
         expect(foo).not.toBeDefined();
-        expect(foo).toBeFalsy();
+        expect(foo).not.toBeDefined();
 
         expect('').toBeDefined();
     `
@@ -387,12 +618,14 @@ test('converts "includes-contains"', () => {
         expect([1, 2, 3]).to.include(2);
         expect('foobar').which.contains('foo');
         expect({ foo: 1, bar: 2 }).to.contain({ bar: 2 });
+        expect(a).to.contain(b);
     `,
     `
         expect('foobar').toContain('foo');
-        expect([1, 2, 3]).toEqual(expect.arrayContaining([2]));
+        expect([1, 2, 3]).toContain(2);
         expect('foobar').toContain('foo');
         expect({ foo: 1, bar: 2 }).toMatchObject({ bar: 2 });
+        expect(a).toEqual(expect.arrayContaining([b]));
     `
   )
 })
@@ -404,8 +637,8 @@ test('converts chained "includes-contains"', () => {
         expect(arr).to.be.an('array').that.does.not.include(3);
     `,
     `
-        expect([1, 2, 3]).toEqual(expect.arrayContaining([2]));
-        expect(arr).toEqual(expect.not.arrayContaining([3]));
+        expect([1, 2, 3]).toContain(2);
+        expect(arr).not.toContain(3);
     `
   )
 })
@@ -443,12 +676,35 @@ test('converts "keys"', () => {
         expect({ foo: 1, bar: 2 }).to.have.all.keys({ bar: 6, foo: 7 });
         expect({ foo: 1, bar: 2, baz: 3 }).to.contain.all.keys(['bar', 'foo']);
         expect({ foo: 1, bar: 2, baz: 3 }).to.contain.all.keys({ bar: 6 });
+        expect(serverConfig).to.have.all.keys('middleware');
+        expect(actualDispatch).to.include.all.keys('type', 'payload', 'meta');
+        expect(serverConfig).to.include.all.keys('middleware');
+        expect(serverConfig).to.include.all.keys(foo);
     `,
     `
         expect([1, 2, 3]).toEqual(expect.arrayContaining([1, 2]));
         expect(Object.keys({ foo: 1, bar: 2 })).toEqual(expect.arrayContaining(Object.keys({ bar: 6, foo: 7 })));
         expect(Object.keys({ foo: 1, bar: 2, baz: 3 })).toEqual(expect.arrayContaining(['bar', 'foo']));
         expect(Object.keys({ foo: 1, bar: 2, baz: 3 })).toEqual(expect.arrayContaining(Object.keys({ bar: 6 })));
+        expect(Object.keys(serverConfig)).toContain('middleware');
+        expect(Object.keys(actualDispatch)).toEqual(expect.arrayContaining(['type', 'payload', 'meta']));
+        expect(Object.keys(serverConfig)).toContain('middleware');
+        expect(Object.keys(serverConfig)).toContain(foo);
+    `
+  )
+})
+
+test('converts "key"', () => {
+  expectTransformation(
+    `
+        expect(obj).to.have.key('keyName');
+        expect(obj).to.not.have.key('keyName');
+        expect(obj).not.to.have.key('keyName');
+    `,
+    `
+        expect(obj).toHaveProperty('keyName');
+        expect(obj).not.toHaveProperty('keyName');
+        expect(obj).not.toHaveProperty('keyName');
     `
   )
 })
@@ -552,9 +808,13 @@ test('converts "null"', () => {
     `
         expect(null).to.be.null;
         expect(undefined).to.not.be.null;
+        expect(undefined).not.to.be.null;
+        expect(undefined).to.be.not.null;
     `,
     `
         expect(null).toBeNull();
+        expect(undefined).not.toBeNull();
+        expect(undefined).not.toBeNull();
         expect(undefined).not.toBeNull();
     `
   )
@@ -609,6 +869,38 @@ test('converts "ownpropertydescriptor"', () => {
         expect(Object.getOwnPropertyDescriptor('test', 'length')).not.toBeUndefined();
         expect(Object.getOwnPropertyDescriptor('test', 'length')).toEqual({ enumerable: false, configurable: false, writable: false, value: 4 });
         expect(Object.getOwnPropertyDescriptor('test', 'length')).toEqual({ enumerable: false, configurable: false, writable: false, value: 3 });
+    `
+  )
+})
+
+test('converts "prop"', () => {
+  expectTransformation(
+    `
+        expect(enzymeWrapper).to.have.prop('a');
+        expect(enzymeWrapper).to.have.prop('a', 'b');
+        expect(enzymeWrapper).to.have.prop('a', 2);
+        expect(enzymeWrapper).to.have.prop('a', [1, 2]);
+        expect(enzymeWrapper).to.not.have.prop('a');
+    `,
+    `
+        expect(enzymeWrapper.props()).toHaveProperty('a');
+        expect(enzymeWrapper.props()).toHaveProperty('a', 'b');
+        expect(enzymeWrapper.props()).toHaveProperty('a', 2);
+        expect(enzymeWrapper.props()).toHaveProperty('a', [1, 2]);
+        expect(enzymeWrapper.props()).not.toHaveProperty('a');
+    `
+  )
+})
+
+test('converts "props"', () => {
+  expectTransformation(
+    `
+        expect(enzymeWrapper).to.have.props(['a', 'b']);
+        expect(enzymeWrapper).to.have.props({ a: 1, b: 2 });
+    `,
+    `
+        expect(Object.keys(enzymeWrapper.props())).toEqual(expect.arrayContaining(['a', 'b']));
+        expect(enzymeWrapper.props()).toMatchObject({ a: 1, b: 2 });
     `
   )
 })
@@ -716,7 +1008,7 @@ it('warns about using chai extensions', () => {
         const chai = require('chai');
         const sinonChai = require('sinon-chai');
         chai.use(sinonChai);
-        `)
+`)
 
   expect(consoleWarnings).toEqual([
     'jest-codemods warning: (test.js line 4) Unsupported Chai Extension "chai.use()"',
@@ -748,11 +1040,11 @@ test('removes params to expect() except for the first', () => {
         // Expected foo to be defined
         expect(foo).toBeDefined();
         // Expected foo to be defined
-        expect(foo).toBe(true);
+        expect(foo).toEqual(true);
         // Expected foo to be defined for \${id}
         expect(foo).toBeDefined();
         // 'Expected ' + foo + ' to be defined'
-        expect(foo).toBe(true);
+        expect(foo).toEqual(true);
     `
   )
 })
@@ -761,9 +1053,77 @@ test('converts equal(null) to toBeNull()', () => {
   expectTransformation(
     `
         expect(actual).to.equal(null);
+        expect(actual).not.to.equal(null);
+        expect(actual).to.not.equal(null);
     `,
     `
         expect(actual).toBeNull();
+        expect(actual).not.toBeNull();
+        expect(actual).not.toBeNull();
+    `
+  )
+})
+
+test('converts eq(null) to toBeNull()', () => {
+  expectTransformation(
+    `
+        expect(actual).to.eq(null);
+        expect(actual).not.to.eq(null);
+        expect(actual).to.not.eq(null);
+    `,
+    `
+        expect(actual).toBeNull();
+        expect(actual).not.toBeNull();
+        expect(actual).not.toBeNull();
+    `
+  )
+})
+
+test('converts eql(null) to toBeNull()', () => {
+  expectTransformation(
+    `
+        expect(actual).to.eql(null);
+        expect(actual).not.to.eql(null);
+        expect(actual).to.not.eql(null);
+    `,
+    `
+        expect(actual).toBeNull();
+        expect(actual).not.toBeNull();
+        expect(actual).not.toBeNull();
+    `
+  )
+})
+
+test('converts eqls(null) to toBeNull()', () => {
+  expectTransformation(
+    `
+        expect(actual).to.be.eqls(null);
+        expect(actual).not.to.eqls(null);
+        expect(actual).to.be.not.eqls(null);
+        expect(actual).to.not.be.eqls(null);
+    `,
+    `
+        expect(actual).toBeNull();
+        expect(actual).not.toBeNull();
+        expect(actual).not.toBeNull();
+        expect(actual).not.toBeNull();
+    `
+  )
+})
+
+test('converts equalto(null) to toBeNull()', () => {
+  expectTransformation(
+    `
+        expect(actual).to.be.equalTo(null);
+        expect(actual).not.to.be.equalTo(null);
+        expect(actual).to.not.be.equalTo(null);
+        expect(actual).to.be.not.equalTo(null);
+    `,
+    `
+        expect(actual).toBeNull();
+        expect(actual).not.toBeNull();
+        expect(actual).not.toBeNull();
+        expect(actual).not.toBeNull();
     `
   )
 })
