@@ -1763,10 +1763,10 @@
     jest-matcher-utils "^27.0.0"
     pretty-format "^27.0.0"
 
-"@types/jscodeshift@0.11.4":
-  version "0.11.4"
-  resolved "https://registry.yarnpkg.com/@types/jscodeshift/-/jscodeshift-0.11.4.tgz#adb0c806df6224911a0886220c6da9689eaf9405"
-  integrity sha512-9VYMEWsjpYgCe3DhHbr6JhdWjUZ2yAP7BQ4MpxLogyDW2K+PW+mGzaPeS/h+hCRkebiOw6NpF3V+gKY30kjOoA==
+"@types/jscodeshift@0.11.5":
+  version "0.11.5"
+  resolved "https://registry.yarnpkg.com/@types/jscodeshift/-/jscodeshift-0.11.5.tgz#51198aa72ceb66d36ceba3918e1ab445b868f29b"
+  integrity sha512-7JV0qdblTeWFigevmwFUgROXX395F+MQx6v0YqPn8Bx0B4Sng6alEejz9PENzgLYpG+zL0O4tGdBzc4gKZH8XA==
   dependencies:
     ast-types "^0.14.1"
     recast "^0.20.3"
@@ -2424,6 +2424,14 @@ chalk@^3.0.0:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
 
+chalk@^4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/chalk/-/chalk-4.1.2.tgz#aac4e2b7734a740867aeb16bf02aad556a1e7a01"
+  integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
+  dependencies:
+    ansi-styles "^4.1.0"
+    supports-color "^7.1.0"
+
 char-regex@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/char-regex/-/char-regex-1.0.2.tgz#d744358226217f981ed58f479b1d6bcc29545dcf"
@@ -2584,11 +2592,6 @@ colorette@^2.0.16:
   version "2.0.16"
   resolved "https://registry.yarnpkg.com/colorette/-/colorette-2.0.16.tgz#713b9af84fdb000139f04546bd4a93f62a5085da"
   integrity sha512-hUewv7oMjCp+wkBv5Rm0v87eJhq4woh5rSR+42YSQJKecCqgIqNkZ6lAlQms/BwHPJA5NKMRlpxPRv0n8HQW6g==
-
-colors@^1.1.2:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/colors/-/colors-1.4.0.tgz#c50491479d4c1bdaed2c9ced32cf7c7dc2360f78"
-  integrity sha512-a+UqTh4kgZg/SlGvfbzDHpgRu7AAQOmmqRHJnxhRZICKFUT91brVhNNt58CMWU9PsBbv3PDCZUHbVxuDiH2mtA==
 
 combined-stream@^1.0.8:
   version "1.0.8"
@@ -4524,10 +4527,10 @@ js-yaml@^4.1.0:
   dependencies:
     argparse "^2.0.1"
 
-jscodeshift@0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/jscodeshift/-/jscodeshift-0.13.0.tgz#4b3835c3755ea86bc4910ac80acd4acd230b53ee"
-  integrity sha512-FNHLuwh7TeI0F4EzNVIRwUSxSqsGWM5nTv596FK4NfBnEEKFpIcyFeG559DMFGHSTIYA5AY4Fqh2cBrJx0EAwg==
+jscodeshift@0.13.1:
+  version "0.13.1"
+  resolved "https://registry.yarnpkg.com/jscodeshift/-/jscodeshift-0.13.1.tgz#69bfe51e54c831296380585c6d9e733512aecdef"
+  integrity sha512-lGyiEbGOvmMRKgWk4vf+lUrCWO/8YR8sUR3FKF1Cq5fovjZDlIcw3Hu5ppLHAnEXshVffvaM0eyuY/AbOeYpnQ==
   dependencies:
     "@babel/core" "^7.13.16"
     "@babel/parser" "^7.13.16"
@@ -4539,7 +4542,7 @@ jscodeshift@0.13.0:
     "@babel/preset-typescript" "^7.13.0"
     "@babel/register" "^7.13.16"
     babel-core "^7.0.0-bridge.0"
-    colors "^1.1.2"
+    chalk "^4.1.2"
     flow-parser "0.*"
     graceful-fs "^4.2.4"
     micromatch "^3.1.10"
