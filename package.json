@@ -53,8 +53,8 @@
     "codemods"
   ],
   "dependencies": {
-    "@babel/core": "7.16.7",
-    "@babel/preset-env": "7.10.2",
+    "@babel/core": "7.17.10",
+    "@babel/preset-env": "7.17.10",
     "chalk": "4.0.0",
     "execa": "4.0.2",
     "globby": "11.0.1",
