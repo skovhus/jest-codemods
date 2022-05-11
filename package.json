@@ -55,7 +55,7 @@
   "dependencies": {
     "@babel/core": "7.17.10",
     "@babel/preset-env": "7.17.10",
-    "chalk": "4.0.0",
+    "chalk": "4.1.2",
     "execa": "4.0.2",
     "globby": "11.0.1",
     "inquirer": "7.1.0",
