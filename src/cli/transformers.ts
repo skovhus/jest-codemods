@@ -1,4 +1,4 @@
-import execa from 'execa'
+import { execaSync } from 'execa'
 import path from 'path'
 
 export const transformerDirectory = path.join(__dirname, '../', 'transformers')
@@ -50,7 +50,7 @@ function executeTransformation({
 
   console.log(`Executing command: jscodeshift ${args.join(' ')}`)
 
-  const result = execa.sync('node', [jscodeshiftExecutable, ...args], {
+  const result = execaSync('node', [jscodeshiftExecutable, ...args], {
     stdio: 'inherit',
     stripFinalNewline: false,
   })
