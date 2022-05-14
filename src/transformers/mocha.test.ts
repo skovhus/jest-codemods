@@ -7,7 +7,7 @@ const wrappedPlugin = wrapPlugin(plugin)
 let consoleWarnings = []
 beforeEach(() => {
   consoleWarnings = []
-  console.warn = (v) => consoleWarnings.push(v)
+  jest.spyOn(console, 'warn').mockImplementation((v) => consoleWarnings.push(v))
 })
 
 function expectTransformation(source, expectedOutput, options = {}) {

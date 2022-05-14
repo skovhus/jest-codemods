@@ -15,6 +15,10 @@ import {
   transformerDirectory,
 } from './transformers'
 
+beforeAll(() => {
+  jest.spyOn(console, 'log').mockImplementation()
+})
+
 it('finds transformer directory', () => {
   fs.lstatSync(transformerDirectory)
 })
@@ -25,7 +29,6 @@ it('finds jscodeshift executable', () => {
 
 it('runs jscodeshift for the given transformer', () => {
   execaReturnValue = { stderr: null }
-  console.log = jest.fn()
   executeTransformations({
     files: 'src',
     flags: {},
@@ -42,7 +45,6 @@ it('runs jscodeshift for the given transformer', () => {
 
 it('supports jscodeshift flags', () => {
   execaReturnValue = { stderr: null }
-  console.log = jest.fn()
   executeTransformations({
     files: 'folder',
     flags: { dry: true },
@@ -59,7 +61,6 @@ it('supports jscodeshift flags', () => {
 
 it('supports typescript parser', () => {
   execaReturnValue = { stderr: null }
-  console.log = jest.fn()
   executeTransformations({
     files: 'folder',
     flags: { dry: true },
@@ -76,7 +77,6 @@ it('supports typescript parser', () => {
 
 it('supports jscodeshift custom arguments', () => {
   execaReturnValue = { stderr: null }
-  console.log = jest.fn()
   executeTransformations({
     files: 'folder',
     flags: { dry: true },
@@ -95,7 +95,6 @@ it('supports jscodeshift custom arguments', () => {
 it('rethrows jscodeshift errors', () => {
   const transformerError = new Error('bum')
   execaReturnValue = { stderr: transformerError }
-  console.log = jest.fn()
   expect(() => {
     executeTransformations({
       files: 'src',
