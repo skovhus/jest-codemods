@@ -1,5 +1,6 @@
 /* eslint-env jest */
 import jscodeshift from 'jscodeshift'
+
 import * as _logger from './logger'
 import proxyquireTransformer from './proxyquire'
 
