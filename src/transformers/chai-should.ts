@@ -635,7 +635,7 @@ export default function transformer(fileInfo, api, options) {
           case 'eql':
           case 'eq':
           case 'equal':
-          case 'equals':
+          case 'equals': {
             if (numberOfArgs === 1) {
               const { type } = firstArg
 
@@ -652,7 +652,16 @@ export default function transformer(fileInfo, api, options) {
               }
             }
 
-            return createCall('toEqual', args, rest, containsNot)
+            const containsDeep = chainContains('deep', value.callee, isPrefix)
+            const isStrict = ['equal', 'equals', 'eq'].includes(propertyName)
+
+            return createCall(
+              isStrict && !containsDeep ? 'toBe' : 'toEqual',
+              args,
+              rest,
+              containsNot
+            )
+          }
           case 'throw':
             return createCall('toThrowError', args, rest, containsNot)
           case 'string':
