@@ -8,6 +8,7 @@ import {
 } from '../utils/chai-chain-utils'
 import finale from '../utils/finale'
 import { removeDefaultImport } from '../utils/imports'
+import logger from '../utils/logger'
 import { findParentOfType } from '../utils/recast-helpers'
 import {
   expressionContainsProperty,
@@ -52,6 +53,7 @@ const SINON_MATCHERS_WITH_ARGS = {
 }
 const SINON_NTH_CALLS = new Set(['firstCall', 'secondCall', 'thirdCall', 'lastCall'])
 const EXPECT_PREFIXES = new Set(['to'])
+const isPrefix = (name) => EXPECT_PREFIXES.has(name)
 
 /* 
   expect(spy.called).to.be(true) -> expect(spy).toHaveBeenCalled()
@@ -102,7 +104,6 @@ function transformCallCountAssertions(j, ast) {
 
       const expectArgSinonMethod = expectArg.property.name
 
-      const isPrefix = (name) => EXPECT_PREFIXES.has(name)
       const negated =
         chainContains('not', node.callee, isPrefix) || node.arguments?.[0].value === false // eg: .to.be(false)
       const rest = getAllBefore(isPrefix, node.callee, 'should')
@@ -164,7 +165,6 @@ function transformCalledWithAssertions(j, ast) {
         })
 
       const expectArgSinonMethod = expectArg.callee?.property?.name
-      const isPrefix = (name) => EXPECT_PREFIXES.has(name)
       const negated =
         chainContains('not', node.callee, isPrefix) || node.arguments?.[0].value === false // eg: .to.be(false)
       const rest = getAllBefore(isPrefix, node.callee, 'should')
@@ -183,7 +183,7 @@ function transformCalledWithAssertions(j, ast) {
 /* 
 sinon.stub(Api, 'get') -> jest.spyOn(Api, 'get')
 */
-function transformStub(j: core.JSCodeshift, ast, sinonExpression) {
+function transformStub(j: core.JSCodeshift, ast, sinonExpression, logWarning) {
   ast
     .find(j.CallExpression, {
       callee: {
@@ -199,9 +199,18 @@ function transformStub(j: core.JSCodeshift, ast, sinonExpression) {
       },
     })
     .replaceWith((np) => {
-      const args = np.value.arguments
-
       // stubbing/spyOn module
+      const args = np.value.arguments
+      const propertyName = np.node.callee.property.name
+
+      if (args.length === 1 && propertyName === 'stub') {
+        logWarning(
+          'stubbing all methods in an object is not supported; stub each one you care about individually',
+          np
+        )
+        return np.value
+      }
+
       if (args.length >= 2) {
         let spyOn = j.callExpression(
           j.memberExpression(j.identifier('jest'), j.identifier('spyOn')),
@@ -212,27 +221,49 @@ function transformStub(j: core.JSCodeshift, ast, sinonExpression) {
         spyOn = j.callExpression(j.memberExpression(spyOn, j.identifier('mockClear')), [])
 
         // add mockImplementation call
-        if (args.length === 3) {
+        if (args.length >= 3) {
           spyOn = j.callExpression(
             j.memberExpression(spyOn, j.identifier('mockImplementation')),
             [args[2]]
           )
+
+          if (args.length >= 4) {
+            logWarning(
+              `4+ arguments found in sinon.${propertyName} call; did you mean to use this many?`,
+              np
+            )
+          }
+        } else if (propertyName === 'stub') {
+          const parent =
+            findParentOfType(np, 'VariableDeclaration') ||
+            findParentOfType(np, 'ExpressionStatement')
+
+          const hasReturn =
+            j(parent)
+              .find(j.CallExpression, {
+                callee: {
+                  type: 'MemberExpression',
+                  property: {
+                    type: 'Identifier',
+                    name: (name) => ['returns', 'returnsArg'].includes(name),
+                  },
+                },
+              })
+              .size() > 0
+
+          if (!hasReturn) {
+            spyOn = j.callExpression(
+              j.memberExpression(spyOn, j.identifier('mockImplementation')),
+              []
+            )
+          }
         }
 
         return spyOn
       }
 
-      const jestFnCall = j.callExpression(j.identifier('jest.fn'), [])
-
-      if (args.length === 1) {
-        return j.callExpression(
-          j.memberExpression(jestFnCall, j.identifier('mockImplementation')),
-          args
-        )
-      }
-
       // jest mock function
-      return jestFnCall
+      return j.callExpression(j.identifier('jest.fn'), args)
     })
 }
 
@@ -650,7 +681,9 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
     return null
   }
 
-  transformStub(j, ast, sinonExpression)
+  const logWarning = (msg, node) => logger(fileInfo, msg, node)
+
+  transformStub(j, ast, sinonExpression, logWarning)
   transformMockTimers(j, ast)
   transformMock(j, ast)
   transformMockResets(j, ast)
