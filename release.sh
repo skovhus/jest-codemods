@@ -15,3 +15,7 @@ fi
 echo "Deploying version $version."
 
 yarn publish
+
+tag=$version
+git tag -a "${tag}" -m "Release ${tag}"
+git push origin "${tag}"
