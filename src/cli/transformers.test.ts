@@ -3,7 +3,7 @@
 
 let execaReturnValue
 jest.setMock('execa', {
-  execaSync: () => execaReturnValue,
+  sync: () => execaReturnValue,
 })
 
 import fs from 'fs'
