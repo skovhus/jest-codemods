@@ -26,7 +26,7 @@
     "test:cov": "yarn test --coverage",
     "test:watch": "yarn test --watch",
     "test": "jest --runInBand",
-    "verify": "yarn lint && yarn build && yarn test:cov",
+    "verify": "yarn lint && yarn build && ./bin/jest-codemods.js --version && yarn test:cov",
     "verify:bail": "yarn lint:bail && yarn verify",
     "ci": "yarn verify:bail && codecov",
     "prepare": "husky install"
