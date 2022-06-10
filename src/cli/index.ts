@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import chalk from 'chalk'
-import { globbySync } from 'globby'
+import globby from 'globby'
 import inquirer from 'inquirer'
 import meow from 'meow'
 import updateNotifier from 'update-notifier'
@@ -157,7 +157,7 @@ function supportFailure(supportedItems) {
 
 function expandFilePathsIfNeeded(filesBeforeExpansion) {
   const shouldExpandFiles = filesBeforeExpansion.some((file) => file.includes('*'))
-  return shouldExpandFiles ? globbySync(filesBeforeExpansion) : filesBeforeExpansion
+  return shouldExpandFiles ? globby.sync(filesBeforeExpansion) : filesBeforeExpansion
 }
 
 inquirer
