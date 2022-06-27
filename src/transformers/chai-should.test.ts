@@ -25,7 +25,7 @@ test('chai-enzyme: handle .to.contain(JSXElement)', () => {
     expect(wrapper).to.contain(<ImpressionLogger />)
   `,
     `
-    expect(wrapper.contains(<ImpressionLogger />)).toEqual(true)
+    expect(wrapper).containsMatchingElement(<ImpressionLogger />)
   `
   )
 })
@@ -639,6 +639,17 @@ test('converts chained "includes-contains"', () => {
   )
 })
 
+test('chai-enzyme: handle .text() with .contains()', () => {
+  expectTransformation(
+    `
+      expect(wrapper.text()).to.contain(priceString);
+    `,
+    `
+      expect(wrapper.text()).toContain(priceString);
+    `
+  )
+})
+
 test('converts empty array assertion', () => {
   expectTransformation(
     `
@@ -1163,7 +1174,7 @@ test('converts subtly different equality operators', () => {
         expect(2 + 2).toEqual(5);
     `
   )
-});
+})
 
 test('converts "within"', () => {
   expectTransformation(
@@ -1266,9 +1277,10 @@ it('leaves code without should/expect', () => {
   expect(result).toBeNull()
 })
 
-it('converts before, after and context to beforeAll, afterAll and describe', () => {
-  expectTransformation(
-    `
+describe('converts before, after and context to beforeAll, afterAll and describe', () => {
+  it('converts cases correctly', () => {
+    expectTransformation(
+      `
         before(() => {
           doSetup();
         });
@@ -1285,7 +1297,7 @@ it('converts before, after and context to beforeAll, afterAll and describe', () 
           });
         });
     `,
-    `
+      `
         beforeAll(() => {
           doSetup();
         });
@@ -1302,7 +1314,25 @@ it('converts before, after and context to beforeAll, afterAll and describe', () 
           });
         });
     `
-  )
+    )
+  })
+
+  it('skips call expression spreads with the same identifier', () => {
+    expectTransformation(
+      `
+      const foo = {
+        a: 'aa',
+        ...context(searchParams),
+      }
+    `,
+      `
+      const foo = {
+        a: 'aa',
+        ...context(searchParams),
+      }
+    `
+    )
+  })
 })
 
 test('supports chai-arrays plugin', () => {

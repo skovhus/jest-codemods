@@ -684,6 +684,15 @@ export default function transformer(fileInfo, api, options) {
               return createCall('toMatchObject', args, rest, containsNot)
             }
 
+            // handle `expect(wrapper.text()).to.contain('string')`
+            const expectArg = rest.arguments[0]
+            if (
+              expectArg?.type === j.CallExpression.name &&
+              expectArg.callee?.property?.name === 'text'
+            ) {
+              return createCall('toContain', args, rest, containsNot)
+            }
+
             const expectNode = getExpectNode(value)
             if (expectNode != null) {
               // handle `expect([1, 2]).toContain(1)
@@ -703,16 +712,7 @@ export default function transformer(fileInfo, api, options) {
 
             // handle `expect(wrapper).to.contain(<div />)`
             if (args?.[0]?.type === j.JSXElement.name) {
-              return createCall(
-                'toEqual',
-                [j.identifier('true')],
-                updateExpect(value, (node) => {
-                  return j.callExpression(
-                    j.memberExpression(node, j.identifier('contains')),
-                    [args[0]]
-                  )
-                })
-              )
+              return createCall('containsMatchingElement', args, rest, containsNot)
             }
 
             return createCall(
@@ -931,6 +931,13 @@ export default function transformer(fileInfo, api, options) {
       })
       .replaceWith((p) => {
         const { value } = p
+        /* 
+          if call expression is spread, don't transform, eg:
+          const foo = { params: ...context(searchParams) }
+        */
+        if (p.parentPath?.value?.type === j.SpreadElement.name) {
+          return value
+        }
         return j.callExpression(
           j.identifier(chaiToJestGlobalMethods[value.callee.name]),
           value.arguments

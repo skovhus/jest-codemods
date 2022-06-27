@@ -27,6 +27,7 @@ export const JEST_MATCHER_TO_MAX_ARGS = {
   toBeUndefined: 0,
   toContain: 1,
   toContainEqual: 1,
+  containsMatchingElement: 1,
   toEqual: 1,
   toHaveBeenCalled: 0,
   toHaveBeenCalledTimes: 1,
