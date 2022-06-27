@@ -7,12 +7,24 @@ import plugin from './sinon'
 chalk.level = 0
 
 const wrappedPlugin = wrapPlugin(plugin)
+
 beforeEach(() => {
   jest.spyOn(console, 'warn').mockImplementation().mockClear()
 })
 
-function expectTransformation(source, expectedOutput, warnings = []) {
-  const result = wrappedPlugin(source)
+interface TransformationOptions {
+  warnings?: string[]
+  parser?: string
+}
+
+function expectTransformation(
+  source,
+  expectedOutput,
+  options: TransformationOptions = {}
+) {
+  const { warnings = [], parser } = options
+
+  const result = wrappedPlugin(source, { parser })
   expect(result).toBe(expectedOutput)
   expect(console.warn).toBeCalledTimes(warnings.length)
   warnings.forEach((warning, i) => {
@@ -63,11 +75,13 @@ describe('spies and stubs', () => {
         jest.fn(() => 'foo');
         jest.spyOn(a, b).mockClear().mockImplementation(() => c) // too many args
 `,
-      [
-        'jest-codemods warning: (test.js line 6) stubbing all methods in an object is not supported; stub each one you care about individually',
-        'jest-codemods warning: (test.js line 9) 4+ arguments found in sinon.stub call; did you mean to use this many?',
-        'jest-codemods warning: (test.js line 14) 4+ arguments found in sinon.spy call; did you mean to use this many?',
-      ]
+      {
+        warnings: [
+          'jest-codemods warning: (test.js line 6) stubbing all methods in an object is not supported; stub each one you care about individually',
+          'jest-codemods warning: (test.js line 9) 4+ arguments found in sinon.stub call; did you mean to use this many?',
+          'jest-codemods warning: (test.js line 14) 4+ arguments found in sinon.spy call; did you mean to use this many?',
+        ],
+      }
     )
   })
 
@@ -177,6 +191,23 @@ describe('spies and stubs', () => {
                         return 'something';
         })
 `
+    )
+  })
+
+  it('handles .withArgs for typescript files', () => {
+    expectTransformation(
+      `
+      import sinon from 'sinon-sandbox'
+
+      sinon.stub().withArgs('foo').returns('something')
+    `,
+      `
+      jest.fn().mockImplementation((...args: any[]) => {
+            if (args[0] === 'foo')
+                  return 'something';
+      })
+    `,
+      { parser: 'tsx' }
     )
   })
 
@@ -403,6 +434,19 @@ describe('spy count and call assertions', () => {
         expect(spy).not.toHaveBeenCalled()
         expect(spy).toHaveBeenCalled()
 `
+    )
+  })
+
+  it(`handles .toHaveProperty('callCount', n)`, () => {
+    expectTransformation(
+      `
+      import sinon from 'sinon-sandbox'
+
+      expect(stub).toHaveProperty('callCount', 1);
+    `,
+      `
+      expect(stub).toHaveBeenCalledTimes(1);
+    `
     )
   })
 

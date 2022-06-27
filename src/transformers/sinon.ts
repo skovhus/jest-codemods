@@ -58,6 +58,7 @@ const isPrefix = (name) => EXPECT_PREFIXES.has(name)
 /* 
   expect(spy.called).to.be(true) -> expect(spy).toHaveBeenCalled()
   expect(spy.callCount).to.equal(2) -> expect(spy).toHaveBeenCalledTimes(2)
+  expect(stub).toHaveProperty('callCount', 1) -> expect(stub).toHaveBeenCalledTimes(1)
 */
 function transformCallCountAssertions(j, ast) {
   const chainContains = chainContainsUtil(j)
@@ -127,6 +128,26 @@ function transformCallCountAssertions(j, ast) {
             negated
           )
       }
+    })
+
+  // expect(stub).toHaveProperty('callCount', 1) -> expect(stub).toHaveBeenCalledTimes(1)
+  ast
+    .find(j.CallExpression, {
+      callee: {
+        type: j.MemberExpression.name,
+        property: {
+          name: 'toHaveProperty',
+        },
+        object: (node) => isExpectCallUtil(j, node),
+      },
+      arguments: (args) => args?.[0]?.value === 'callCount',
+    })
+    .replaceWith((np) => {
+      const { value } = np
+      const newArgs = value.arguments.slice(1)
+      value.callee.property.name = 'toHaveBeenCalledTimes'
+      value.arguments = newArgs
+      return value
     })
 }
 
@@ -363,7 +384,7 @@ function transformStubGetCalls(j: core.JSCodeshift, ast) {
     .returns
     .returnsArg
 */
-function transformMock(j: core.JSCodeshift, ast) {
+function transformMock(j: core.JSCodeshift, ast, parser: string) {
   // stub.withArgs(111).returns('foo') => stub.mockImplementation((...args) => { if (args[0] === '111') return 'foo' })
   ast
     .find(j.CallExpression, {
@@ -428,8 +449,18 @@ function transformMock(j: core.JSCodeshift, ast) {
           return j.logicalExpression('&&', logicalExp, binExp)
         })
 
+      const isTypescript = parser === 'tsx' || parser === 'ts'
+      const mockImplementationArg = j.spreadPropertyPattern(
+        j.identifier.from({
+          name: 'args',
+          typeAnnotation: isTypescript
+            ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
+            : null,
+        })
+      )
+
       const mockImplementationFn = j.arrowFunctionExpression(
-        [j.spreadPropertyPattern(j.identifier('args'))],
+        [mockImplementationArg],
         j.blockStatement([
           j.ifStatement(
             mockImplementationConditionalExpression,
@@ -685,7 +716,7 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
 
   transformStub(j, ast, sinonExpression, logWarning)
   transformMockTimers(j, ast)
-  transformMock(j, ast)
+  transformMock(j, ast, options.parser)
   transformMockResets(j, ast)
   transformCallCountAssertions(j, ast)
   transformCalledWithAssertions(j, ast)
