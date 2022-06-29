@@ -204,7 +204,7 @@ function transformCalledWithAssertions(j, ast) {
 /* 
 sinon.stub(Api, 'get') -> jest.spyOn(Api, 'get')
 */
-function transformStub(j: core.JSCodeshift, ast, sinonExpression, logWarning) {
+function transformStub(j, ast, sinonExpression, logWarning) {
   ast
     .find(j.CallExpression, {
       callee: {
@@ -256,8 +256,8 @@ function transformStub(j: core.JSCodeshift, ast, sinonExpression, logWarning) {
           }
         } else if (propertyName === 'stub') {
           const parent =
-            findParentOfType(np, 'VariableDeclaration') ||
-            findParentOfType(np, 'ExpressionStatement')
+            findParentOfType(np, j.VariableDeclaration.name) ||
+            findParentOfType(np, j.ExpressionStatement.name)
 
           const hasReturn =
             j(parent)
