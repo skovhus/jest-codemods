@@ -25,7 +25,7 @@ test('chai-enzyme: handle .to.contain(JSXElement)', () => {
     expect(wrapper).to.contain(<ImpressionLogger />)
   `,
     `
-    expect(wrapper.contains(<ImpressionLogger />)).toEqual(true)
+    expect(wrapper).containsMatchingElement(<ImpressionLogger />)
   `
   )
 })
@@ -120,8 +120,8 @@ test('removes imports and does basic conversions of should and expect', () => {
     `
         describe('Instantiating TextField', () => {
             it('should set the placeholder correctly', () => {
-                expect(textField.props.placeholder).toEqual(PLACEHOLDER);
-                expect(textField.props.placeholder).not.toEqual(PLACEHOLDER);
+                expect(textField.props.placeholder).toBe(PLACEHOLDER);
+                expect(textField.props.placeholder).not.toBe(PLACEHOLDER);
             });
         });
     `
@@ -156,13 +156,13 @@ test('removes imports and does basic conversions of should and expect (2)', () =
     `
         describe('Instantiating TextField', () => {
             it('should set the placeholder correctly', () => {
-                expect(textField.props.placeholder).toEqual(PLACEHOLDER);
-                expect(textField.props.placeholder).not.toEqual(PLACEHOLDER);
+                expect(textField.props.placeholder).toBe(PLACEHOLDER);
+                expect(textField.props.placeholder).not.toBe(PLACEHOLDER);
             });
 
             it('should inherit id prop', () => {
-                expect(dropdown.props.id).toEqual(STANDARD_PROPS.id);
-                expect(dropdown.props.id).not.toEqual(STANDARD_PROPS.id);
+                expect(dropdown.props.id).toBe(STANDARD_PROPS.id);
+                expect(dropdown.props.id).not.toBe(STANDARD_PROPS.id);
             });
 
             it('should map open prop to visible prop', () => {
@@ -190,8 +190,8 @@ test('removes imports (case where should is not assigned)', () => {
     `
         describe('Instantiating TextField', () => {
           it('should set the placeholder correctly', () => {
-              expect(textField.props.placeholder).toEqual(PLACEHOLDER);
-              expect(textField.props.placeholder).not.toEqual(PLACEHOLDER);
+              expect(textField.props.placeholder).toBe(PLACEHOLDER);
+              expect(textField.props.placeholder).not.toBe(PLACEHOLDER);
           });
         });`
   )
@@ -456,22 +456,28 @@ test('converts "equal"', () => {
         expect(42).to.equal(42);
         expect(1).to.not.equal(true);
         expect({ foo: 'bar' }).to.not.equal({ foo: 'bar' });
+
         expect({ foo: 'bar' }).to.deep.equal({ foo: 'bar' });
+        expect({ foo: 'bar' }).not.to.deep.equal({ foo: 'bar' });
+        expect({ foo: 'bar' }).to.not.deep.equal({ foo: 'bar' });
 
         should.equal('foo', 'foo');
         should.not.equal('foo', 'bar');
     `,
     `
-        expect('hello').toEqual('hello');
+        expect('hello').toBe('hello');
         // some message here explaining hello
-        expect('hello').toEqual('hello');
-        expect(42).toEqual(42);
-        expect(1).not.toEqual(true);
-        expect({ foo: 'bar' }).not.toEqual({ foo: 'bar' });
-        expect({ foo: 'bar' }).toEqual({ foo: 'bar' });
+        expect('hello').toBe('hello');
+        expect(42).toBe(42);
+        expect(1).not.toBe(true);
+        expect({ foo: 'bar' }).not.toBe({ foo: 'bar' });
 
-        expect('foo').toEqual('foo');
-        expect('foo').not.toEqual('bar');
+        expect({ foo: 'bar' }).toEqual({ foo: 'bar' });
+        expect({ foo: 'bar' }).not.toEqual({ foo: 'bar' });
+        expect({ foo: 'bar' }).not.toEqual({ foo: 'bar' });
+
+        expect('foo').toBe('foo');
+        expect('foo').not.toBe('bar');
     `
   )
 })
@@ -629,6 +635,17 @@ test('converts chained "includes-contains"', () => {
     `
         expect([1, 2, 3]).toContain(2);
         expect(arr).not.toContain(3);
+    `
+  )
+})
+
+test('chai-enzyme: handle .text() with .contains()', () => {
+  expectTransformation(
+    `
+      expect(wrapper.text()).to.contain(priceString);
+    `,
+    `
+      expect(wrapper.text()).toContain(priceString);
     `
   )
 })
@@ -1030,11 +1047,11 @@ test('removes params to expect() except for the first', () => {
         // Expected foo to be defined
         expect(foo).toBeDefined();
         // Expected foo to be defined
-        expect(foo).toEqual(true);
+        expect(foo).toBe(true);
         // Expected foo to be defined for \${id}
         expect(foo).toBeDefined();
         // 'Expected ' + foo + ' to be defined'
-        expect(foo).toEqual(true);
+        expect(foo).toBe(true);
     `
   )
 })
@@ -1114,6 +1131,47 @@ test('converts equalto(null) to toBeNull()', () => {
         expect(actual).not.toBeNull();
         expect(actual).not.toBeNull();
         expect(actual).not.toBeNull();
+    `
+  )
+})
+
+test('converts subtly different equality operators', () => {
+  expectTransformation(
+    `
+        // Strict equality (===)
+        expect(2 + 2).to.eq(5);
+        expect(2 + 2).to.equal(5);
+        expect(2 + 2).to.equals(5);
+        expect(2 + 2).to.not.equals(5);
+        expect(2 + 2).not.to.equals(5);
+
+        // Strict equality (===) + deep = deep equality
+        expect(2 + 2).to.deep.eq(5);
+
+        // Deep equality
+        expect(2 + 2).to.eql(5);
+        expect(2 + 2).to.eqls(5);
+        expect(2 + 2).to.not.eqls(5);
+        expect(2 + 2).not.to.eqls(5);
+        expect(2 + 2).to.deep.eql(5);
+    `,
+    `
+        // Strict equality (===)
+        expect(2 + 2).toBe(5);
+        expect(2 + 2).toBe(5);
+        expect(2 + 2).toBe(5);
+        expect(2 + 2).not.toBe(5);
+        expect(2 + 2).not.toBe(5);
+
+        // Strict equality (===) + deep = deep equality
+        expect(2 + 2).toEqual(5);
+
+        // Deep equality
+        expect(2 + 2).toEqual(5);
+        expect(2 + 2).toEqual(5);
+        expect(2 + 2).not.toEqual(5);
+        expect(2 + 2).not.toEqual(5);
+        expect(2 + 2).toEqual(5);
     `
   )
 })
@@ -1219,9 +1277,10 @@ it('leaves code without should/expect', () => {
   expect(result).toBeNull()
 })
 
-it('converts before, after and context to beforeAll, afterAll and describe', () => {
-  expectTransformation(
-    `
+describe('converts before, after and context to beforeAll, afterAll and describe', () => {
+  it('converts cases correctly', () => {
+    expectTransformation(
+      `
         before(() => {
           doSetup();
         });
@@ -1238,7 +1297,7 @@ it('converts before, after and context to beforeAll, afterAll and describe', () 
           });
         });
     `,
-    `
+      `
         beforeAll(() => {
           doSetup();
         });
@@ -1255,7 +1314,25 @@ it('converts before, after and context to beforeAll, afterAll and describe', () 
           });
         });
     `
-  )
+    )
+  })
+
+  it('skips call expression spreads with the same identifier', () => {
+    expectTransformation(
+      `
+      const foo = {
+        a: 'aa',
+        ...context(searchParams),
+      }
+    `,
+      `
+      const foo = {
+        a: 'aa',
+        ...context(searchParams),
+      }
+    `
+    )
+  })
 })
 
 test('supports chai-arrays plugin', () => {
