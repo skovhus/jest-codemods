@@ -32,11 +32,15 @@ function expectTransformation(
   })
 }
 
-it('removes imports', () => {
+it.each`
+  source
+  ${'sinon-sandbox'}
+  ${'sinon'}
+`('removes imports', ({ source }) => {
   expectTransformation(
     `
       import foo from 'foo'
-      import sinon from 'sinon-sandbox';
+      import sinon from '${source}';
 `,
     `
       import foo from 'foo'
@@ -44,11 +48,15 @@ it('removes imports', () => {
   )
 })
 
-describe('spies and stubs', () => {
+describe.each`
+  source
+  ${'sinon-sandbox'}
+  ${'sinon'}
+`('spies and stubs', ({ source }) => {
   it('handles spies', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
 
         const stub = sinon.stub(Api, 'get');
         const putOk = sinon.stub(Api, 'put').returns(200)
@@ -88,7 +96,7 @@ describe('spies and stubs', () => {
   it('handles 3rd argument implementation fn', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
         sinon.stub(I18n, 'extend', () => 'foo');
 `,
       `
@@ -100,7 +108,7 @@ describe('spies and stubs', () => {
   it('mock clear if spy added in beforeEach', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
 
         beforeEach(() => {
           sinon.stub(Api, 'get')
@@ -125,7 +133,7 @@ describe('spies and stubs', () => {
   it('handles returns', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
         const stub1 = sinon.stub(Api, 'get').returns('foo')
         const stub2 = sinon.stub(Api, 'get').returns(Promise.resolve({ foo: '1' }))
 `,
@@ -139,7 +147,7 @@ describe('spies and stubs', () => {
   it('handles .returnsArg', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
         sinon.stub(foo, 'getParam').returnsArg(3);
   `,
       `
@@ -151,7 +159,7 @@ describe('spies and stubs', () => {
   it('handles .withArgs returns', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
 
         sinon.stub().withArgs('foo').returns('something')
         sinon.stub().withArgs('foo', 'bar').returns('something')
@@ -197,7 +205,7 @@ describe('spies and stubs', () => {
   it('handles .withArgs for typescript files', () => {
     expectTransformation(
       `
-      import sinon from 'sinon-sandbox'
+      import sinon from '${source}'
 
       sinon.stub().withArgs('foo').returns('something')
     `,
@@ -218,7 +226,7 @@ describe('spies and stubs', () => {
   it('handles .getCall, .getCalls and spy arguments', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
 
         apiStub.getCall(0)
         apiStub.getCall(0).args[1].data
@@ -245,7 +253,7 @@ describe('spies and stubs', () => {
   it('handles .args[n]', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
 
         apiStub.args[2][3]
         apiStub.foo.bar.args[2][3]
@@ -266,7 +274,7 @@ describe('spies and stubs', () => {
   it('handles .nthCall', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
 
         apiStub.firstCall
         apiStub.firstCall.args[1].data
@@ -291,11 +299,15 @@ describe('spies and stubs', () => {
   })
 })
 
-describe('mocks', () => {
+describe.each`
+  source
+  ${'sinon-sandbox'}
+  ${'sinon'}
+`('mocks', ({ source }) => {
   it('handles creating mocks', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
         const stub = sinon.stub()
 `,
       `
@@ -307,7 +319,7 @@ describe('mocks', () => {
   it('handles resets/clears', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
         stub.restore()
         Api.get.restore()
         Api.get.reset()
@@ -323,11 +335,15 @@ describe('mocks', () => {
   })
 })
 
-describe('sinon.match', () => {
+describe.each`
+  source
+  ${'sinon-sandbox'}
+  ${'sinon'}
+`('sinon.match', ({ source }) => {
   it('handles creating mocks', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
 
         sinon.match({
           foo: 'foo'
@@ -366,11 +382,15 @@ describe('sinon.match', () => {
   })
 })
 
-describe('spy count and call assertions', () => {
+describe.each`
+  source
+  ${'sinon-sandbox'}
+  ${'sinon'}
+`('spy count and call assertions', ({ source }) => {
   it('handles call count assertions', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
 
         // basic cases
         expect(Api.get.callCount).to.equal(1)
@@ -440,7 +460,7 @@ describe('spy count and call assertions', () => {
   it(`handles .toHaveProperty('callCount', n)`, () => {
     expectTransformation(
       `
-      import sinon from 'sinon-sandbox'
+      import sinon from '${source}'
 
       expect(stub).toHaveProperty('callCount', 1);
     `,
@@ -453,7 +473,7 @@ describe('spy count and call assertions', () => {
   it('handles call counts with args', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
         expect(spy.withArgs('foo', bar).called).to.be(true)
         expect(spy.withArgs('foo', bar).called).to.be(false)
 `,
@@ -467,7 +487,7 @@ describe('spy count and call assertions', () => {
   it('handles calledWith', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
         expect(spy.calledWith(1, 2, 3)).to.be(true)
         expect(spy.notCalledWith(1, 2, 3)).to.be(true)
         expect(spy.calledWith(foo, 'bar')).to.be(false)
@@ -483,11 +503,15 @@ describe('spy count and call assertions', () => {
   })
 })
 
-describe('mock timers', () => {
+describe.each`
+  source
+  ${'sinon-sandbox'}
+  ${'sinon'}
+`('mock timers', ({ source }) => {
   it('handles timers', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from '${source}'
         sinon.useFakeTimers()
         clock.restore()
         clock.tick(5)
