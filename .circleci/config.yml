@@ -37,6 +37,9 @@ jobs:
       - *save_npm_cache
       - run: if [ -z  "$NPM_TOKEN" ]; then exit 1; fi
       - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+      - run: |
+          git config --local user.email "kenneth.skovhus@gmail.com"
+          git config --local user.name "skovhus"
       - run: bash release.sh
 
 workflows:
