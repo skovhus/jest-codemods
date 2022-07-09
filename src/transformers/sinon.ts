@@ -702,7 +702,8 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
   const j = api.jscodeshift
   const ast = j(fileInfo.source)
 
-  const sinonExpression = removeDefaultImport(j, ast, 'sinon-sandbox')
+  const sinonExpression =
+    removeDefaultImport(j, ast, 'sinon-sandbox') || removeDefaultImport(j, ast, 'sinon')
 
   if (!sinonExpression) {
     console.warn(`no sinon for "${fileInfo.path}"`)

@@ -32,11 +32,15 @@ function expectTransformation(
   })
 }
 
-it('removes imports', () => {
+it.each`
+  source
+  ${'sinon-sandbox'}
+  ${'sinon'}
+`('removes imports', ({ source }) => {
   expectTransformation(
     `
       import foo from 'foo'
-      import sinon from 'sinon-sandbox';
+      import sinon from '${source}';
 `,
     `
       import foo from 'foo'
@@ -48,7 +52,7 @@ describe('spies and stubs', () => {
   it('handles spies', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from 'sinon'
 
         const stub = sinon.stub(Api, 'get');
         const putOk = sinon.stub(Api, 'put').returns(200)
@@ -88,7 +92,7 @@ describe('spies and stubs', () => {
   it('handles 3rd argument implementation fn', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from 'sinon'
         sinon.stub(I18n, 'extend', () => 'foo');
 `,
       `
@@ -100,7 +104,7 @@ describe('spies and stubs', () => {
   it('mock clear if spy added in beforeEach', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from 'sinon'
 
         beforeEach(() => {
           sinon.stub(Api, 'get')
@@ -125,7 +129,7 @@ describe('spies and stubs', () => {
   it('handles returns', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from 'sinon'
         const stub1 = sinon.stub(Api, 'get').returns('foo')
         const stub2 = sinon.stub(Api, 'get').returns(Promise.resolve({ foo: '1' }))
 `,
@@ -139,7 +143,7 @@ describe('spies and stubs', () => {
   it('handles .returnsArg', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from 'sinon'
         sinon.stub(foo, 'getParam').returnsArg(3);
   `,
       `
@@ -151,7 +155,7 @@ describe('spies and stubs', () => {
   it('handles .withArgs returns', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from 'sinon'
 
         sinon.stub().withArgs('foo').returns('something')
         sinon.stub().withArgs('foo', 'bar').returns('something')
@@ -197,7 +201,7 @@ describe('spies and stubs', () => {
   it('handles .withArgs for typescript files', () => {
     expectTransformation(
       `
-      import sinon from 'sinon-sandbox'
+      import sinon from 'sinon'
 
       sinon.stub().withArgs('foo').returns('something')
     `,
@@ -218,7 +222,7 @@ describe('spies and stubs', () => {
   it('handles .getCall, .getCalls and spy arguments', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from 'sinon'
 
         apiStub.getCall(0)
         apiStub.getCall(0).args[1].data
@@ -245,7 +249,7 @@ describe('spies and stubs', () => {
   it('handles .args[n]', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from 'sinon'
 
         apiStub.args[2][3]
         apiStub.foo.bar.args[2][3]
@@ -266,7 +270,7 @@ describe('spies and stubs', () => {
   it('handles .nthCall', () => {
     expectTransformation(
       `
-        import sinon from 'sinon-sandbox'
+        import sinon from 'sinon'
 
         apiStub.firstCall
         apiStub.firstCall.args[1].data
