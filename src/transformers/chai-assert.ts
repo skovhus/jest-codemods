@@ -51,6 +51,11 @@ const assertToExpectMapping = [
     includeNegative: 'notDeepEqual',
   },
   {
+    assert: 'deepStrictEqual',
+    expect: 'toStrictEqual',
+    includeNegative: 'notDeepStrictEqual',
+  },
+  {
     assert: 'isAbove',
     expect: 'toBeGreaterThan',
   },

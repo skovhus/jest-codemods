@@ -72,6 +72,8 @@ describe('Mapping Test', () => {
     ['assert.notStrictEqual(foo, bar, baz);', 'expect(foo).not.toBe(bar);'],
     ['assert.deepEqual(foo, bar, baz);', 'expect(foo).toEqual(bar);'],
     ['assert.notDeepEqual(foo, bar, baz);', 'expect(foo).not.toEqual(bar);'],
+    ['assert.deepStrictEqual(foo, bar, baz);', 'expect(foo).toStrictEqual(bar);'],
+    ['assert.notDeepStrictEqual(foo, bar, baz);', 'expect(foo).not.toStrictEqual(bar);'],
     ['assert.isAbove(foo, bar, baz);', 'expect(foo).toBeGreaterThan(bar);'],
     ['assert.isAtLeast(foo, bar, baz);', 'expect(foo).toBeGreaterThanOrEqual(bar);'],
     ['assert.isBelow(foo, bar, baz);', 'expect(foo).toBeLessThan(bar);'],
