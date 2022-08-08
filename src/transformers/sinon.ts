@@ -748,7 +748,8 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
 
   let fixJSDomPragma
 
-  if (options.keepJestEnvironment) fixJSDomPragma = handleJSDomPragma(j, ast, fileInfo.path)
+  if (options.keepJestEnvironment)
+    fixJSDomPragma = handleJSDomPragma(j, ast, fileInfo.path)
 
   const sinonExpression =
     removeDefaultImport(j, ast, 'sinon-sandbox') || removeDefaultImport(j, ast, 'sinon')
