@@ -14,17 +14,17 @@ beforeEach(() => {
 
 interface TransformationOptions {
   warnings?: string[]
-  parser?: string
+  options?: any
 }
 
 function expectTransformation(
   source,
   expectedOutput,
-  options: TransformationOptions = {}
+  transformationOptions: TransformationOptions = {}
 ) {
-  const { warnings = [], parser } = options
+  const { warnings = [], options = {} } = transformationOptions
 
-  const result = wrappedPlugin(source, { parser })
+  const result = wrappedPlugin(source, options)
   expect(result).toBe(expectedOutput)
   expect(console.warn).toBeCalledTimes(warnings.length)
   warnings.forEach((warning, i) => {
@@ -211,7 +211,7 @@ describe('spies and stubs', () => {
                   return 'something';
       })
     `,
-      { parser: 'tsx' }
+      { options: { parser: 'tsx' } }
     )
   })
 
@@ -291,6 +291,22 @@ describe('spies and stubs', () => {
         apiStub.mock.lastCall
         apiStub.mock.lastCall[1].data
 `
+    )
+  })
+
+  it('handles legacy .lastCall', () => {
+    expectTransformation(
+      `
+        import sinon from 'sinon'
+
+        apiStub.lastCall
+        apiStub.lastCall.args[1].data
+`,
+      `
+        apiStub.mock.calls[apiStub.mock.calls.length - 1]
+        apiStub.mock.calls[apiStub.mock.calls.length - 1][1].data
+`,
+      { options: { legacyLastCall: true } }
     )
   })
 })
@@ -532,6 +548,24 @@ describe('mock timers', () => {
           jest.useFakeTimers().setSystemTime(new Date(2015, 2, 14, 0, 0).getTime())
         })
 `
+    )
+  })
+})
+
+describe('pragmas', () => {
+  it('keeps @jest-environment jsdom', () => {
+    expectTransformation(
+      `
+        /** @jest-environment jsdom */
+        import sinon from 'sinon'
+
+        apiStub.firstCall
+`,
+      `
+        /** @jest-environment jsdom */
+        apiStub.mock.calls[0];
+`,
+      { options: { keepJestEnvironment: true } }
     )
   })
 })

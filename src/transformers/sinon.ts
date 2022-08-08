@@ -18,6 +18,9 @@ import {
   modifyVariableDeclaration,
 } from '../utils/sinon-helpers'
 
+const JSDOM_PRAGMA = `* @jest-environment jsdom `
+const JSDOM_PRAGMA_REGEX = /@jest-environment\s+jsdom\b/
+
 const SINON_CALL_COUNT_METHODS = [
   'called',
   'calledOnce',
@@ -293,7 +296,7 @@ function transformStub(j, ast, sinonExpression, logWarning) {
   stub.getCall(0).args[1] -> stub.mock.calls[0][1]
   stub.firstCall|lastCall|thirdCall|secondCall -> stub.mock.calls[n]
 */
-function transformStubGetCalls(j: core.JSCodeshift, ast) {
+function transformStubGetCalls(j: core.JSCodeshift, ast, legacyLastCall: boolean) {
   // transform .getCall
   ast
     .find(j.CallExpression, {
@@ -344,6 +347,18 @@ function transformStubGetCalls(j: core.JSCodeshift, ast) {
         case 'thirdCall':
           return createMockCall(2)
         case 'lastCall': {
+          if (legacyLastCall) {
+            const stub = j.memberExpression(node, j.identifier('calls'))
+            return j.memberExpression(
+              stub,
+              j.binaryExpression(
+                '-',
+                j.memberExpression(stub, j.identifier('length')),
+                j.literal(1)
+              )
+            )
+          }
+
           return j.memberExpression(node, j.identifier('lastCall'))
         }
       }
@@ -698,15 +713,47 @@ function transformMockTimers(j, ast) {
     })
 }
 
+/* 
+  checks if file originally had jsdom pragma, and ensure it's re-added
+  if it was removed
+*/
+function handleJSDomPragma(j, ast, filepath) {
+  const body = ast.find(j.Program).get('body', 0).node
+
+  const originalSourceHasPragma = (body.comments || []).find(
+    (c) => c.type === j.CommentBlock.name && c.value?.match?.(JSDOM_PRAGMA_REGEX)
+  )
+
+  return () => {
+    // originally didnt have the pragma, do nothing
+    if (!originalSourceHasPragma) return
+
+    // check if it still has the pragma
+    const body = ast.find(j.Program).get('body', 0).node
+    const hasJSDOMPragma = (body.comments || []).find((c) => c.value?.match?.(/jsdom/))
+
+    if (!hasJSDOMPragma) {
+      const pragma = j.commentBlock(JSDOM_PRAGMA)
+      if (!body.comments) {
+        body.comments = []
+      }
+      body.comments.unshift(pragma)
+    }
+  }
+}
+
 export default function transformer(fileInfo: FileInfo, api: API, options) {
   const j = api.jscodeshift
   const ast = j(fileInfo.source)
+
+  let fixJSDomPragma
+
+  if (options.keepJestEnvironment) fixJSDomPragma = handleJSDomPragma(j, ast, fileInfo.path)
 
   const sinonExpression =
     removeDefaultImport(j, ast, 'sinon-sandbox') || removeDefaultImport(j, ast, 'sinon')
 
   if (!sinonExpression) {
-    console.warn(`no sinon for "${fileInfo.path}"`)
     if (!options.skipImportDetection) {
       return fileInfo.source
     }
@@ -722,7 +769,9 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
   transformCallCountAssertions(j, ast)
   transformCalledWithAssertions(j, ast)
   transformMatch(j, ast)
-  transformStubGetCalls(j, ast)
+  transformStubGetCalls(j, ast, !!options.legacyLastCall)
+
+  if (fixJSDomPragma) fixJSDomPragma()
 
   return finale(fileInfo, j, ast, options)
 }
