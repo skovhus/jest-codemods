@@ -308,6 +308,30 @@ describe('spies and stubs', () => {
         apiStub.callsArg() // Ignored
 `,
       `
+        apiStub.mockImplementation((...args) => args[0]())
+        apiStub.mockImplementation((...args) => args[1].call(thisArg))
+        apiStub.mockImplementation((...args) => args[2]('a', 'b'))
+        apiStub.mockImplementation((...args) => args[3].call(thisArg, 'c', 'd'))
+        apiStub.mockImplementation((...args) => args[idx]())
+
+        apiStub.callsArg() // Ignored
+`
+    )
+  })
+  it('handles .callsArg* (parser: ts)', () => {
+    expectTransformation(
+      `
+        import sinon from 'sinon'
+
+        apiStub.callsArg(0)
+        apiStub.callsArgOn(1, thisArg)
+        apiStub.callsArgWith(2, 'a', 'b')
+        apiStub.callsArgOnWith(3, thisArg, 'c', 'd')
+        apiStub.callsArg(idx)
+
+        apiStub.callsArg() // Ignored
+`,
+      `
         apiStub.mockImplementation((...args: any[]) => args[0]())
         apiStub.mockImplementation((...args: any[]) => args[1].call(thisArg))
         apiStub.mockImplementation((...args: any[]) => args[2]('a', 'b'))
