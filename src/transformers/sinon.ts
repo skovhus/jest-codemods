@@ -83,8 +83,7 @@ function transformCallsArg(j, ast, parser) {
 
       if (node.arguments.length < 1) return node
 
-      const index = node.arguments?.[0]?.value ?? 0
-      const argName = j.identifier(`args[${index}]`)
+      const argName = j.memberExpression(j.identifier('args'), node.arguments[0], true)
 
       const isTypescript = parser === 'tsx' || parser === 'ts'
       const mockImplementationArg = j.spreadPropertyPattern(
