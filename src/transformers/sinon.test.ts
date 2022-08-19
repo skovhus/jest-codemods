@@ -293,6 +293,26 @@ describe('spies and stubs', () => {
 `
     )
   })
+
+  it('handles .callsArg*', () => {
+    expectTransformation(
+      `
+        import sinon from 'sinon'
+
+        apiStub.callsArg(0)
+        apiStub.callsArgOn(1, thisArg)
+        apiStub.callsArgWith(2, 'a', 'b')
+        apiStub.callsArgOnWith(3, thisArg, 'c', 'd')
+`,
+      `
+        apiStub.mockImplementation((...args: any[]) => args[0]())
+        apiStub.mockImplementation((...args: any[]) => args[1].call(thisArg))
+        apiStub.mockImplementation((...args: any[]) => args[2]('a', 'b'))
+        apiStub.mockImplementation((...args: any[]) => args[3].call(thisArg, 'c', 'd'))
+`,
+      { parser: 'ts' }
+    )
+  })
 })
 
 describe('mocks', () => {
