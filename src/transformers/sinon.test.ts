@@ -602,3 +602,39 @@ describe('mock timers', () => {
     )
   })
 })
+
+describe('updates types', () => {
+  it('rewrites types for mocks & stubs', () => {
+    expectTransformation(
+      `
+      import sinon from 'sinon-sandbox'
+
+      let stub1: sinon.SinonStub
+      let stub2: sinon.SinonStub = getStub()
+      let spy1: sinon.SinonSpy
+      let spy2: sinon.SinonSpy = getSpy()
+      let doStubThing = (stub: sinon.SinonStub) => stub
+      let doSpyThing = (spy: sinon.SinonSpy) => spy
+
+      // These should be ignored
+      let num: number = 5
+      let str: string = 'asdf'
+      let keys = (obj: object) => Object.keys(obj)
+`,
+      `
+      let stub1: jest.Mock
+      let stub2: jest.Mock = getStub()
+      let spy1: jest.SpyInstance
+      let spy2: jest.SpyInstance = getSpy()
+      let doStubThing = (stub: jest.Mock) => stub
+      let doSpyThing = (spy: jest.SpyInstance) => spy
+
+      // These should be ignored
+      let num: number = 5
+      let str: string = 'asdf'
+      let keys = (obj: object) => Object.keys(obj)
+`,
+      { parser: 'ts' }
+    )
+  })
+})
