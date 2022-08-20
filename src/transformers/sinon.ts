@@ -55,6 +55,86 @@ const SINON_NTH_CALLS = new Set(['firstCall', 'secondCall', 'thirdCall', 'lastCa
 const EXPECT_PREFIXES = new Set(['to'])
 const isPrefix = (name) => EXPECT_PREFIXES.has(name)
 
+const SINON_CALLS_ARG = new Set([
+  'callsArg',
+  'callsArgOn',
+  'callsArgWith',
+  'callsArgOnWith',
+])
+
+/* 
+  stub.callsArg(0) -> stub.mockImplementation((...args: any[]) => args[0]())
+  stub.callsArgOn(1, thisArg) -> stub.mockImplementation((...args: any[]) => args[1].call(thisArg))
+  stub.callsArgWith(2, arg1, arg2) -> stub.mockImplementation((...args: any[]) => args[2](arg1, arg2))
+  stub.callsArgOnWith(3, thisArg, arg1, arg2) -> stub.mockImplementation((...args: any[]) => args[3].call(thisArg, arg1, arg2))
+*/
+function transformCallsArg(j, ast, parser) {
+  ast
+    .find(j.CallExpression, {
+      callee: {
+        type: j.MemberExpression.name,
+        property: {
+          name: (name) => SINON_CALLS_ARG.has(name),
+        },
+      },
+    })
+    .replaceWith((np) => {
+      const { node } = np
+
+      if (node.arguments.length < 1) return node
+
+      const argName = j.memberExpression(j.identifier('args'), node.arguments[0], true)
+
+      const isTypescript = parser === 'tsx' || parser === 'ts'
+      const mockImplementationArg = j.spreadPropertyPattern(
+        j.identifier.from({
+          name: 'args',
+          typeAnnotation: isTypescript
+            ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
+            : null,
+        })
+      )
+
+      let mockImplementationInvocation
+
+      switch (node.callee.property.name) {
+        case 'callsArg':
+          mockImplementationInvocation = j.callExpression(argName, [])
+          break
+        case 'callsArgOn':
+          mockImplementationInvocation = j.callExpression(
+            j.memberExpression(argName, j.identifier('call')),
+            [node.arguments[1]]
+          )
+          break
+        case 'callsArgWith':
+          mockImplementationInvocation = j.callExpression(
+            argName,
+            node.arguments.slice(1)
+          )
+          break
+        case 'callsArgOnWith':
+          mockImplementationInvocation = j.callExpression(
+            j.memberExpression(argName, j.identifier('call')),
+            node.arguments.slice(1)
+          )
+          break
+      }
+
+      const mockImplementationFn = j.arrowFunctionExpression(
+        [mockImplementationArg],
+        mockImplementationInvocation
+      )
+
+      const mockFn = node.callee.object
+
+      return j.callExpression(
+        j.memberExpression(mockFn, j.identifier('mockImplementation')),
+        [mockImplementationFn]
+      )
+    })
+}
+
 /* 
   expect(spy.called).to.be(true) -> expect(spy).toHaveBeenCalled()
   expect(spy.callCount).to.equal(2) -> expect(spy).toHaveBeenCalledTimes(2)
@@ -725,6 +805,7 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
   transformMockTimers(j, ast)
   transformMock(j, ast, options.parser)
   transformMockResets(j, ast)
+  transformCallsArg(j, ast, options.parser)
   transformCallCountAssertions(j, ast)
   transformCalledWithAssertions(j, ast)
   transformMatch(j, ast)
