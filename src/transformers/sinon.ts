@@ -465,6 +465,8 @@ function transformStubGetCalls(j: core.JSCodeshift, ast) {
     .returnsArg
 */
 function transformMock(j: core.JSCodeshift, ast, parser: string) {
+  const isTypescript = parser === 'tsx' || parser === 'ts'
+
   // stub.withArgs(111).returns('foo') => stub.mockImplementation((...args) => { if (args[0] === '111') return 'foo' })
   ast
     .find(j.CallExpression, {
@@ -529,7 +531,6 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
           return j.logicalExpression('&&', logicalExp, binExp)
         })
 
-      const isTypescript = parser === 'tsx' || parser === 'ts'
       const mockImplementationArg = j.spreadPropertyPattern(
         j.identifier.from({
           name: 'args',
@@ -581,10 +582,15 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
       node.callee.property.name = 'mockImplementation'
       const argToMock = j.literal(node.arguments[0].value)
 
-      const argsVar = j.identifier('args')
+      const argsVar = j.identifier.from({
+        name: 'args',
+        typeAnnotation: isTypescript
+          ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
+          : null,
+      })
       const mockImplementationFn = j.arrowFunctionExpression(
         [j.spreadPropertyPattern(argsVar)],
-        j.memberExpression(argsVar, argToMock)
+        j.memberExpression(j.identifier('args'), argToMock)
       )
       node.arguments = [mockImplementationFn]
       return node

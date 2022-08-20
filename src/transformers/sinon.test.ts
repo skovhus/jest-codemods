@@ -152,6 +152,19 @@ describe('spies and stubs', () => {
     )
   })
 
+  it('handles .returnsArg (parser: ts)', () => {
+    expectTransformation(
+      `
+        import sinon from 'sinon'
+        sinon.stub(foo, 'getParam').returnsArg(3);
+  `,
+      `
+        jest.spyOn(foo, 'getParam').mockClear().mockImplementation((...args: any[]) => args[3]);
+  `,
+      { parser: 'ts' }
+    )
+  })
+
   it('handles .withArgs returns', () => {
     expectTransformation(
       `
