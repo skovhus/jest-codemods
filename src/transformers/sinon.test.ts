@@ -412,7 +412,7 @@ describe('spies and stubs', () => {
                   return [8, 9, 10];
       })
       stub.mockImplementation(() => {
-            if (stub.mock.calls.length === 2)
+            if (stub.mock.calls.length === 3)
                   return biscuits;
       })
 
@@ -421,7 +421,7 @@ describe('spies and stubs', () => {
                   return args[2];
       })
       stub.mockImplementation((...args: any[]) => {
-            if (stub.mock.calls.length === 2)
+            if (stub.mock.calls.length === 3)
                   return args[biscuits];
       })
 `,

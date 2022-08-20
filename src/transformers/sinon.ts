@@ -396,15 +396,9 @@ function transformStubOnCalls(j, ast, parser) {
     .replaceWith(({ node }) => {
       let index
       switch (node.callee.object.callee.property.name) {
-        case 'onCall': {
-          const onCallArgs = node.callee.object.arguments
-          if (onCallArgs.length > 0) {
-            index = isFinite(onCallArgs[0].value)
-              ? j.numericLiteral(onCallArgs[0].value - 1)
-              : onCallArgs[0]
-          }
+        case 'onCall':
+          index = node.callee.object.arguments[0]
           break
-        }
         case 'onFirstCall':
           index = j.numericLiteral(0)
           break
