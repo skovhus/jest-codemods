@@ -824,7 +824,7 @@ function transformTypes(j, ast, parser) {
 }
 
 export default function transformer(fileInfo: FileInfo, api: API, options) {
-  const j = api.jscodeshift.withParser(options.parser)
+  const j = api.jscodeshift
   const ast = j(fileInfo.source)
 
   const sinonExpression =
