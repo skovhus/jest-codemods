@@ -356,6 +356,78 @@ describe('spies and stubs', () => {
       { parser: 'ts' }
     )
   })
+
+  it('handles on*Call', () => {
+    expectTransformation(
+      `
+      import sinon from 'sinon-sandbox'
+
+      stub.onFirstCall().returns(5)
+      stub.onSecondCall().returns(6, 7)
+
+      stub.onFirstCall().returnsArg(0)
+      stub.onSecondCall().returnsArg(1)
+
+      // invalid onCall() params
+      stub.onCall().returns('invalid')
+`,
+      `
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 0)
+                  return 5;
+      })
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 1)
+                  return 6;
+      })
+
+      stub.mockImplementation((...args) => {
+            if (stub.mock.calls.length === 0)
+                  return args[0];
+      })
+      stub.mockImplementation((...args) => {
+            if (stub.mock.calls.length === 1)
+                  return args[1];
+      })
+
+      // invalid onCall() params
+      stub.onCall().mockReturnValue('invalid')
+`
+    )
+  })
+  it('handles on*Call (parser: ts)', () => {
+    expectTransformation(
+      `
+      import sinon from 'sinon-sandbox'
+
+      stub.onThirdCall().returns([8, 9, 10])
+      stub.onCall(3).returns(biscuits)
+
+      stub.onThirdCall().returnsArg(2)
+      stub.onCall(3).returnsArg(biscuits)
+`,
+      `
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 2)
+                  return [8, 9, 10];
+      })
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 2)
+                  return biscuits;
+      })
+
+      stub.mockImplementation((...args: any[]) => {
+            if (stub.mock.calls.length === 2)
+                  return args[2];
+      })
+      stub.mockImplementation((...args: any[]) => {
+            if (stub.mock.calls.length === 2)
+                  return args[biscuits];
+      })
+`,
+      { parser: 'tsx' }
+    )
+  })
 })
 
 describe('mocks', () => {
