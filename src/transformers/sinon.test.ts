@@ -379,12 +379,16 @@ describe('mocks', () => {
         Api.get.restore()
         Api.get.reset()
         sinon.restore()
+        stub.resetBehavior()
+        stub.resetHistory()
 `,
       `
         stub.mockRestore()
         Api.get.mockRestore()
         Api.get.mockReset()
         jest.restoreAllMocks()
+        stub.mockReset()
+        stub.mockReset()
 `
     )
   })
