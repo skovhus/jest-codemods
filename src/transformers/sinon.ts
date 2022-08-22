@@ -35,6 +35,8 @@ const SINON_CALLED_WITH_METHODS = ['calledWith', 'notCalledWith']
 const SINON_SPY_METHODS = ['spy', 'stub']
 const SINON_MOCK_RESETS = {
   reset: 'mockReset',
+  resetBehavior: 'mockReset',
+  resetHistory: 'mockReset',
   restore: 'mockRestore',
 }
 const SINON_MATCHERS = {
