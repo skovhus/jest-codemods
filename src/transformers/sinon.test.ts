@@ -180,32 +180,39 @@ describe('spies and stubs', () => {
 `,
       `
         jest.fn().mockImplementation((...args) => {
-                if (args[0] === 'foo')
+                if (args[0] === 'foo') {
                         return 'something';
+                }
         })
         jest.fn().mockImplementation((...args) => {
-                if (args[0] === 'foo' && args[1] === 'bar')
+                if (args[0] === 'foo' && args[1] === 'bar') {
                         return 'something';
+                }
         })
         jest.fn().mockImplementation((...args) => {
-                if (args[0] === 'foo' && args[1] === 'bar' && args[2] === 1)
+                if (args[0] === 'foo' && args[1] === 'bar' && args[2] === 1) {
                         return 'something';
+                }
         })
         jest.spyOn(Api, 'get').mockClear().mockImplementation((...args) => {
-                if (args[0] === 'foo' && args[1] === 'bar' && args[2] === 1)
+                if (args[0] === 'foo' && args[1] === 'bar' && args[2] === 1) {
                         return 'something';
+                }
         })
         const stub = jest.spyOn(foo, 'bar').mockClear().mockImplementation((...args) => {
-                if (args[0] === 'foo' && args[1] === 1)
+                if (args[0] === 'foo' && args[1] === 1) {
                         return 'something';
+                }
         })
         jest.spyOn(foo, 'bar').mockClear().mockImplementation((...args) => {
-                if (args[0] === 'foo' && typeof args[1] === 'object')
+                if (args[0] === 'foo' && typeof args[1] === 'object') {
                         return 'something';
+                }
         })
         jest.fn().mockImplementation((...args) => {
-                if (args[0] === 'foo' && args.length >= 2)
+                if (args[0] === 'foo' && args.length >= 2) {
                         return 'something';
+                }
         })
 `
     )
@@ -220,8 +227,9 @@ describe('spies and stubs', () => {
     `,
       `
       jest.fn().mockImplementation((...args: any[]) => {
-            if (args[0] === 'foo')
+            if (args[0] === 'foo') {
                   return 'something';
+            }
       })
     `,
       { parser: 'tsx' }
@@ -373,21 +381,25 @@ describe('spies and stubs', () => {
 `,
       `
       stub.mockImplementation(() => {
-            if (stub.mock.calls.length === 0)
+            if (stub.mock.calls.length === 0) {
                   return 5;
+            }
       })
       stub.mockImplementation(() => {
-            if (stub.mock.calls.length === 1)
+            if (stub.mock.calls.length === 1) {
                   return 6;
+            }
       })
 
       stub.mockImplementation((...args) => {
-            if (stub.mock.calls.length === 0)
+            if (stub.mock.calls.length === 0) {
                   return args[0];
+            }
       })
       stub.mockImplementation((...args) => {
-            if (stub.mock.calls.length === 1)
+            if (stub.mock.calls.length === 1) {
                   return args[1];
+            }
       })
 
       // invalid onCall() params
@@ -408,21 +420,25 @@ describe('spies and stubs', () => {
 `,
       `
       stub.mockImplementation(() => {
-            if (stub.mock.calls.length === 2)
+            if (stub.mock.calls.length === 2) {
                   return [8, 9, 10];
+            }
       })
       stub.mockImplementation(() => {
-            if (stub.mock.calls.length === 3)
+            if (stub.mock.calls.length === 3) {
                   return biscuits;
+            }
       })
 
       stub.mockImplementation((...args: any[]) => {
-            if (stub.mock.calls.length === 2)
+            if (stub.mock.calls.length === 2) {
                   return args[2];
+            }
       })
       stub.mockImplementation((...args: any[]) => {
-            if (stub.mock.calls.length === 3)
+            if (stub.mock.calls.length === 3) {
                   return args[biscuits];
+            }
       })
 `,
       { parser: 'tsx' }

@@ -443,7 +443,7 @@ function transformStubOnCalls(j, ast, parser) {
         j.blockStatement([
           j.ifStatement(
             callLengthConditionalExpression,
-            j.returnStatement(mockImplementationReturn)
+            j.blockStatement([j.returnStatement(mockImplementationReturn)])
           ),
         ])
       )
@@ -632,7 +632,7 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
         j.blockStatement([
           j.ifStatement(
             mockImplementationConditionalExpression,
-            j.returnStatement(mockImplementationReturn[0])
+            j.blockStatement([j.returnStatement(mockImplementationReturn[0])])
           ),
         ])
       )
