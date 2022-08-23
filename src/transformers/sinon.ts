@@ -54,6 +54,7 @@ const SINON_MATCHERS_WITH_ARGS = {
   string: 'string',
 }
 const SINON_NTH_CALLS = new Set(['firstCall', 'secondCall', 'thirdCall', 'lastCall'])
+const SINON_ON_NTH_CALLS = new Set(['onFirstCall', 'onSecondCall', 'onThirdCall'])
 const EXPECT_PREFIXES = new Set(['to'])
 const isPrefix = (name) => EXPECT_PREFIXES.has(name)
 
@@ -371,6 +372,90 @@ function transformStub(j, ast, sinonExpression, logWarning) {
 }
 
 /*
+  transform .onCall(0), .on{First,Second,Third}Call()
+
+  stub.onCall(4).return(biscuits) -> stub.mockImplementation(() => { if (stub.mock.calls.length === 3) return biscuits; })
+  stub.onFirstCall().returnArg(2) -> stub.mockImplementation((...args: any[]) => { if (stub.mock.calls.length === 0) return args[2]; })
+*/
+function transformStubOnCalls(j, ast, parser) {
+  ast
+    .find(j.CallExpression, {
+      callee: {
+        object: {
+          callee: {
+            property: {
+              name: (n) => n === 'onCall' || SINON_ON_NTH_CALLS.has(n),
+            },
+          },
+        },
+        property: {
+          name: (n) => ['returns', 'returnsArg'].includes(n),
+        },
+      },
+    })
+    .replaceWith(({ node }) => {
+      let index
+      switch (node.callee.object.callee.property.name) {
+        case 'onCall':
+          index = node.callee.object.arguments[0]
+          break
+        case 'onFirstCall':
+          index = j.numericLiteral(0)
+          break
+        case 'onSecondCall':
+          index = j.numericLiteral(1)
+          break
+        case 'onThirdCall':
+          index = j.numericLiteral(2)
+          break
+      }
+      if (!index) return node
+
+      // `jest.spyOn` or `jest.fn`
+      const mockFn = node.callee.object.callee.object
+      const callLengthConditionalExpression = j.binaryExpression(
+        '===',
+        j.memberExpression(mockFn, j.identifier('mock.calls.length')),
+        index
+      )
+
+      const isReturns = node.callee.property.name === 'returns'
+      const isTypescript = parser === 'ts' || parser === 'tsx'
+
+      const mockImplementationArgs = isReturns
+        ? []
+        : [
+            j.spreadPropertyPattern(
+              j.identifier.from({
+                name: 'args',
+                typeAnnotation: isTypescript
+                  ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
+                  : null,
+              })
+            ),
+          ]
+      const mockImplementationReturn = isReturns
+        ? node.arguments[0]
+        : j.memberExpression(j.identifier('args'), node.arguments[0], true)
+
+      const mockImplementationFn = j.arrowFunctionExpression(
+        mockImplementationArgs,
+        j.blockStatement([
+          j.ifStatement(
+            callLengthConditionalExpression,
+            j.blockStatement([j.returnStatement(mockImplementationReturn)])
+          ),
+        ])
+      )
+
+      return j.callExpression(
+        j.memberExpression(mockFn, j.identifier('mockImplementation')),
+        [mockImplementationFn]
+      )
+    })
+}
+
+/*
   stub.getCall(0) -> stub.mock.calls[0]
   stub.getCall(0).args[1] -> stub.mock.calls[0][1]
   stub.firstCall|lastCall|thirdCall|secondCall -> stub.mock.calls[n]
@@ -547,7 +632,7 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
         j.blockStatement([
           j.ifStatement(
             mockImplementationConditionalExpression,
-            j.returnStatement(mockImplementationReturn[0])
+            j.blockStatement([j.returnStatement(mockImplementationReturn[0])])
           ),
         ])
       )
@@ -804,6 +889,7 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
   const logWarning = (msg, node) => logger(fileInfo, msg, node)
 
   transformStub(j, ast, sinonExpression, logWarning)
+  transformStubOnCalls(j, ast, options.parser)
   transformMockTimers(j, ast)
   transformMock(j, ast, options.parser)
   transformMockResets(j, ast)
