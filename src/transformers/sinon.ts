@@ -58,6 +58,8 @@ const SINON_ON_NTH_CALLS = new Set(['onFirstCall', 'onSecondCall', 'onThirdCall'
 const EXPECT_PREFIXES = new Set(['to'])
 const isPrefix = (name) => EXPECT_PREFIXES.has(name)
 
+const isTypescript = (parser: string) => parser === 'tsx' || parser === 'ts'
+
 const SINON_CALLS_ARG = new Set([
   'callsArg',
   'callsArgOn',
@@ -88,11 +90,10 @@ function transformCallsArg(j, ast, parser) {
 
       const argName = j.memberExpression(j.identifier('args'), node.arguments[0], true)
 
-      const isTypescript = parser === 'tsx' || parser === 'ts'
       const mockImplementationArg = j.spreadPropertyPattern(
         j.identifier.from({
           name: 'args',
-          typeAnnotation: isTypescript
+          typeAnnotation: isTypescript(parser)
             ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
             : null,
         })
@@ -552,8 +553,6 @@ function transformStubGetCalls(j: core.JSCodeshift, ast) {
     .returnsArg
 */
 function transformMock(j: core.JSCodeshift, ast, parser: string) {
-  const isTypescript = parser === 'tsx' || parser === 'ts'
-
   // stub.withArgs(111).returns('foo') => stub.mockImplementation((...args) => { if (args[0] === '111') return 'foo' })
   ast
     .find(j.CallExpression, {
@@ -621,7 +620,7 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
       const mockImplementationArg = j.spreadPropertyPattern(
         j.identifier.from({
           name: 'args',
-          typeAnnotation: isTypescript
+          typeAnnotation: isTypescript(parser)
             ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
             : null,
         })
@@ -671,7 +670,7 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
 
       const argsVar = j.identifier.from({
         name: 'args',
-        typeAnnotation: isTypescript
+        typeAnnotation: isTypescript(parser)
           ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
           : null,
       })
@@ -871,6 +870,44 @@ function transformMockTimers(j, ast) {
     })
 }
 
+// let stub: sinon.SinonStub -> let stub: jest.Mock
+// let spy: sinon.SinonSpy -> let spy: jest.SpyInstance
+function transformTypes(j, ast, parser) {
+  if (!isTypescript(parser)) return
+
+  ast
+    .find(j.TSTypeReference, {
+      typeName: {
+        left: {
+          name: 'sinon',
+        },
+        right: {
+          name: 'SinonStub',
+        },
+      },
+    })
+    .forEach((np) => {
+      np.node.typeName.left.name = 'jest'
+      np.node.typeName.right.name = 'Mock'
+    })
+
+  ast
+    .find(j.TSTypeReference, {
+      typeName: {
+        left: {
+          name: 'sinon',
+        },
+        right: {
+          name: 'SinonSpy',
+        },
+      },
+    })
+    .forEach((np) => {
+      np.node.typeName.left.name = 'jest'
+      np.node.typeName.right.name = 'SpyInstance'
+    })
+}
+
 export default function transformer(fileInfo: FileInfo, api: API, options) {
   const j = api.jscodeshift
   const ast = j(fileInfo.source)
@@ -879,7 +916,6 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
     removeDefaultImport(j, ast, 'sinon-sandbox') || removeDefaultImport(j, ast, 'sinon')
 
   if (!sinonExpression) {
-    console.warn(`no sinon for "${fileInfo.path}"`)
     if (!options.skipImportDetection) {
       return fileInfo.source
     }
@@ -898,6 +934,7 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
   transformCalledWithAssertions(j, ast)
   transformMatch(j, ast)
   transformStubGetCalls(j, ast)
+  transformTypes(j, ast, options.parser)
 
   return finale(fileInfo, j, ast, options)
 }
