@@ -63,7 +63,7 @@
     "update-notifier": "5.1.0"
   },
   "devDependencies": {
-    "@types/jest": "28.1.7",
+    "@types/jest": "28.1.8",
     "@types/jscodeshift": "0.11.5",
     "@types/update-notifier": "5.1.0",
     "@typescript-eslint/eslint-plugin": "5.34.0",
