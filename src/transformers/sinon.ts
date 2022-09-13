@@ -196,12 +196,13 @@ function transformCallCountAssertions(j, ast) {
       switch (expectArgSinonMethod) {
         case 'notCalled':
           return createCall('toHaveBeenCalled', [], rest, !negated)
+        case 'calledThrice':
+          return createCall('toHaveBeenCalledTimes', [j.literal(3)], rest, negated)
         case 'calledTwice':
           return createCall('toHaveBeenCalledTimes', [j.literal(2)], rest, negated)
         case 'calledOnce':
           return createCall('toHaveBeenCalledTimes', [j.literal(1)], rest, negated)
         case 'called':
-        case 'calledThrice':
           return createCall('toHaveBeenCalled', [], rest, negated)
         default:
           // eg: .callCount

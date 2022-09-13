@@ -573,7 +573,7 @@ describe('spy count and call assertions', () => {
 
         expect(spy).toHaveBeenCalledTimes(1)
         expect(spy).toHaveBeenCalledTimes(2)
-        expect(spy).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalledTimes(3)
         expect(spy).toHaveBeenCalled()
 
         // .to.be
