@@ -715,7 +715,7 @@ function transformMockResets(j, ast) {
         type: 'MemberExpression',
         property: {
           type: 'Identifier',
-          name: (name) => name in SINON_MOCK_RESETS,
+          name: (name) => Object.hasOwn(SINON_MOCK_RESETS, name),
         },
       },
     })
