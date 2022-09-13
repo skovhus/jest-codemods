@@ -726,3 +726,19 @@ describe('updates types', () => {
     )
   })
 })
+
+describe('prototype', () => {
+  it('toString', () => {
+    expectTransformation(
+      `
+        import sinon from 'sinon'
+        const x = 1
+        const y = x.toString()
+      `,
+      `
+        const x = 1
+        const y = x.toString()
+      `
+    )
+  })
+})
