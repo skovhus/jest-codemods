@@ -1,4 +1,7 @@
 /* eslint-env jest */
+import { jest } from '@jest/globals'
+
+import checkGitStatus from './git-status'
 
 let gitStatusReturnValue: boolean | Error = false
 jest.setMock('is-git-clean', {
@@ -10,13 +13,10 @@ jest.setMock('is-git-clean', {
   },
 })
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const checkGitStatus = require('./git-status').default
-
 beforeAll(() => {
-  jest.spyOn(console, 'log').mockImplementation()
-  jest.spyOn(console, 'warn').mockImplementation()
-  jest.spyOn(process, 'exit').mockImplementation()
+  jest.spyOn(console, 'log').mockImplementation(() => {})
+  jest.spyOn(console, 'warn').mockImplementation(() => {})
+  jest.spyOn(process, 'exit').mockImplementation((() => {}) as any)
 })
 
 it('does not exit and output any logs when git repo is clean', () => {
