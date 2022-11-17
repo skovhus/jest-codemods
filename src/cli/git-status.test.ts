@@ -1,8 +1,6 @@
 /* eslint-env jest */
 import { jest } from '@jest/globals'
 
-import checkGitStatus from './git-status'
-
 let gitStatusReturnValue: boolean | Error = false
 jest.setMock('is-git-clean', {
   sync: () => {
@@ -12,6 +10,8 @@ jest.setMock('is-git-clean', {
     throw gitStatusReturnValue
   },
 })
+
+const checkGitStatus = (await import('./git-status')).default
 
 beforeAll(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {})
