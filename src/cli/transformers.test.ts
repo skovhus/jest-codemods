@@ -1,20 +1,16 @@
 /* eslint-env jest */
 /* eslint-disable jest/expect-expect */
 import { jest } from '@jest/globals'
+import fs from 'fs'
+import path from 'path'
 
 let execaReturnValue
 jest.setMock('execa', {
   sync: () => execaReturnValue,
 })
 
-import fs from 'fs'
-import path from 'path'
-
-import {
-  executeTransformations,
-  jscodeshiftExecutable,
-  transformerDirectory,
-} from './transformers'
+const { executeTransformations, jscodeshiftExecutable, transformerDirectory } =
+  await import('./transformers')
 
 beforeAll(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {})
