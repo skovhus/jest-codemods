@@ -83,13 +83,13 @@ it('supports jscodeshift custom arguments', () => {
     flags: { dry: true },
     parser: 'babel',
     transformers: ['ava'],
-    transformerArgs: ['--standaloneMode'],
+    transformerArgs: ['--standaloneMode', 'true'],
   })
   expect(console.log).toHaveBeenCalledWith(
     `Executing command: jscodeshift -t ${path.join(
       transformerDirectory,
       'ava.js'
-    )} folder --dry --ignore-pattern node_modules --parser babel --standaloneMode`
+    )} folder --dry --ignore-pattern node_modules --parser babel --standaloneMode true`
   )
 })
 
