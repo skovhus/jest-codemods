@@ -292,8 +292,8 @@ test('converts "below"', () => {
         expect(3).toBeLessThan(5);
         expect(2).toBeLessThan(5);
         expect(2).toBeLessThan(5);
-        expect(1).toBeLessThan(5);
-        expect(1).toBeLessThan(5);
+        expect((1)).toBeLessThan(5);
+        expect((1)).toBeLessThan(5);
     `
   )
 })
@@ -572,7 +572,7 @@ test('converts "finite"', () => {
     `,
     `
         expect(isFinite(Infinity)).toBe(false);
-        expect(isFinite(-10)).toBe(true);
+        expect(isFinite((-10))).toBe(true);
     `
   )
 })
@@ -1187,9 +1187,9 @@ test('converts "within"', () => {
         expect(7).toBeGreaterThanOrEqual(5);
         expect(7).toBeLessThanOrEqual(10);
 
-        expect(5).toBeGreaterThanOrEqual(2);
+        expect((5)).toBeGreaterThanOrEqual(2);
 
-        expect(5).toBeLessThanOrEqual(4);
+        expect((5)).toBeLessThanOrEqual(4);
     `
   )
 })
