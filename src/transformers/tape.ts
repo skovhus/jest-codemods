@@ -4,7 +4,7 @@
 import { PROP_WITH_SECONDS_ARGS } from '../utils/consts.js'
 import finale from '../utils/finale.js'
 import { removeRequireAndImport } from '../utils/imports.js'
-import logger from '../utils/logger.js'
+import { getLogWarningForFile } from '../utils/logger.js'
 import {
   detectUnsupportedNaming,
   rewriteAssertionsAndTestArgument,
@@ -103,7 +103,7 @@ export default function tapeToJest(fileInfo, api, options) {
     testFunctionName = 'tape'
   }
 
-  const logWarning = (msg, node) => logger(fileInfo, msg, node)
+  const logWarning = getLogWarningForFile(fileInfo)
 
   const transforms = [
     () => rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName),

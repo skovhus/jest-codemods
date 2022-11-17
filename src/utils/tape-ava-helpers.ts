@@ -1,4 +1,4 @@
-import logger from './logger.js'
+import { logWarning } from '../utils/logger.js'
 
 /**
  * Rewrite last argument of a given CallExpression path
@@ -234,7 +234,7 @@ export function detectUnsupportedNaming(fileInfo, j, ast, testFunctionName) {
 
         // Currently we only support "t" as the test argument name
         if (lastArgName !== 't') {
-          logger(
+          logWarning(
             fileInfo,
             `Argument to test function should be named "t" not "${lastArgName}"`,
             p

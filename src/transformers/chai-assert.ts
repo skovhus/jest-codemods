@@ -1,6 +1,6 @@
 import finale from '../utils/finale.js'
 import { removeDefaultImport, removeRequireAndImport } from '../utils/imports.js'
-import logger from '../utils/logger.js'
+import { getLogWarningForFile } from '../utils/logger.js'
 
 const getAssertionExpression = (chaiAssertExpression, assertionName) => ({
   type: 'CallExpression',
@@ -215,7 +215,7 @@ export default function transformer(fileInfo, api, options) {
     }
   }
 
-  const logWarning = (msg: string, path) => logger(fileInfo, msg, path)
+  const logWarning = getLogWarningForFile(fileInfo)
 
   const makeExpectation = (identifier: string, actual: any, expectation: any = []) =>
     j.callExpression(

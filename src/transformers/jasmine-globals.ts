@@ -2,7 +2,7 @@
  * Codemod for transforming Jasmine globals into Jest.
  */
 import finale from '../utils/finale.js'
-import logger from '../utils/logger.js'
+import { getLogWarningForFile } from '../utils/logger.js'
 
 export default function jasmineGlobals(fileInfo, api, options) {
   const j = api.jscodeshift
@@ -10,7 +10,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
 
   const emptyArrowFn = j('() => {}').__paths[0].value.program.body[0].expression
 
-  const logWarning = (msg, path) => logger(fileInfo, msg, path)
+  const logWarning = getLogWarningForFile(fileInfo)
 
   root
     .find(j.CallExpression, {

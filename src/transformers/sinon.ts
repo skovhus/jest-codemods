@@ -8,7 +8,7 @@ import {
 } from '../utils/chai-chain-utils.js'
 import finale from '../utils/finale.js'
 import { removeDefaultImport } from '../utils/imports.js'
-import logger from '../utils/logger.js'
+import { getLogWarningForFile } from '../utils/logger.js'
 import { findParentOfType } from '../utils/recast-helpers.js'
 import {
   expressionContainsProperty,
@@ -923,7 +923,7 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
     return null
   }
 
-  const logWarning = (msg, node) => logger(fileInfo, msg, node)
+  const logWarning = getLogWarningForFile(fileInfo)
 
   transformStub(j, ast, sinonExpression, logWarning)
   transformStubOnCalls(j, ast, options.parser)

@@ -1,5 +1,5 @@
+import { logWarning } from '../utils/logger.js'
 import { removeRequireAndImport } from './imports.js'
-import logger from './logger.js'
 
 function findChildOfProgram(path, childPath = undefined) {
   if (path.value.type === 'Program') {
@@ -73,7 +73,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
         const mocksNode = args[1]
 
         if (mocks.has(requireFile)) {
-          logger(
+          logWarning(
             fileInfo,
             'Multiple mocks of same file is not supported',
             outerCallExpression
@@ -104,7 +104,7 @@ export default function proxyquireTransformer(fileInfo, j, ast) {
             })
 
           if (!mocksObjectExpression) {
-            logger(
+            logWarning(
               fileInfo,
               'proxyrequire mocks not transformed due to missing declaration',
               outerCallExpression

@@ -2,11 +2,12 @@
 import { jest } from '@jest/globals'
 import jscodeshift from 'jscodeshift'
 
-import * as _logger from './logger.js'
-import proxyquireTransformer from './proxyquire.js'
+jest.unstable_mockModule('./logger.js', () => ({
+  logWarning: jest.fn(),
+}))
 
-jest.spyOn(_logger, 'default')
-const logger = _logger.default
+const { logWarning } = await import('./logger.js')
+const proxyquireTransformer = (await import('./proxyquire.js')).default
 
 const j = jscodeshift
 const fileInfo = { path: 'a.test.js' }
@@ -27,7 +28,7 @@ it('rewrites proxyquire without noCallThru', () => {
         jest.mock('common/Foo', () => () => <div />);
         const { mapStateToProps, default: Page } = require('./PageContainer');
     `)
-  expect(logger).not.toHaveBeenCalled()
+  expect(logWarning).not.toHaveBeenCalled()
 })
 
 it('rewrites proxyquire with noCallThru', () => {
@@ -42,7 +43,7 @@ it('rewrites proxyquire with noCallThru', () => {
         jest.mock('common/Foo', () => () => <div />);
         const Page = require('./PageContainer');
     `)
-  expect(logger).not.toHaveBeenCalled()
+  expect(logWarning).not.toHaveBeenCalled()
 })
 
 it('rewrites proxyquire with require statement noCallThru', () => {
@@ -57,7 +58,7 @@ it('rewrites proxyquire with require statement noCallThru', () => {
         jest.mock('lib', () => () => {});
         const tracking = require('./tracking');
     `)
-  expect(logger).not.toHaveBeenCalled()
+  expect(logWarning).not.toHaveBeenCalled()
 })
 
 it('supports variable reference object', () => {
@@ -97,7 +98,7 @@ it('supports variable reference object', () => {
             t.end();
         });
     `)
-  expect(logger).not.toHaveBeenCalled()
+  expect(logWarning).not.toHaveBeenCalled()
 })
 
 it('supports empty noCallThru', () => {
@@ -111,7 +112,7 @@ it('supports empty noCallThru', () => {
         jest.mock('b', () => 'c');
         const a = require('a');
     `)
-  expect(logger).not.toHaveBeenCalled()
+  expect(logWarning).not.toHaveBeenCalled()
 })
 
 it('supports the `load` method', () => {
@@ -124,7 +125,7 @@ it('supports the `load` method', () => {
         jest.mock('b', () => 'c');
         const a = require('a');
     `)
-  expect(logger).not.toHaveBeenCalled()
+  expect(logWarning).not.toHaveBeenCalled()
 })
 
 it('supports a chained `noCallThru().load()` call', () => {
@@ -137,7 +138,7 @@ it('supports a chained `noCallThru().load()` call', () => {
         jest.mock('b', () => 'c');
         const a = require('a');
     `)
-  expect(logger).not.toHaveBeenCalled()
+  expect(logWarning).not.toHaveBeenCalled()
 })
 
 it('supports named imports scoped to the variable name', () => {
@@ -154,7 +155,7 @@ it('supports named imports scoped to the variable name', () => {
             const something = require('a');
         });
     `)
-  expect(logger).not.toHaveBeenCalled()
+  expect(logWarning).not.toHaveBeenCalled()
 })
 
 it('logs error when proxyquire mocks are not defined in the file', () => {
@@ -169,7 +170,7 @@ it('logs error when proxyquire mocks are not defined in the file', () => {
         import mockedDeps from './someFile';
         proxyquire.noCallThru()('./index', mockedDeps);
     `)
-  expect(logger).toHaveBeenCalled()
+  expect(logWarning).toHaveBeenCalled()
 })
 
 it('logs error with multiple proxyquire to same file', () => {
@@ -190,5 +191,5 @@ it('logs error with multiple proxyquire to same file', () => {
             '../page': mockedFailingRender,
         });
     `)
-  expect(logger).toHaveBeenCalled()
+  expect(logWarning).toHaveBeenCalled()
 })

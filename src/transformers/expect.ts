@@ -5,7 +5,7 @@ import {
   hasRequireOrImport,
   removeRequireAndImport,
 } from '../utils/imports.js'
-import logger from '../utils/logger.js'
+import { getLogWarningForFile } from '../utils/logger.js'
 import {
   findParentCallExpression,
   findParentOfType,
@@ -112,7 +112,7 @@ export default function expectTransformer(fileInfo, api, options) {
     removeRequireAndImport(j, ast, EXPECT)
   }
 
-  const logWarning = (msg, node) => logger(fileInfo, msg, node)
+  const logWarning = getLogWarningForFile(fileInfo)
 
   function balanceMatcherNodeArguments(matcherNode, matcher, path) {
     const newJestMatcherName = matcher.name.replace('not.', '')

@@ -9,7 +9,7 @@ import {
 } from '../utils/chai-chain-utils.js'
 import finale from '../utils/finale.js'
 import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports.js'
-import logger from '../utils/logger.js'
+import { getLogWarningForFile } from '../utils/logger.js'
 import {
   findParentOfType,
   traverseMemberExpressionUtil,
@@ -174,7 +174,7 @@ export default function transformer(fileInfo, api, options) {
     (node) => node.type === j.CallExpression.name && node.callee.name === 'expect'
   )
 
-  const logWarning = (msg, node) => logger(fileInfo, msg, node)
+  const logWarning = getLogWarningForFile(fileInfo)
 
   const chai = getRequireOrImportName(j, root, 'chai')
 
