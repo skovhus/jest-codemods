@@ -5,18 +5,18 @@ import {
   createCallUtil,
   getNodeBeforeMemberExpressionUtil,
   isExpectCallUtil,
-} from '../utils/chai-chain-utils'
-import finale from '../utils/finale'
-import { removeDefaultImport } from '../utils/imports'
-import logger from '../utils/logger'
-import { findParentOfType } from '../utils/recast-helpers'
+} from '../utils/chai-chain-utils.js'
+import finale from '../utils/finale.js'
+import { removeDefaultImport } from '../utils/imports.js'
+import logger from '../utils/logger.js'
+import { findParentOfType } from '../utils/recast-helpers.js'
 import {
   expressionContainsProperty,
   getExpectArg,
   isExpectSinonCall,
   isExpectSinonObject,
   modifyVariableDeclaration,
-} from '../utils/sinon-helpers'
+} from '../utils/sinon-helpers.js'
 
 const SINON_CALL_COUNT_METHODS = [
   'called',
@@ -67,7 +67,7 @@ const SINON_CALLS_ARG = new Set([
   'callsArgOnWith',
 ])
 
-/* 
+/*
   stub.callsArg(0) -> stub.mockImplementation((...args: any[]) => args[0]())
   stub.callsArgOn(1, thisArg) -> stub.mockImplementation((...args: any[]) => args[1].call(thisArg))
   stub.callsArgWith(2, arg1, arg2) -> stub.mockImplementation((...args: any[]) => args[2](arg1, arg2))
@@ -139,7 +139,7 @@ function transformCallsArg(j, ast, parser) {
     })
 }
 
-/* 
+/*
   expect(spy.called).to.be(true) -> expect(spy).toHaveBeenCalled()
   expect(spy.callCount).to.equal(2) -> expect(spy).toHaveBeenCalledTimes(2)
   expect(stub).toHaveProperty('callCount', 1) -> expect(stub).toHaveBeenCalledTimes(1)
@@ -175,11 +175,11 @@ function transformCallCountAssertions(j, ast) {
           np.node.arguments = [expectArg.object]
         })
 
-      /* 
+      /*
         handle  `expect(spy.withArgs('foo').called).to.be(true)` ->
                 `expect(spy.calledWith(1,2,3)).to.be(true)`
         and let subsequent transform fn take care of converting to
-        the final form (ie: see `transformCalledWithAssertions`) 
+        the final form (ie: see `transformCalledWithAssertions`)
       */
       if (expectArg.object.callee?.property?.name === 'withArgs') {
         // change .withArgs() -> .calledWith()
@@ -236,7 +236,7 @@ function transformCallCountAssertions(j, ast) {
     })
 }
 
-/* 
+/*
   expect(spy.calledWith(1, 2, 3)).to.be(true) -> expect(spy).toHaveBeenCalledWith(1, 2, 3);
 
   https://github.com/jordalgo/jest-codemods/blob/7de97c1d0370c7915cf5e5cc2a860bc5dd96744b/src/transformers/sinon.js#L267
@@ -286,7 +286,7 @@ function transformCalledWithAssertions(j, ast) {
     })
 }
 
-/* 
+/*
 sinon.stub(Api, 'get') -> jest.spyOn(Api, 'get')
 */
 function transformStub(j, ast, sinonExpression, logWarning) {
@@ -539,7 +539,7 @@ function transformStubGetCalls(j: core.JSCodeshift, ast) {
         return np.node.object
       }
 
-      /* 
+      /*
         replace .args with mock.calls, handles:
         stub.args[0][0] -> stub.mock.calls[0][0]
       */
@@ -547,7 +547,7 @@ function transformStubGetCalls(j: core.JSCodeshift, ast) {
     })
 }
 
-/* 
+/*
   handles:
     .withArgs
     .returns
@@ -684,7 +684,7 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
     })
 }
 
-/* 
+/*
   handles mock resets/clears/etc:
   sinon.restore() -> jest.restoreAllMocks()
   stub.restore() -> stub.mockRestore()
@@ -726,7 +726,7 @@ function transformMockResets(j, ast) {
     })
 }
 
-/* 
+/*
   sinon.match({ ... }) -> expect.objectContaining({ ... })
   // .any. matches:
   sinon.match.[any|number|string|object|func|array] -> expect.any(type)
@@ -847,7 +847,7 @@ function transformMockTimers(j, ast) {
       node.callee.property.name = 'advanceTimersByTime'
     })
 
-  /* 
+  /*
     `stub.restore` shares the same property name as `sinon.useFakeTimers().restore`
     so only transform those with `clock` object which seems to be the common name used
     for mock timers throughout our codebase

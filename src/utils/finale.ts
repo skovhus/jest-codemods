@@ -1,11 +1,11 @@
 import jscodeshift from 'jscodeshift'
 
-import { JEST_MOCK_PROPERTIES } from './consts'
-import { addRequireOrImportOnceFactory, hasRequireOrImport } from './imports'
-import detectLineTerminator from './line-terminator'
-import logger from './logger'
-import proxyquireTransformer from './proxyquire'
-import detectQuoteStyle from './quote-style'
+import { JEST_MOCK_PROPERTIES } from './consts.js'
+import { addRequireOrImportOnceFactory, hasRequireOrImport } from './imports.js'
+import detectLineTerminator from './line-terminator.js'
+import logger from './logger.js'
+import proxyquireTransformer from './proxyquire.js'
+import detectQuoteStyle from './quote-style.js'
 
 function detectIncompatiblePackages(fileInfo, j, ast) {
   ;['sinon', 'testdouble'].forEach((pkg) => {

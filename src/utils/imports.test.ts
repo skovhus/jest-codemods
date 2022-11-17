@@ -6,7 +6,7 @@ import {
   hasRequireOrImport,
   removeDefaultImport,
   removeRequireAndImport,
-} from './imports'
+} from './imports.js'
 
 const j = jscodeshift
 

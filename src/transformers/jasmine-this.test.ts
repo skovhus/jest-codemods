@@ -2,7 +2,7 @@
 import chalk from 'chalk'
 
 import { wrapPlugin } from '../utils/test-helpers'
-import plugin from './jasmine-this'
+import plugin from './jasmine-this.js'
 
 chalk.level = 0
 const wrappedPlugin = wrapPlugin(plugin)

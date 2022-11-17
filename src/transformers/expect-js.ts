@@ -6,9 +6,9 @@
 
     expect({ a: 'b', c: 'd' }).to.only.have.keys(['a', 'c']);
 */
-import finale from '../utils/finale'
-import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports'
-import logger from '../utils/logger'
+import finale from '../utils/finale.js'
+import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports.js'
+import logger from '../utils/logger.js'
 
 const MATCHES = {
   be: 'toBe',

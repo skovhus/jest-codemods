@@ -1,5 +1,5 @@
-import { removeRequireAndImport } from './imports'
-import logger from './logger'
+import { removeRequireAndImport } from './imports.js'
+import logger from './logger.js'
 
 function findChildOfProgram(path, childPath = undefined) {
   if (path.value.type === 'Program') {

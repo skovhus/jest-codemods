@@ -1,8 +1,8 @@
-import { removeRequireAndImport } from '../utils/imports'
-import detectLineTerminator from '../utils/line-terminator'
-import detectQuoteStyle from '../utils/quote-style'
-import { traverseMemberExpressionUtil } from '../utils/recast-helpers'
-import chaiShouldTransformer from './chai-should'
+import { removeRequireAndImport } from '../utils/imports.js'
+import detectLineTerminator from '../utils/line-terminator.js'
+import detectQuoteStyle from '../utils/quote-style.js'
+import { traverseMemberExpressionUtil } from '../utils/recast-helpers.js'
+import chaiShouldTransformer from './chai-should.js'
 
 const assertionRemappings = {
   throws: 'throw',

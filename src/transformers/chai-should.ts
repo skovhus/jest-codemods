@@ -6,11 +6,14 @@ import {
   getNodeBeforeMemberExpressionUtil,
   isExpectCallUtil,
   updateExpectUtil,
-} from '../utils/chai-chain-utils'
-import finale from '../utils/finale'
-import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports'
-import logger from '../utils/logger'
-import { findParentOfType, traverseMemberExpressionUtil } from '../utils/recast-helpers'
+} from '../utils/chai-chain-utils.js'
+import finale from '../utils/finale.js'
+import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports.js'
+import logger from '../utils/logger.js'
+import {
+  findParentOfType,
+  traverseMemberExpressionUtil,
+} from '../utils/recast-helpers.js'
 
 function addCommentHelper(node, comment) {
   const comments = node.comments || (node.comments = [])
@@ -527,7 +530,7 @@ export default function transformer(fileInfo, api, options) {
       .size()
   }
 
-  /* 
+  /*
     reverses `expect().not.to` -> `expect().to.not` to be
     handled correctly by subsequent expression updates
   */
@@ -575,7 +578,7 @@ export default function transformer(fileInfo, api, options) {
         switch (propertyName) {
           case 'type':
           case 'descendants': {
-            /* 
+            /*
               if `.not`: expect(wrapper.find(Foo)).toHaveLength(0)
               else if `.exactly`: expect(wrapper.find(Foo)).toHaveLength(exactly.arg[0])
               else: expect(wrapper.find(Foo).length).toBeGreaterThan(0)
@@ -931,7 +934,7 @@ export default function transformer(fileInfo, api, options) {
       })
       .replaceWith((p) => {
         const { value } = p
-        /* 
+        /*
           if call expression is spread, don't transform, eg:
           const foo = { params: ...context(searchParams) }
         */

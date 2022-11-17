@@ -6,8 +6,8 @@ import inquirer from 'inquirer'
 import meow from 'meow'
 import updateNotifier from 'update-notifier'
 
-import checkGitStatus from './git-status'
-import { executeTransformations, Parser } from './transformers'
+import checkGitStatus from './git-status.js'
+import { executeTransformations, Parser } from './transformers.js'
 
 const cli = meow(
   `

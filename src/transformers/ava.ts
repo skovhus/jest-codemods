@@ -4,19 +4,19 @@
 import * as jscodeshift from 'jscodeshift'
 import { Identifier, MemberExpression } from 'jscodeshift'
 
-import { PROP_WITH_SECONDS_ARGS } from '../utils/consts'
-import finale from '../utils/finale'
-import { removeRequireAndImport } from '../utils/imports'
-import logger from '../utils/logger'
+import { PROP_WITH_SECONDS_ARGS } from '../utils/consts.js'
+import finale from '../utils/finale.js'
+import { removeRequireAndImport } from '../utils/imports.js'
+import logger from '../utils/logger.js'
 import {
   getIdentifierFromExpression,
   getMemberExpressionElements,
-} from '../utils/recast-helpers'
+} from '../utils/recast-helpers.js'
 import {
   renameExecutionInterface,
   rewriteAssertionsAndTestArgument,
   rewriteDestructuredTArgument,
-} from '../utils/tape-ava-helpers'
+} from '../utils/tape-ava-helpers.js'
 
 const SPECIAL_THROWS_CASE = '(special throws case)'
 const SPECIAL_BOOL = '(special bool case)'

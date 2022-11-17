@@ -1,8 +1,9 @@
 /* eslint-env jest */
+import { jest } from '@jest/globals'
 import jscodeshift from 'jscodeshift'
 
-import * as _logger from './logger'
-import proxyquireTransformer from './proxyquire'
+import * as _logger from './logger.js'
+import proxyquireTransformer from './proxyquire.js'
 
 jest.spyOn(_logger, 'default')
 const logger = _logger.default

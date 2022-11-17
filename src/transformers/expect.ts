@@ -1,16 +1,16 @@
-import { JEST_MATCHER_TO_MAX_ARGS, JEST_MOCK_PROPERTIES } from '../utils/consts'
-import finale from '../utils/finale'
+import { JEST_MATCHER_TO_MAX_ARGS, JEST_MOCK_PROPERTIES } from '../utils/consts.js'
+import finale from '../utils/finale.js'
 import {
   getRequireOrImportName,
   hasRequireOrImport,
   removeRequireAndImport,
-} from '../utils/imports'
-import logger from '../utils/logger'
+} from '../utils/imports.js'
+import logger from '../utils/logger.js'
 import {
   findParentCallExpression,
   findParentOfType,
   findParentVariableDeclaration,
-} from '../utils/recast-helpers'
+} from '../utils/recast-helpers.js'
 
 const matcherRenaming = {
   toExist: 'toBeTruthy',

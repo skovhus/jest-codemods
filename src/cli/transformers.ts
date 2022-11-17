@@ -1,8 +1,15 @@
 import execa from 'execa'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
-export const transformerDirectory = path.join(__dirname, '../', 'transformers')
-export const jscodeshiftExecutable = require.resolve('jscodeshift/bin/jscodeshift.js')
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+export const transformerDirectory = path.join(__dirname, '../transformers')
+
+export const jscodeshiftExecutable = path.join(
+  __dirname,
+  '../../node_modules/jscodeshift/bin/jscodeshift.js'
+) // TODO: investigate if there is a better safer way
 
 type Flags = {
   dry?: boolean

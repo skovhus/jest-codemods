@@ -1,4 +1,4 @@
-import { JEST_MATCHER_TO_MAX_ARGS } from './consts'
+import { JEST_MATCHER_TO_MAX_ARGS } from './consts.js'
 
 export const createCallUtil =
   (j) => (fnName: string, args: any, rest: any, containsNot?: boolean) => {

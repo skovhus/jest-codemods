@@ -1,6 +1,6 @@
-import finale from '../utils/finale'
-import { removeDefaultImport, removeRequireAndImport } from '../utils/imports'
-import logger from '../utils/logger'
+import finale from '../utils/finale.js'
+import { removeDefaultImport, removeRequireAndImport } from '../utils/imports.js'
+import logger from '../utils/logger.js'
 
 const getAssertionExpression = (chaiAssertExpression, assertionName) => ({
   type: 'CallExpression',

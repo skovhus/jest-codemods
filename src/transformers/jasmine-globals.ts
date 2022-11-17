@@ -1,8 +1,8 @@
 /**
  * Codemod for transforming Jasmine globals into Jest.
  */
-import finale from '../utils/finale'
-import logger from '../utils/logger'
+import finale from '../utils/finale.js'
+import logger from '../utils/logger.js'
 
 export default function jasmineGlobals(fileInfo, api, options) {
   const j = api.jscodeshift

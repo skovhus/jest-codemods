@@ -1,4 +1,4 @@
-import logger from './logger'
+import logger from './logger.js'
 
 /**
  * Rewrite last argument of a given CallExpression path

@@ -2,6 +2,7 @@
   "name": "jest-codemods",
   "version": "0.30.0",
   "description": "Codemods for migrating test files to Jest",
+  "type": "module",
   "license": "MIT",
   "repository": "skovhus/jest-codemods",
   "author": {
@@ -11,7 +12,7 @@
   },
   "bin": "bin/jest-codemods.js",
   "engines": {
-    "node": ">=12"
+    "node": ">=14.16"
   },
   "files": [
     "bin",

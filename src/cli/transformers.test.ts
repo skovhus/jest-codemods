@@ -1,5 +1,6 @@
 /* eslint-env jest */
 /* eslint-disable jest/expect-expect */
+import { jest } from '@jest/globals'
 
 let execaReturnValue
 jest.setMock('execa', {
@@ -16,7 +17,7 @@ import {
 } from './transformers'
 
 beforeAll(() => {
-  jest.spyOn(console, 'log').mockImplementation()
+  jest.spyOn(console, 'log').mockImplementation(() => {})
 })
 
 it('finds transformer directory', () => {
