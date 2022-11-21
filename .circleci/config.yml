@@ -2,7 +2,7 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: cimg/node:19.0.1
+    - image: cimg/node:19.1.0
 
 _steps:
   save_npm_cache: &save_npm_cache
