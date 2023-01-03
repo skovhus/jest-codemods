@@ -53,7 +53,7 @@
     "codemods"
   ],
   "dependencies": {
-    "chalk": "4.1.2",
+    "chalk": "5.2.0",
     "execa": "4.1.0",
     "globby": "11.1.0",
     "inquirer": "8.2.5",
