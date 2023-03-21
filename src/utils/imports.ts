@@ -1,4 +1,4 @@
-import { findParentOfType, findParentVariableDeclaration } from './recast-helpers'
+import { findParentOfType, findParentVariableDeclaration } from './recast-helpers.js'
 
 export function addRequireOrImport(j: any, ast: any, localName: string, pkg: string) {
   const { statement } = j.template

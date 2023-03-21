@@ -1,23 +1,23 @@
 import jscodeshift from 'jscodeshift'
 
-import { JEST_MOCK_PROPERTIES } from './consts'
-import { addRequireOrImportOnceFactory, hasRequireOrImport } from './imports'
-import detectLineTerminator from './line-terminator'
-import logger from './logger'
-import proxyquireTransformer from './proxyquire'
-import detectQuoteStyle from './quote-style'
+import { logWarning } from '../utils/logger.js'
+import { JEST_MOCK_PROPERTIES } from './consts.js'
+import { addRequireOrImportOnceFactory, hasRequireOrImport } from './imports.js'
+import detectLineTerminator from './line-terminator.js'
+import proxyquireTransformer from './proxyquire.js'
+import detectQuoteStyle from './quote-style.js'
 
 function detectIncompatiblePackages(fileInfo, j, ast) {
   ;['sinon', 'testdouble'].forEach((pkg) => {
     if (hasRequireOrImport(j, ast, pkg)) {
       const msg = `Usage of package "${pkg}" might be incompatible with Jest`
       if (pkg === 'sinon') {
-        return logger(
+        return logWarning(
           fileInfo,
           `${msg}; it's recommended the sinon transformer is run first`
         )
       }
-      logger(fileInfo, msg)
+      logWarning(fileInfo, msg)
     }
   })
 }

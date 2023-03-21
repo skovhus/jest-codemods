@@ -1,4 +1,5 @@
 /* eslint-env jest */
+import { jest } from '@jest/globals'
 import chalk from 'chalk'
 import jscodeshift from 'jscodeshift'
 

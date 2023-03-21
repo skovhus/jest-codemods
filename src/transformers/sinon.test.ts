@@ -1,4 +1,5 @@
 /* eslint-env jest */
+import { jest } from '@jest/globals'
 import chalk from 'chalk'
 
 import { wrapPlugin } from '../utils/test-helpers'
@@ -9,7 +10,10 @@ chalk.level = 0
 const wrappedPlugin = wrapPlugin(plugin)
 
 beforeEach(() => {
-  jest.spyOn(console, 'warn').mockImplementation().mockClear()
+  jest
+    .spyOn(console, 'warn')
+    .mockImplementation(() => {})
+    .mockClear()
 })
 
 interface TransformationOptions {
@@ -236,7 +240,7 @@ describe('spies and stubs', () => {
     )
   })
 
-  /* 
+  /*
     apiStub.getCall(0).args[1].data
     apistub.args[1][1]
   */

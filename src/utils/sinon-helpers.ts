@@ -1,4 +1,4 @@
-import { findParentOfType } from './recast-helpers'
+import { findParentOfType } from './recast-helpers.js'
 
 export function isExpectSinonCall(obj, sinonMethods) {
   if (obj.type === 'CallExpression' && obj.callee.name === 'expect') {

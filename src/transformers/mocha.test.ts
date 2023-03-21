@@ -1,4 +1,6 @@
 /* eslint-env jest */
+import { jest } from '@jest/globals'
+
 import { wrapPlugin } from '../utils/test-helpers'
 import plugin from './mocha'
 

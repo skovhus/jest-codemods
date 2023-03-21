@@ -1,15 +1,15 @@
 /**
  * Codemod for transforming Tape tests into Jest.
  */
-import { PROP_WITH_SECONDS_ARGS } from '../utils/consts'
-import finale from '../utils/finale'
-import { removeRequireAndImport } from '../utils/imports'
-import logger from '../utils/logger'
+import { PROP_WITH_SECONDS_ARGS } from '../utils/consts.js'
+import finale from '../utils/finale.js'
+import { removeRequireAndImport } from '../utils/imports.js'
+import { getLogWarningForFile } from '../utils/logger.js'
 import {
   detectUnsupportedNaming,
   rewriteAssertionsAndTestArgument,
   rewriteDestructuredTArgument,
-} from '../utils/tape-ava-helpers'
+} from '../utils/tape-ava-helpers.js'
 
 const SPECIAL_THROWS_CASE = '(special throws case)'
 const SPECIAL_REJECTS_CASE = '(special rejects case)'
@@ -103,7 +103,7 @@ export default function tapeToJest(fileInfo, api, options) {
     testFunctionName = 'tape'
   }
 
-  const logWarning = (msg, node) => logger(fileInfo, msg, node)
+  const logWarning = getLogWarningForFile(fileInfo)
 
   const transforms = [
     () => rewriteDestructuredTArgument(fileInfo, j, ast, testFunctionName),

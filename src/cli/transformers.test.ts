@@ -1,22 +1,19 @@
 /* eslint-env jest */
 /* eslint-disable jest/expect-expect */
+import { jest } from '@jest/globals'
+import fs from 'fs'
+import path from 'path'
 
 let execaReturnValue
 jest.setMock('execa', {
   sync: () => execaReturnValue,
 })
 
-import fs from 'fs'
-import path from 'path'
-
-import {
-  executeTransformations,
-  jscodeshiftExecutable,
-  transformerDirectory,
-} from './transformers'
+const { executeTransformations, jscodeshiftExecutable, transformerDirectory } =
+  await import('./transformers')
 
 beforeAll(() => {
-  jest.spyOn(console, 'log').mockImplementation()
+  jest.spyOn(console, 'log').mockImplementation(() => {})
 })
 
 it('finds transformer directory', () => {
@@ -82,13 +79,13 @@ it('supports jscodeshift custom arguments', () => {
     flags: { dry: true },
     parser: 'babel',
     transformers: ['ava'],
-    transformerArgs: ['--standaloneMode'],
+    transformerArgs: ['--standaloneMode', 'true'],
   })
   expect(console.log).toHaveBeenCalledWith(
     `Executing command: jscodeshift -t ${path.join(
       transformerDirectory,
       'ava.js'
-    )} folder --dry --ignore-pattern node_modules --parser babel --standaloneMode`
+    )} folder --dry --ignore-pattern node_modules --parser babel --standaloneMode true`
   )
 })
 

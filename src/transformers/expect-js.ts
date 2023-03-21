@@ -6,9 +6,9 @@
 
     expect({ a: 'b', c: 'd' }).to.only.have.keys(['a', 'c']);
 */
-import finale from '../utils/finale'
-import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports'
-import logger from '../utils/logger'
+import finale from '../utils/finale.js'
+import { getRequireOrImportName, removeRequireAndImport } from '../utils/imports.js'
+import { getLogWarningForFile } from '../utils/logger.js'
 
 const MATCHES = {
   be: 'toBe',
@@ -57,7 +57,7 @@ export default function expectJsTransfomer(fileInfo, api, options) {
   const j = api.jscodeshift
   const ast = j(fileInfo.source)
   const expectImport = getRequireOrImportName(j, ast, EXPECT_JS)
-  const logWarning = (msg, node) => logger(fileInfo, msg, node)
+  const logWarning = getLogWarningForFile(fileInfo)
 
   if (!expectImport && !options.skipImportDetection) {
     // No expect.js require/import were found

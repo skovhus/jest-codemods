@@ -1,8 +1,9 @@
 /* eslint-env jest */
+import { jest } from '@jest/globals'
 import chalk from 'chalk'
 
 import { wrapPlugin } from '../utils/test-helpers'
-import plugin from './chai-should'
+import plugin from './chai-should.js'
 
 chalk.level = 0
 

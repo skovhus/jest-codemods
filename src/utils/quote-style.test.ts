@@ -2,7 +2,7 @@
 
 import jscodeshift from 'jscodeshift'
 
-import detectQuoteStyle from './quote-style'
+import detectQuoteStyle from './quote-style.js'
 
 const j = jscodeshift
 

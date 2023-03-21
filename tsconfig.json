@@ -1,27 +1,20 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "esnext"
-    ],
+    "target": "es2022",
+    "lib": ["ESNext"],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": false,
     "forceConsistentCasingInFileNames": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "resolveJsonModule": true,
     "downlevelIteration": true,
     "outDir": "dist",
     "declaration": true
   },
-  "include": [
-    "*.*",
-    "src"
-  ],
-  "exclude": [
-    "src/**/*.test.ts"
-  ]
+  "include": ["*.*", "src"],
+  "exclude": ["src/**/*.test.ts"]
 }

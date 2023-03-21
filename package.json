@@ -2,6 +2,7 @@
   "name": "jest-codemods",
   "version": "0.30.0",
   "description": "Codemods for migrating test files to Jest",
+  "type": "module",
   "license": "MIT",
   "repository": "skovhus/jest-codemods",
   "author": {
@@ -11,7 +12,7 @@
   },
   "bin": "bin/jest-codemods.js",
   "engines": {
-    "node": ">=12"
+    "node": ">=14.16"
   },
   "files": [
     "bin",
@@ -25,7 +26,7 @@
     "prepublishOnly": "yarn clean && yarn verify:bail",
     "test:cov": "yarn test --coverage",
     "test:watch": "yarn test --watch",
-    "test": "jest --runInBand",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "verify": "yarn lint && yarn build && ./bin/jest-codemods.js --version && yarn test:cov",
     "verify:bail": "yarn lint:bail && yarn verify",
     "ci": "yarn verify:bail && codecov",
@@ -82,7 +83,7 @@
     "typescript": "4.9.5"
   },
   "jest": {
-    "preset": "ts-jest",
+    "preset": "ts-jest/presets/default-esm",
     "resetMocks": true,
     "collectCoverageFrom": [
       "src/**/*.ts"
@@ -96,6 +97,17 @@
       "/node_modules/",
       "/dist/"
     ],
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    }
   }
 }

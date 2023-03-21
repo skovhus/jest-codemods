@@ -1,8 +1,8 @@
 import * as jscodeshift from 'jscodeshift'
 
-import finale from '../utils/finale'
-import { removeRequireAndImport } from '../utils/imports'
-import jasmineThisTransformer from './jasmine-this'
+import finale from '../utils/finale.js'
+import { removeRequireAndImport } from '../utils/imports.js'
+import jasmineThisTransformer from './jasmine-this.js'
 
 const methodMap = {
   suite: 'describe',

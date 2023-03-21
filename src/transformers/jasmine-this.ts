@@ -1,11 +1,10 @@
 /**
  * Codemod for transforming Jasmine `this` context into Jest v20+ compatible syntax.
  */
-import type { NodePath } from 'ast-types/lib/node-path'
 import * as jscodeshift from 'jscodeshift'
-import { Collection } from 'jscodeshift/src/Collection'
+import { Collection } from 'jscodeshift'
 
-import finale from '../utils/finale'
+import finale from '../utils/finale.js'
 
 // The ascending ordering for which setup function should be used. For example,
 // if there are only `beforeEach` blocks, then that should be used to setup
@@ -79,7 +78,7 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
   }
 
   function isWithinSpecificFunctions(
-    path: NodePath<jscodeshift.MemberExpression, jscodeshift.MemberExpression>,
+    path: jscodeshift.ASTPath<jscodeshift.MemberExpression>,
     acceptedFunctionNames,
     matchAll
   ) {
