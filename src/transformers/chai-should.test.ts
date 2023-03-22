@@ -166,8 +166,8 @@ test('removes imports and does basic conversions of should and expect (2)', () =
             });
 
             it('should map open prop to visible prop', () => {
-                expect(dropdown.props.visible).toThrowError(STANDARD_PROPS.open);
-                expect(dropdown.props.id).not.toThrowError(STANDARD_PROPS.id);
+                expect(dropdown.props.visible).toThrow(STANDARD_PROPS.open);
+                expect(dropdown.props.id).not.toThrow(STANDARD_PROPS.id);
             });
 
             thing1.equal(thing2);
@@ -307,10 +307,10 @@ test('converts "called"', () => {
         expect(sinonSpy).to.be.not.called;
     `,
     `
-        expect(sinonSpy).toBeCalled();
-        expect(sinonSpy).not.toBeCalled();
-        expect(sinonSpy).not.toBeCalled();
-        expect(sinonSpy).not.toBeCalled();
+        expect(sinonSpy).toHaveBeenCalled();
+        expect(sinonSpy).not.toHaveBeenCalled();
+        expect(sinonSpy).not.toHaveBeenCalled();
+        expect(sinonSpy).not.toHaveBeenCalled();
     `
   )
 })
@@ -324,10 +324,10 @@ test('converts "called.exactly(n)"', () => {
         expect(sinonSpy).to.not.have.been.called.exactly(3)
     `,
     `
-        expect(sinonSpy).toBeCalledTimes(3)
-        expect(sinonSpy).not.toBeCalledTimes(3)
-        expect(sinonSpy).toBeCalledTimes(3)
-        expect(sinonSpy).not.toBeCalledTimes(3)
+        expect(sinonSpy).toHaveBeenCalledTimes(3)
+        expect(sinonSpy).not.toHaveBeenCalledTimes(3)
+        expect(sinonSpy).toHaveBeenCalledTimes(3)
+        expect(sinonSpy).not.toHaveBeenCalledTimes(3)
     `
   )
 })
@@ -339,8 +339,8 @@ test('converts "callCount"', () => {
         expect(sinonSpy).not.to.have.callCount(2);
     `,
     `
-        expect(sinonSpy).toBeCalledTimes(1);
-        expect(sinonSpy).not.toBeCalledTimes(2);
+        expect(sinonSpy).toHaveBeenCalledTimes(1);
+        expect(sinonSpy).not.toHaveBeenCalledTimes(2);
     `
   )
 })
@@ -352,8 +352,8 @@ test('converts "calledOnce"', () => {
         expect(sinonSpy).not.to.be.calledOnce;
     `,
     `
-        expect(sinonSpy).toBeCalledTimes(1);
-        expect(sinonSpy).not.toBeCalledTimes(1);
+        expect(sinonSpy).toHaveBeenCalledTimes(1);
+        expect(sinonSpy).not.toHaveBeenCalledTimes(1);
     `
   )
 })
@@ -365,8 +365,8 @@ test('converts "calledTwice"', () => {
         expect(sinonSpy).not.to.be.calledTwice;
     `,
     `
-        expect(sinonSpy).toBeCalledTimes(2);
-        expect(sinonSpy).not.toBeCalledTimes(2);
+        expect(sinonSpy).toHaveBeenCalledTimes(2);
+        expect(sinonSpy).not.toHaveBeenCalledTimes(2);
     `
   )
 })
@@ -378,8 +378,8 @@ test('converts "calledThrice"', () => {
         expect(sinonSpy).not.to.be.calledThrice;
     `,
     `
-        expect(sinonSpy).toBeCalledTimes(3);
-        expect(sinonSpy).not.toBeCalledTimes(3);
+        expect(sinonSpy).toHaveBeenCalledTimes(3);
+        expect(sinonSpy).not.toHaveBeenCalledTimes(3);
     `
   )
 })
@@ -391,8 +391,8 @@ test('converts "calledWith"', () => {
         expect(sinonSpy).not.to.be.calledWith('a', 'b');
     `,
     `
-        expect(sinonSpy).toBeCalledWith(1, 2, 3);
-        expect(sinonSpy).not.toBeCalledWith('a', 'b');
+        expect(sinonSpy).toHaveBeenCalledWith(1, 2, 3);
+        expect(sinonSpy).not.toHaveBeenCalledWith('a', 'b');
     `
   )
 })
@@ -406,7 +406,7 @@ it('converts "calledWithMatch"', () => {
         });
     `,
     `
-        expect(stub).toBeCalledWith(expect.objectContaining({
+        expect(stub).toHaveBeenCalledWith(expect.objectContaining({
           foo: 'foo',
           bar: 1
         }));
@@ -421,8 +421,8 @@ test('converts "calledWithExactly"', () => {
         expect(sinonSpy).not.to.be.calledWithExactly('a', 'b');
     `,
     `
-        expect(sinonSpy).toBeCalledWith(1, 2, 3);
-        expect(sinonSpy).not.toBeCalledWith('a', 'b');
+        expect(sinonSpy).toHaveBeenCalledWith(1, 2, 3);
+        expect(sinonSpy).not.toHaveBeenCalledWith('a', 'b');
     `
   )
 })
@@ -955,12 +955,12 @@ test('converts "throw"', () => {
     `
         const err = new ReferenceError('This is a bad function.');
         const fn = function() { throw err; };
-        expect(fn).toThrowError(ReferenceError);
-        expect(fn).toThrowError(Error);
-        expect(fn).toThrowError(/bad function/);
-        expect(fn).not.toThrowError('good function');
-        expect(fn).toThrowError(ReferenceError);
-        expect(fn).toThrowError(err);
+        expect(fn).toThrow(ReferenceError);
+        expect(fn).toThrow(Error);
+        expect(fn).toThrow(/bad function/);
+        expect(fn).not.toThrow('good function');
+        expect(fn).toThrow(ReferenceError);
+        expect(fn).toThrow(err);
     `
   )
 })
