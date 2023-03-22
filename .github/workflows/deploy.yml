@@ -24,6 +24,9 @@ jobs:
           cache: "pnpm"
           registry-url: https://registry.npmjs.org/
 
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Configure git
         run: |
           git config --local user.email "kenneth.skovhus@gmail.com"

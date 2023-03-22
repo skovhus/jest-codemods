@@ -14,7 +14,6 @@ fi
 
 echo "Deploying version $version."
 
-pnpm install
 pnpm publish
 
 tag=$version
