@@ -56,8 +56,11 @@ describe('spies and stubs', () => {
 
         const stub = sinon.stub(Api, 'get');
         const putOk = sinon.stub(Api, 'put').returns(200)
+        sinon.stub();
+        sinon.stub().returns(Promise.resolve());
         sinon.stub(I18n); // unsupported
         sinon.stub(I18n, 'extend');
+        sinon.stub(I18n, 'extend').callsFake(fn => fn);
         sinon.stub(AirbnbUser, 'current').returnsArg(1);
         sinon.stub(a, b, () => c, d) // too many args
 
@@ -69,8 +72,11 @@ describe('spies and stubs', () => {
       `
         const stub = jest.spyOn(Api, 'get').mockClear().mockImplementation();
         const putOk = jest.spyOn(Api, 'put').mockClear().mockReturnValue(200)
+        jest.fn();
+        jest.fn().mockReturnValue(Promise.resolve());
         sinon.stub(I18n); // unsupported
         jest.spyOn(I18n, 'extend').mockClear().mockImplementation();
+        jest.spyOn(I18n, 'extend').mockClear().mockImplementation(fn => fn);
         jest.spyOn(AirbnbUser, 'current').mockClear().mockImplementation((...args) => args[1]);
         jest.spyOn(a, b).mockClear().mockImplementation(() => c) // too many args
 
@@ -81,9 +87,9 @@ describe('spies and stubs', () => {
 `,
       {
         warnings: [
-          'jest-codemods warning: (test.js line 6) stubbing all methods in an object is not supported; stub each one you care about individually',
-          'jest-codemods warning: (test.js line 9) 4+ arguments found in sinon.stub call; did you mean to use this many?',
-          'jest-codemods warning: (test.js line 14) 4+ arguments found in sinon.spy call; did you mean to use this many?',
+          'jest-codemods warning: (test.js line 8) stubbing all methods in an object is not supported; stub each one you care about individually',
+          'jest-codemods warning: (test.js line 12) 4+ arguments found in sinon.stub call; did you mean to use this many?',
+          'jest-codemods warning: (test.js line 17) 4+ arguments found in sinon.spy call; did you mean to use this many?',
         ],
       }
     )
