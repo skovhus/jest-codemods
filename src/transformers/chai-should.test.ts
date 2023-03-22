@@ -611,16 +611,24 @@ test('converts "includes-contains"', () => {
   expectTransformation(
     `
         expect('foobar').to.contain('foo');
+        expect(fn('foobar')).to.contain('foo');
+        expect(fn('foobar')).to.contain(\`foo\`);
         expect([1, 2, 3]).to.include(2);
         expect('foobar').which.contains('foo');
         expect({ foo: 1, bar: 2 }).to.contain({ bar: 2 });
+        expect(a).to.contain('foo');
+        expect(a).to.contain(fn('bar'));
         expect(a).to.contain(b);
     `,
     `
         expect('foobar').toContain('foo');
+        expect(fn('foobar')).toContain('foo');
+        expect(fn('foobar')).toContain(\`foo\`);
         expect([1, 2, 3]).toContain(2);
         expect('foobar').toContain('foo');
         expect({ foo: 1, bar: 2 }).toMatchObject({ bar: 2 });
+        expect(a).toContain('foo');
+        expect(a).toContain(fn('bar'));
         expect(a).toEqual(expect.arrayContaining([b]));
     `
   )
