@@ -101,6 +101,8 @@ In the second case, after running `jest-codemods`, you might need to install a f
 
     npm install --save-dev expect jest-mock
 
+    pnpm install --save-dev expect jest-mock
+
 
 ## Transformations
 
@@ -134,16 +136,16 @@ Chai Should/Expect came from [AlexJuarez/chai-to-jasmine](https://github.com/Ale
 
 To get started, run:
 
-	yarn
+	pnpm install
 
 When developing:
 
-	yarn verify  # (build/lint/test)
-	yarn build
-	yarn lint
-	yarn test
-	yarn test:cov
-	yarn test:watch
+	pnpm verify  # (build/lint/test)
+	pnpm build
+	pnpm lint
+	pnpm test
+	pnpm test:cov
+	pnpm test:watch
 
 
 ## License
