@@ -344,6 +344,21 @@ function transformStub(j, ast, sinonExpression, logWarning) {
             findParentOfType(np, j.VariableDeclaration.name) ||
             findParentOfType(np, j.ExpressionStatement.name)
 
+          const callsFake = j(parent).find(j.CallExpression, {
+            callee: {
+              type: 'MemberExpression',
+              property: { type: 'Identifier', name: 'callsFake' },
+            },
+          })
+          const hasCallsFake = callsFake.size() > 0
+
+          if (hasCallsFake) {
+            callsFake.forEach((np) => {
+              np.node.callee.property.name = 'mockImplementation'
+            })
+            return spyOn
+          }
+
           const hasReturn =
             j(parent)
               .find(j.CallExpression, {

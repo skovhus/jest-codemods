@@ -513,13 +513,13 @@ export default function transformer(fileInfo, api, options) {
           case 'function':
             return typeOf(p, value, [j.literal('function')], containsNot)
           case 'called':
-            return createCall('toBeCalled', [], rest, containsNot)
+            return createCall('toHaveBeenCalled', [], rest, containsNot)
           case 'calledonce':
-            return createCall('toBeCalledTimes', [j.literal(1)], rest, containsNot)
+            return createCall('toHaveBeenCalledTimes', [j.literal(1)], rest, containsNot)
           case 'calledtwice':
-            return createCall('toBeCalledTimes', [j.literal(2)], rest, containsNot)
+            return createCall('toHaveBeenCalledTimes', [j.literal(2)], rest, containsNot)
           case 'calledthrice':
-            return createCall('toBeCalledTimes', [j.literal(3)], rest, containsNot)
+            return createCall('toHaveBeenCalledTimes', [j.literal(3)], rest, containsNot)
           default:
             return value
         }
@@ -617,17 +617,22 @@ export default function transformer(fileInfo, api, options) {
             )
           }
           case 'callcount':
-            return createCall('toBeCalledTimes', args, rest, containsNot)
+            return createCall('toHaveBeenCalledTimes', args, rest, containsNot)
           case 'calledwith':
-            return createCall('toBeCalledWith', args, rest, containsNot)
+            return createCall('toHaveBeenCalledWith', args, rest, containsNot)
           case 'calledwithmatch':
-            return createCall('toBeCalledWith', args.map(containing), rest, containsNot)
+            return createCall(
+              'toHaveBeenCalledWith',
+              args.map(containing),
+              rest,
+              containsNot
+            )
           case 'calledwithexactly':
-            return createCall('toBeCalledWith', args, rest, containsNot)
+            return createCall('toHaveBeenCalledWith', args, rest, containsNot)
           case 'exactly':
             // handle `expect(sinonSpy).to.have.called.exactly(3)`
             if (chainContains('called', value.callee, isPrefix)) {
-              return createCall('toBeCalledTimes', [firstArg], rest, containsNot)
+              return createCall('toHaveBeenCalledTimes', [firstArg], rest, containsNot)
             }
             return value
           case 'equalto':
@@ -663,7 +668,7 @@ export default function transformer(fileInfo, api, options) {
             )
           }
           case 'throw':
-            return createCall('toThrowError', args, rest, containsNot)
+            return createCall('toThrow', args, rest, containsNot)
           case 'string':
             return createCall('toContain', args, rest, containsNot)
           case 'state':
