@@ -5,7 +5,7 @@ set -euo pipefail
 version=$(cat package.json | jq -r .version)
 name=$(cat package.json | jq -r .name)
 
-publishedVersion=$(yarn info "$name" --json | jq -r .data.\"dist-tags\".latest)
+publishedVersion=$(pnpm info "$name" --json | jq -r .\"dist-tags\".latest)
 
 if [ "$version" = "$publishedVersion" ]; then
     echo "Newest version is already deployed."
@@ -14,7 +14,8 @@ fi
 
 echo "Deploying version $version."
 
-yarn publish
+pnpm install
+pnpm publish
 
 tag=$version
 git tag -a "${tag}" -m "Release ${tag}"
