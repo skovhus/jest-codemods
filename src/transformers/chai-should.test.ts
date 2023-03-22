@@ -302,15 +302,30 @@ test('converts "called"', () => {
   expectTransformation(
     `
         expect(sinonSpy).to.be.called;
+        expect(sinonSpy).to.be.called();
         expect(sinonSpy).not.to.be.called;
         expect(sinonSpy).to.not.be.called;
         expect(sinonSpy).to.be.not.called;
     `,
     `
         expect(sinonSpy).toHaveBeenCalled();
+        expect(sinonSpy).toHaveBeenCalled();
         expect(sinonSpy).not.toHaveBeenCalled();
         expect(sinonSpy).not.toHaveBeenCalled();
         expect(sinonSpy).not.toHaveBeenCalled();
+    `
+  )
+})
+
+test('does not convert "fetchMock.called()"', () => {
+  expectTransformation(
+    `
+        expect(fetchMock.called("/url")).to.equal(true);
+        expect(fetchMock.called()).to.equal(true);
+    `,
+    `
+        expect(fetchMock.called("/url")).toBe(true);
+        expect(fetchMock.called()).toBe(true);
     `
   )
 })

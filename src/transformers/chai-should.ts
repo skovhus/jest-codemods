@@ -197,6 +197,10 @@ export default function transformer(fileInfo, api, options) {
 
   const isExpectCall = (node) => isExpectCallUtil(j, node)
 
+  const isInsideExpectCall = (path) =>
+    findParentOfType(path.parentPath.parentPath, 'CallExpression')?.value.callee.name ===
+    'expect'
+
   const typeOf = (path, value, args, containsNot) => {
     switch (args[0].value) {
       case 'null':
@@ -398,6 +402,7 @@ export default function transformer(fileInfo, api, options) {
           },
         })
         .filter((p) => findParentOfType(p, 'ExpressionStatement'))
+        .filter((p) => !isInsideExpectCall(p))
         .filter((p) => {
           const { value } = p
           const propertyName = value.property.name.toLowerCase()
