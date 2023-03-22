@@ -686,10 +686,13 @@ export default function transformer(fileInfo, api, options) {
 
             // handle `expect(wrapper.text()).to.contain('string')`
             const expectArg = rest.arguments[0]
-            if (
-              expectArg?.type === j.CallExpression.name &&
-              expectArg.callee?.property?.name === 'text'
-            ) {
+            const isExpectArgCallExpression = expectArg.type === j.CallExpression.name
+
+            // handle `expect(a).to.contain(fn('bar'))`
+            const containsArg = args?.[0]
+            const isContainsArgCallExpression = containsArg.type === j.CallExpression.name
+
+            if (isExpectArgCallExpression || isContainsArgCallExpression) {
               return createCall('toContain', args, rest, containsNot)
             }
 
