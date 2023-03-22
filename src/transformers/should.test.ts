@@ -44,7 +44,7 @@ test('removes imports and does basic conversions of should.js', () => {
         expect(user).toHaveProperty('name', 'tj');
         expect(user).toHaveProperty('name', 'tj');
         expect(true).toBeTruthy();
-        expect(foo).toThrowError(/^Description/);
+        expect(foo).toThrow(/^Description/);
         expect(foo).toBeUndefined();
     `
   )
