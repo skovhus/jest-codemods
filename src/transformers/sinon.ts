@@ -31,7 +31,7 @@ const CHAI_CHAIN_MATCHERS = new Set(
     a.toLowerCase()
   )
 )
-const SINON_CALLED_WITH_METHODS = ['calledWith', 'notCalledWith']
+const SINON_CALLED_WITH_METHODS = ['calledWith', 'notCalledWith', 'neverCalledWith']
 const SINON_SPY_METHODS = ['spy', 'stub']
 const SINON_MOCK_RESETS = {
   reset: 'mockReset',
@@ -742,6 +742,87 @@ function transformMockResets(j, ast) {
 }
 
 /* 
+  sinon.assert.called(spy) -> expect(spy).toHaveBeenCalled()
+  sinon.assert.calledOnce(spy) -> expect(spy).toHaveBeenCalledTimes(1)
+  sinon.assert.calledWith(spy, arg1, arg2) -> expect(spy).toHaveBeenCalledWith(arg1, arg2)
+*/
+function transformAssert(j, ast) {
+  ast
+    .find(j.CallExpression, {
+      type: 'CallExpression',
+      callee: {
+        type: 'MemberExpression',
+        object: {
+          type: 'MemberExpression',
+          object: {
+            type: 'Identifier',
+            name: 'sinon',
+          },
+          property: {
+            type: 'Identifier',
+            name: 'assert',
+          },
+        },
+        property: {
+          type: 'Identifier',
+          name: (n) =>
+            SINON_CALL_COUNT_METHODS.includes(n) || SINON_CALLED_WITH_METHODS.includes(n),
+        },
+      },
+    })
+    .replaceWith((np) => {
+      const args = np.node.arguments
+      const { name } = np.node.callee.property
+
+      let matcher
+
+      switch (name) {
+        case 'called':
+          matcher = j.callExpression(j.identifier('toHaveBeenCalled'), [])
+          break
+        case 'notCalled':
+          matcher = j.callExpression(
+            j.memberExpression(j.identifier('not'), j.identifier('toHaveBeenCalled')),
+            []
+          )
+          break
+        case 'calledOnce':
+          matcher = j.callExpression(j.identifier('toHaveBeenCalledTimes'), [
+            j.numericLiteral(1),
+          ])
+          break
+        case 'calledTwice':
+          matcher = j.callExpression(j.identifier('toHaveBeenCalledTimes'), [
+            j.numericLiteral(2),
+          ])
+          break
+        case 'calledThrice':
+          matcher = j.callExpression(j.identifier('toHaveBeenCalledTimes'), [
+            j.numericLiteral(3),
+          ])
+          break
+        case 'callCount':
+          matcher = j.callExpression(j.identifier('toHaveBeenCalledTimes'), [args[1]])
+          break
+        case 'calledWith':
+          matcher = j.callExpression(j.identifier('toHaveBeenCalledWith'), args.slice(1))
+          break
+        case 'neverCalledWith':
+          matcher = j.callExpression(
+            j.memberExpression(j.identifier('not'), j.identifier('toHaveBeenCalledWith')),
+            args.slice(1)
+          )
+          break
+      }
+
+      return j.memberExpression(
+        j.callExpression(j.identifier('expect'), [args[0]]),
+        matcher
+      )
+    })
+}
+
+/* 
   sinon.match({ ... }) -> expect.objectContaining({ ... })
   // .any. matches:
   sinon.match.[any|number|string|object|func|array] -> expect.any(type)
@@ -948,6 +1029,7 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
   transformCallsArg(j, ast, options.parser)
   transformCallCountAssertions(j, ast)
   transformCalledWithAssertions(j, ast)
+  transformAssert(j, ast)
   transformMatch(j, ast)
   transformStubGetCalls(j, ast)
   transformTypes(j, ast, options.parser)

@@ -531,6 +531,37 @@ describe('sinon.match', () => {
   })
 })
 
+describe('sinon.assert', () => {
+  it('handles assertions', () => {
+    expectTransformation(
+      `
+        import sinon from 'sinon'
+
+        sinon.assert.called(spy);
+        sinon.assert.notCalled(spy);
+        sinon.assert.calledOnce(spy);
+        sinon.assert.calledTwice(spy);
+        sinon.assert.calledThrice(spy);
+        sinon.assert.callCount(spy, 56);
+        sinon.assert.calledWith(spyOrSpyCall, arg1, arg2);
+        sinon.assert.calledWith(spy, sinon.match({ author: "cjno" }));
+        sinon.assert.neverCalledWith(spy, arg1, arg2);
+      `,
+      `
+        expect(spy).toHaveBeenCalled();
+        expect(spy).not.toHaveBeenCalled();
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledTimes(2);
+        expect(spy).toHaveBeenCalledTimes(3);
+        expect(spy).toHaveBeenCalledTimes(56);
+        expect(spyOrSpyCall).toHaveBeenCalledWith(arg1, arg2);
+        expect(spy).toHaveBeenCalledWith(expect.objectContaining({ author: "cjno" }));
+        expect(spy).not.toHaveBeenCalledWith(arg1, arg2);
+      `
+    )
+  })
+})
+
 describe('spy count and call assertions', () => {
   it('handles call count assertions', () => {
     expectTransformation(
