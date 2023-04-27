@@ -68,7 +68,7 @@
     "@types/update-notifier": "5.1.0",
     "@typescript-eslint/eslint-plugin": "5.59.1",
     "@typescript-eslint/parser": "5.59.1",
-    "ast-types": "0.14.2",
+    "ast-types": "0.16.1",
     "codecov": "3.8.3",
     "eslint": "8.39.0",
     "eslint-config-prettier": "8.8.0",

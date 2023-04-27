@@ -43,8 +43,8 @@ devDependencies:
     specifier: 5.59.1
     version: 5.59.1(eslint@8.39.0)(typescript@5.0.4)
   ast-types:
-    specifier: 0.14.2
-    version: 0.14.2
+    specifier: 0.16.1
+    version: 0.16.1
   codecov:
     specifier: 3.8.3
     version: 3.8.3
@@ -2435,6 +2435,13 @@ packages:
     dependencies:
       tslib: 2.3.1
     dev: false
+
+  /ast-types@0.16.1:
+    resolution: {integrity: sha512-6t10qk83GOG8p0vKmaCr8eiilZwO171AvbROMtvvNiwrTly62t+7XkA8RdIIVbpMhCASAsxgAzdRSwh6nw/5Dg==}
+    engines: {node: '>=4'}
+    dependencies:
+      tslib: 2.3.1
+    dev: true
 
   /astral-regex@2.0.0:
     resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
