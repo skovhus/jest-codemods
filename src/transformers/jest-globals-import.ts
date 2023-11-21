@@ -1,37 +1,7 @@
-import fs from 'fs'
 import type { ImportSpecifier, JSCodeshift } from 'jscodeshift'
-import path from 'path'
 
+import { JEST_GLOBALS } from '../utils/consts'
 import { findImports, removeRequireAndImport } from '../utils/imports'
-
-const jestGlobals = new Set<string>()
-
-const jestGlobalsPath = path.join(
-  __dirname,
-  '../../node_modules/@jest/globals/build/index.d.ts'
-)
-
-const ensureJestGlobalsPopulated = ({ j }: { j: JSCodeshift }) => {
-  if (jestGlobals.size > 0) return
-
-  const jestGlobalsAst = j(String(fs.readFileSync(jestGlobalsPath)), { parser: 'ts' })
-
-  jestGlobalsAst
-    .find(j.ExportNamedDeclaration, { declaration: { declare: true } })
-    .forEach((exportNamedDec) => {
-      if (exportNamedDec.node.declaration?.type !== 'VariableDeclaration') return
-      exportNamedDec.node.declaration.declarations.forEach((dec) => {
-        if (dec.type !== 'VariableDeclarator' || dec.id?.type !== 'Identifier') return
-        jestGlobals.add(dec.id.name)
-      })
-    })
-
-  jestGlobalsAst
-    .find(j.ExportSpecifier, { exported: { name: (n) => typeof n === 'string' } })
-    .forEach((exportSpecifier) => {
-      jestGlobals.add(exportSpecifier.node.exported.name)
-    })
-}
 
 const jestGlobalsImport = (
   fileInfo: { path: string; source: string },
@@ -40,13 +10,9 @@ const jestGlobalsImport = (
   const { jscodeshift: j } = api
   const ast = j(fileInfo.source)
 
-  ensureJestGlobalsPopulated({ j })
-
-  if (jestGlobals.size === 0) throw new Error("couldn't parse @jest/globals exports")
-
   const jestGlobalsUsed = new Set<string>()
 
-  jestGlobals.forEach((globalName) => {
+  JEST_GLOBALS.forEach((globalName) => {
     if (
       ast
         .find(j.CallExpression, { callee: { name: globalName } })

@@ -1,6 +1,10 @@
 /* eslint-env jest */
+import fs from 'fs'
+import * as jscodeshift from 'jscodeshift'
 import { applyTransform } from 'jscodeshift/src/testUtils'
+import path from 'path'
 
+import { JEST_GLOBALS } from '../utils/consts'
 import * as plugin from './jest-globals-import'
 
 function expectTransformation(source: string, expectedOutput: string | null) {
@@ -9,6 +13,36 @@ function expectTransformation(source: string, expectedOutput: string | null) {
 }
 
 describe('jestGlobalsImport', () => {
+  it("matches @jest/globals' types", () => {
+    const jestGlobalsPath = path.join(
+      __dirname,
+      '../../node_modules/@jest/globals/build/index.d.ts'
+    )
+
+    const jestGlobals = new Set<string>()
+
+    const j = jscodeshift.withParser('ts')
+    const jestGlobalsAst = j(String(fs.readFileSync(jestGlobalsPath)))
+
+    jestGlobalsAst
+      .find(j.ExportNamedDeclaration, { declaration: { declare: true } })
+      .forEach((exportNamedDec) => {
+        if (exportNamedDec.node.declaration?.type !== 'VariableDeclaration') return
+        exportNamedDec.node.declaration.declarations.forEach((dec) => {
+          if (dec.type !== 'VariableDeclarator' || dec.id?.type !== 'Identifier') return
+          jestGlobals.add(dec.id.name)
+        })
+      })
+
+    jestGlobalsAst
+      .find(j.ExportSpecifier, { exported: { name: (n) => typeof n === 'string' } })
+      .forEach((exportSpecifier) => {
+        jestGlobals.add(exportSpecifier.node.exported.name)
+      })
+
+    expect(jestGlobals).toEqual(JEST_GLOBALS)
+  })
+
   it('covers a simple test', () => {
     expectTransformation(
       `
@@ -90,7 +124,7 @@ describe('with foo=bar', () => {
 });
 `.trim(),
       `
-import { expect as xpect, it, describe, beforeEach, afterEach, jest } from '@jest/globals';
+import { expect as xpect, it, afterEach, beforeEach, describe, jest } from '@jest/globals';
 import wrapWithStuff from 'test-utils/wrapWithStuff';
 
 describe('with foo=bar', () => {
