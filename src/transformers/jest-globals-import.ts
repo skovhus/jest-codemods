@@ -1,72 +1,8 @@
 import fs from 'fs'
-import type { Collection, ImportSpecifier, JSCodeshift } from 'jscodeshift'
+import type { ImportSpecifier, JSCodeshift } from 'jscodeshift'
 import path from 'path'
 
-// Inserts a new import statement at the top of the file.
-const addImport = ({
-  j,
-  ast,
-  src,
-  defaultImportName,
-  namedImports = new Set(),
-}: {
-  j: JSCodeshift
-  ast: Collection
-  src: string
-  defaultImportName?: string // e.g. the `React` in `import React from 'react';`.
-  namedImports?: Set<string> // e.g. the `{ name }` in `import { readFileSync } from 'fs';`.
-}) => {
-  const specifiers = []
-
-  if (defaultImportName) {
-    specifiers.push(j.importDefaultSpecifier(j.identifier(defaultImportName)))
-  }
-  Array.from(namedImports)
-    .sort()
-    .forEach((name) => {
-      specifiers.push(j.importSpecifier(j.identifier(name)))
-    })
-  const newImport = j.importDeclaration(specifiers, j.stringLiteral(src))
-
-  const program = ast.find(j.Program)
-  const hasTopComment = program.get('body', 0).node.comments?.length > 0
-  program.get('body', hasTopComment ? 1 : 0).insertBefore(newImport)
-}
-
-const ensureImportExists = ({
-  j,
-  ast,
-  src,
-  namedImports = new Set(),
-}: {
-  j: JSCodeshift
-  ast: Collection
-  src: string
-  namedImports?: Set<string>
-}) => {
-  const importDec = ast.find(j.ImportDeclaration, {
-    source: {
-      value: src,
-    },
-  })
-
-  if (importDec.length === 0) {
-    addImport({ j, ast, src, namedImports })
-    return
-  }
-
-  const { specifiers } = importDec.get().value
-
-  namedImports.forEach((name) => {
-    const importSpec = importDec.find(j.ImportSpecifier, { imported: { name } })
-    if (importSpec.length >= 1) return
-    specifiers.push(j.importSpecifier(j.identifier(name)))
-  })
-
-  specifiers.sort((spec1: ImportSpecifier, spec2: ImportSpecifier) =>
-    spec1.imported.name > spec2.imported.name ? 1 : -1
-  )
-}
+import { findImports, removeRequireAndImport } from '../utils/imports'
 
 const jestGlobals = new Set<string>()
 
@@ -125,19 +61,29 @@ const jestGlobalsImport = (
     }
   })
 
-  const existingJestGlobalsImport = ast.find(j.ImportDeclaration, {
-    importKind: 'value',
-    source: { value: '@jest/globals' },
-  })
-
-  const hasJestGlobalsImport = existingJestGlobalsImport.size() > 0
+  const jestGlobalsImports = findImports(j, ast, '@jest/globals')
+  const hasJestGlobalsImport = jestGlobalsImports.length > 0
   const needsJestGlobalsImport = jestGlobalsUsed.size > 0
 
   if (!needsJestGlobalsImport) {
     if (!hasJestGlobalsImport) return null
-    existingJestGlobalsImport.remove()
+    removeRequireAndImport(j, ast, '@jest/globals')
   } else {
-    ensureImportExists({ j, ast, src: '@jest/globals', namedImports: jestGlobalsUsed })
+    const jestGlobalsImport = hasJestGlobalsImport
+      ? jestGlobalsImports.get().value
+      : j.importDeclaration([], j.stringLiteral('@jest/globals'))
+    const { specifiers } = jestGlobalsImport
+    const existingNames = new Set<string>(
+      specifiers.map((s: ImportSpecifier) => s.imported.name)
+    )
+    jestGlobalsUsed.forEach((jestGlobal) => {
+      if (!existingNames.has(jestGlobal)) {
+        specifiers.push(j.importSpecifier(j.identifier(jestGlobal)))
+      }
+    })
+    if (!hasJestGlobalsImport) {
+      ast.find(j.Program).get('body', 0).insertBefore(jestGlobalsImport)
+    }
   }
 
   return ast.toSource({ quote: 'single' })

@@ -74,7 +74,7 @@ const BLAH = 5;
   it('covers a less simple test', () => {
     expectTransformation(
       `
-import { expect, it } from '@jest/globals';
+import { expect as xpect, it } from '@jest/globals';
 import wrapWithStuff from 'test-utils/wrapWithStuff';
 
 describe('with foo=bar', () => {
@@ -84,12 +84,13 @@ describe('with foo=bar', () => {
   afterEach(() => jest.useRealTimers());
 
   it('works', () => {
-    expect(myThingIsEnabled(jest.fn())).toBe(true);
+    xpect(myThingIsEnabled(jest.fn())).toBe(true);
+    expect(1).toBe(1);
   });
 });
 `.trim(),
       `
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { expect as xpect, it, describe, beforeEach, afterEach, jest } from '@jest/globals';
 import wrapWithStuff from 'test-utils/wrapWithStuff';
 
 describe('with foo=bar', () => {
@@ -99,7 +100,8 @@ describe('with foo=bar', () => {
   afterEach(() => jest.useRealTimers());
 
   it('works', () => {
-    expect(myThingIsEnabled(jest.fn())).toBe(true);
+    xpect(myThingIsEnabled(jest.fn())).toBe(true);
+    expect(1).toBe(1);
   });
 });
 `.trim()
