@@ -31,6 +31,9 @@ dependencies:
     version: 5.1.0
 
 devDependencies:
+  '@jest/globals':
+    specifier: 29.3.1
+    version: 29.3.1
   '@types/jest':
     specifier: 29.2.6
     version: 29.2.6

@@ -44,3 +44,20 @@ export const JEST_MATCHER_TO_MAX_ARGS = {
 }
 
 export const JEST_MOCK_PROPERTIES = new Set(['spyOn', 'fn', 'createSpy'])
+
+export const JEST_GLOBALS = new Set<string>([
+  'afterAll',
+  'afterEach',
+  'beforeAll',
+  'beforeEach',
+  'describe',
+  'expect',
+  'fdescribe',
+  'fit',
+  'it',
+  'jest',
+  'test',
+  'xdescribe',
+  'xit',
+  'xtest',
+])
