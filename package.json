@@ -58,14 +58,14 @@
     "globby": "11.1.0",
     "inquirer": "8.2.5",
     "is-git-clean": "1.1.0",
-    "jscodeshift": "0.15.0",
+    "jscodeshift": "0.15.1",
     "meow": "7.1.1",
     "update-notifier": "5.1.0"
   },
   "devDependencies": {
     "@jest/globals": "29.3.1",
     "@types/jest": "29.2.6",
-    "@types/jscodeshift": "0.11.6",
+    "@types/jscodeshift": "0.11.11",
     "@types/update-notifier": "5.1.0",
     "@typescript-eslint/eslint-plugin": "5.59.7",
     "@typescript-eslint/parser": "5.59.7",
