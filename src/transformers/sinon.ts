@@ -7,7 +7,7 @@ import {
   isExpectCallUtil,
 } from '../utils/chai-chain-utils'
 import finale from '../utils/finale'
-import { removeDefaultImport } from '../utils/imports'
+import { removeRequireAndImport } from '../utils/imports'
 import logger from '../utils/logger'
 import { findParentOfType } from '../utils/recast-helpers'
 import {
@@ -1010,7 +1010,8 @@ export default function transformer(fileInfo: FileInfo, api: API, options) {
   const ast = j(fileInfo.source)
 
   const sinonExpression =
-    removeDefaultImport(j, ast, 'sinon-sandbox') || removeDefaultImport(j, ast, 'sinon')
+    removeRequireAndImport(j, ast, 'sinon-sandbox') ||
+    removeRequireAndImport(j, ast, 'sinon')
 
   if (!sinonExpression) {
     if (!options.skipImportDetection) {
