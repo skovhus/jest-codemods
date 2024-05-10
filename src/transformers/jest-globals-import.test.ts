@@ -75,7 +75,7 @@ const test = () => { console.log('only a test'); };
     )
   })
 
-  it('removes imports', () => {
+  it('removes unnecessary imports', () => {
     expectTransformation(
       `
 import '@jest/globals';
@@ -101,6 +101,30 @@ const BLAH = 5;
 `.trim(),
       `
 const BLAH = 5;
+`.trim()
+    )
+    expectTransformation(
+      `
+import { expect } from '@jest/globals';
+const BLAH = 5;
+expect(BLAH).toBe(5);
+`.trim(),
+      `
+import { expect } from '@jest/globals';
+const BLAH = 5;
+expect(BLAH).toBe(5);
+`.trim()
+    )
+    expectTransformation(
+      `
+import '@jest/globals';
+const BLAH = 5;
+expect(BLAH).toBe(5);
+`.trim(),
+      `
+import { expect } from '@jest/globals';
+const BLAH = 5;
+expect(BLAH).toBe(5);
 `.trim()
     )
   })

@@ -1,4 +1,10 @@
-import type { ImportSpecifier, JSCodeshift } from 'jscodeshift'
+import type {
+  ASTPath,
+  CallExpression,
+  ImportSpecifier,
+  JSCodeshift,
+  MemberExpression,
+} from 'jscodeshift'
 
 import { JEST_GLOBALS } from '../utils/consts'
 import { findImports, removeRequireAndImport } from '../utils/imports'
@@ -12,15 +18,25 @@ const jestGlobalsImport = (
 
   const jestGlobalsUsed = new Set<string>()
 
+  const isImplicitlyInScope = (
+    expression: ASTPath<CallExpression | MemberExpression>,
+    globalName: string
+  ) => {
+    return Boolean(
+      expression.scope.lookup(globalName) &&
+        ast.find(j.ImportSpecifier, { imported: { name: globalName } }).size() === 0
+    )
+  }
+
   JEST_GLOBALS.forEach((globalName) => {
     if (
       ast
         .find(j.CallExpression, { callee: { name: globalName } })
-        .filter((callExpression) => !callExpression.scope.lookup(globalName))
+        .filter((callExpression) => !isImplicitlyInScope(callExpression, globalName))
         .size() > 0 ||
       ast
         .find(j.MemberExpression, { object: { name: globalName } })
-        .filter((memberExpression) => !memberExpression.scope.lookup(globalName))
+        .filter((memberExpression) => !isImplicitlyInScope(memberExpression, globalName))
         .size() > 0
     ) {
       jestGlobalsUsed.add(globalName)
