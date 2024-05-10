@@ -38,11 +38,7 @@ describe.each([
     'const sinon = require("sinon")',
     'const sinon = require("sinon-sandbox")',
   ] as const,
-  [
-    'esm',
-    'const sinon = require("sinon")',
-    'const sinon = require("sinon-sandbox")',
-  ] as const,
+  ['esm', 'import sinon from "sinon"', 'import sinon from "sinon-sandbox"'] as const,
 ])('for module format: %s', (_moduleFormat, sinonImport, sinonSandboxImport) => {
   it('removes sinon-sandbox imports', () => {
     expectTransformation(
