@@ -431,9 +431,10 @@ export default function jasmineGlobals(fileInfo, api, options) {
           break
         }
         case 'mockDate': {
-          logWarning(
-            'Unsupported Jasmine functionality "jasmine.clock().mockDate(*)".',
-            path
+          // make it `jest.setSystemTime(date)`
+          path.node.callee = j.memberExpression(
+            j.identifier('jest'),
+            j.identifier('setSystemTime')
           )
           break
         }
