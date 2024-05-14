@@ -27,6 +27,7 @@ test('spyOn', () => {
     jest.spyOn().mockImplementation();
     jest.spyOn(stuff).and.resolveTo('lmao');
     jest.spyOn(stuff).and.rejectWith('oh no');
+    const fetchSpy = spyOn(window, 'fetch').and.resolveTo({json: {}});
     `,
     `
     jest.spyOn().mockReturnValue();
@@ -40,6 +41,7 @@ test('spyOn', () => {
     jest.spyOn().mockImplementation();
     jest.spyOn(stuff).mockResolvedValue('lmao');
     jest.spyOn(stuff).mockRejectedValue('oh no');
+    const fetchSpy = jest.spyOn(window, 'fetch').mockResolvedValue({json: {}});
     `
   )
 })
@@ -55,6 +57,7 @@ test('jasmine.createSpy', () => {
     const spy2 = jasmine.createSpy().and.returnValue('lmao');
     jasmine.createSpy().and.resolveTo('lmao');
     jasmine.createSpy().and.rejectWith('oh no');
+    const spy3 = jasmine.createSpy().and.resolveTo('lmao');
     `,
     `
     jest.fn();
@@ -65,6 +68,7 @@ test('jasmine.createSpy', () => {
     const spy2 = jest.fn(() => 'lmao');
     jest.fn().mockResolvedValue('lmao');
     jest.fn().mockRejectedValue('oh no');
+    const spy3 = jest.fn().mockResolvedValue('lmao');
     `
   )
 
