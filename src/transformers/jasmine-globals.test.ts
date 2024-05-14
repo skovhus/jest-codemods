@@ -67,6 +67,9 @@ test('jasmine.createSpy', () => {
     jest.fn().mockRejectedValue('oh no');
     `
   )
+
+  // Ensure we haven't missed any console warnings
+  expect(consoleWarnings).toEqual([])
 })
 
 test('not supported jasmine.createSpy().and.*', () => {

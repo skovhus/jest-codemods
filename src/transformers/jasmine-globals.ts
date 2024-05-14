@@ -53,6 +53,14 @@ export default function jasmineGlobals(fileInfo, api, options) {
           path.node.arguments = [j.arrowFunctionExpression([], path.node.arguments[0])]
           break
         }
+        // This is transformed by the *.and.*() expression handling below
+        case 'resolveTo': {
+          break
+        }
+        // This is transformed by the *.and.*() expression handling below
+        case 'rejectWith': {
+          break
+        }
         default: {
           logWarning(
             `Unsupported Jasmine functionality "jasmine.createSpy().and.${spyType}".`,
