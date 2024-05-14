@@ -53,6 +53,14 @@ export default function jasmineGlobals(fileInfo, api, options) {
           path.node.arguments = [j.arrowFunctionExpression([], path.node.arguments[0])]
           break
         }
+        // This is transformed by the *.and.*() expression handling below
+        case 'resolveTo': {
+          break
+        }
+        // This is transformed by the *.and.*() expression handling below
+        case 'rejectWith': {
+          break
+        }
         default: {
           logWarning(
             `Unsupported Jasmine functionality "jasmine.createSpy().and.${spyType}".`,
@@ -137,6 +145,8 @@ export default function jasmineGlobals(fileInfo, api, options) {
       // - `existingSpy.and.callFake(..)`
       // - `spyOn().and.returnValue(..)`
       // - `existingSpy.and.returnValue(..)`
+      // - `spyOn().and.resolveTo(..)`
+      // - `existingSpy.and.rejectWith(..)`
       callee: {
         type: 'MemberExpression',
         object: {
@@ -169,6 +179,20 @@ export default function jasmineGlobals(fileInfo, api, options) {
         case 'returnValue': {
           path.node.callee.object = path.node.callee.object.object
           path.node.callee.property.name = 'mockReturnValue'
+          break
+        }
+        // `*.and.resolveTo()` is equivalent of jest
+        // `*.mockResolvedValue()`
+        case 'resolveTo': {
+          path.node.callee.object = path.node.callee.object.object
+          path.node.callee.property.name = 'mockResolvedValue'
+          break
+        }
+        // `*.and.rejectWith()` is equivalent of jest
+        // `*.mockRejectedValue()`
+        case 'rejectWith': {
+          path.node.callee.object = path.node.callee.object.object
+          path.node.callee.property.name = 'mockRejectedValue'
           break
         }
       }
