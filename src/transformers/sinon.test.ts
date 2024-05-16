@@ -32,27 +32,43 @@ function expectTransformation(
   })
 }
 
-it.each`
-  source
-  ${'sinon-sandbox'}
-  ${'sinon'}
-`('removes imports', ({ source }) => {
-  expectTransformation(
-    `
-      import foo from 'foo'
-      import sinon from '${source}';
-`,
-    `
-      import foo from 'foo'
-`
-  )
-})
-
-describe('spies and stubs', () => {
-  it('handles spies', () => {
+describe.each([
+  [
+    'cjs',
+    'const sinon = require("sinon")',
+    'const sinon = require("sinon-sandbox")',
+  ] as const,
+  ['esm', 'import sinon from "sinon"', 'import sinon from "sinon-sandbox"'] as const,
+])('for module format: %s', (_moduleFormat, sinonImport, sinonSandboxImport) => {
+  it('removes sinon-sandbox imports', () => {
     expectTransformation(
       `
-        import sinon from 'sinon'
+      import foo from 'foo'
+      ${sinonSandboxImport};
+`,
+      `
+      import foo from 'foo'
+`
+    )
+  })
+
+  it('removes sinon imports', () => {
+    expectTransformation(
+      `
+      import foo from 'foo'
+      ${sinonImport};
+`,
+      `
+      import foo from 'foo'
+`
+    )
+  })
+
+  describe('spies and stubs', () => {
+    it('handles spies', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
 
         const stub = sinon.stub(Api, 'get');
         const putOk = sinon.stub(Api, 'put').returns(200)
@@ -69,7 +85,7 @@ describe('spies and stubs', () => {
         sinon.spy(() => 'foo');
         sinon.spy(a, b, () => c, d) // too many args
 `,
-      `
+        `
         const stub = jest.spyOn(Api, 'get').mockClear().mockImplementation();
         const putOk = jest.spyOn(Api, 'put').mockClear().mockReturnValue(200)
         jest.fn();
@@ -85,32 +101,32 @@ describe('spies and stubs', () => {
         jest.fn(() => 'foo');
         jest.spyOn(a, b).mockClear().mockImplementation(() => c) // too many args
 `,
-      {
-        warnings: [
-          'jest-codemods warning: (test.js line 8) stubbing all methods in an object is not supported; stub each one you care about individually',
-          'jest-codemods warning: (test.js line 12) 4+ arguments found in sinon.stub call; did you mean to use this many?',
-          'jest-codemods warning: (test.js line 17) 4+ arguments found in sinon.spy call; did you mean to use this many?',
-        ],
-      }
-    )
-  })
+        {
+          warnings: [
+            'jest-codemods warning: (test.js line 8) stubbing all methods in an object is not supported; stub each one you care about individually',
+            'jest-codemods warning: (test.js line 12) 4+ arguments found in sinon.stub call; did you mean to use this many?',
+            'jest-codemods warning: (test.js line 17) 4+ arguments found in sinon.spy call; did you mean to use this many?',
+          ],
+        }
+      )
+    })
 
-  it('handles 3rd argument implementation fn', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('handles 3rd argument implementation fn', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
         sinon.stub(I18n, 'extend', () => 'foo');
 `,
-      `
+        `
         jest.spyOn(I18n, 'extend').mockClear().mockImplementation(() => 'foo');
 `
-    )
-  })
+      )
+    })
 
-  it('mock clear if spy added in beforeEach', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('mock clear if spy added in beforeEach', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
 
         beforeEach(() => {
           sinon.stub(Api, 'get')
@@ -120,7 +136,7 @@ describe('spies and stubs', () => {
           sinon.stub(I18n, 'extend', () => 'foo');
         })
 `,
-      `
+        `
         beforeEach(() => {
           jest.spyOn(Api, 'get').mockClear().mockImplementation()
           const s1 = jest.spyOn(I18n, 'extend').mockClear().mockImplementation()
@@ -129,52 +145,52 @@ describe('spies and stubs', () => {
           jest.spyOn(I18n, 'extend').mockClear().mockImplementation(() => 'foo');
         })
 `
-    )
-  })
+      )
+    })
 
-  it('handles returns', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('handles returns', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
         const stub1 = sinon.stub(Api, 'get').returns('foo')
         const stub2 = sinon.stub(Api, 'get').returns(Promise.resolve({ foo: '1' }))
 `,
-      `
+        `
         const stub1 = jest.spyOn(Api, 'get').mockClear().mockReturnValue('foo')
         const stub2 = jest.spyOn(Api, 'get').mockClear().mockReturnValue(Promise.resolve({ foo: '1' }))
 `
-    )
-  })
+      )
+    })
 
-  it('handles .returnsArg', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('handles .returnsArg', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
         sinon.stub(foo, 'getParam').returnsArg(3);
   `,
-      `
+        `
         jest.spyOn(foo, 'getParam').mockClear().mockImplementation((...args) => args[3]);
   `
-    )
-  })
+      )
+    })
 
-  it('handles .returnsArg (parser: ts)', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('handles .returnsArg (parser: ts)', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
         sinon.stub(foo, 'getParam').returnsArg(3);
   `,
-      `
+        `
         jest.spyOn(foo, 'getParam').mockClear().mockImplementation((...args: any[]) => args[3]);
   `,
-      { parser: 'ts' }
-    )
-  })
+        { parser: 'ts' }
+      )
+    })
 
-  it('handles .withArgs returns', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('handles .withArgs returns', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
 
         sinon.stub().withArgs('foo').returns('something')
         sinon.stub().withArgs('foo', 'bar').returns('something')
@@ -184,7 +200,7 @@ describe('spies and stubs', () => {
         sinon.stub(foo, 'bar').withArgs('foo', sinon.match.object).returns('something')
         sinon.stub().withArgs('foo', sinon.match.any).returns('something')
 `,
-      `
+        `
         jest.fn().mockImplementation((...args) => {
                 if (args[0] === 'foo') {
                         return 'something';
@@ -221,35 +237,35 @@ describe('spies and stubs', () => {
                 }
         })
 `
-    )
-  })
+      )
+    })
 
-  it('handles .withArgs for typescript files', () => {
-    expectTransformation(
-      `
-      import sinon from 'sinon'
+    it('handles .withArgs for typescript files', () => {
+      expectTransformation(
+        `
+      ${sinonImport}
 
       sinon.stub().withArgs('foo').returns('something')
     `,
-      `
+        `
       jest.fn().mockImplementation((...args: any[]) => {
             if (args[0] === 'foo') {
                   return 'something';
             }
       })
     `,
-      { parser: 'tsx' }
-    )
-  })
+        { parser: 'tsx' }
+      )
+    })
 
-  /* 
+    /* 
     apiStub.getCall(0).args[1].data
     apistub.args[1][1]
   */
-  it('handles .getCall, .getCalls and spy arguments', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('handles .getCall, .getCalls and spy arguments', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
 
         apiStub.getCall(0)
         apiStub.getCall(0).args[1].data
@@ -260,7 +276,7 @@ describe('spies and stubs', () => {
         api.getCalls()[2]
         api.getCalls()[2].args
 `,
-      `
+        `
         apiStub.mock.calls[0]
         apiStub.mock.calls[0][1].data
         dispatch.mock.calls[0][0]
@@ -270,13 +286,13 @@ describe('spies and stubs', () => {
         api.mock.calls[2]
         api.mock.calls[2]
 `
-    )
-  })
+      )
+    })
 
-  it('handles .args[n]', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('handles .args[n]', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
 
         apiStub.args[2][3]
         apiStub.foo.bar.args[2][3]
@@ -284,20 +300,20 @@ describe('spies and stubs', () => {
         // just remove .args
         apiStub.mock.calls[0].args[3]
 `,
-      `
+        `
         apiStub.mock.calls[2][3]
         apiStub.foo.bar.mock.calls[2][3]
 
         // just remove .args
         apiStub.mock.calls[0][3]
 `
-    )
-  })
+      )
+    })
 
-  it('handles .nthCall', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('handles .nthCall', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
 
         apiStub.firstCall
         apiStub.firstCall.args[1].data
@@ -308,7 +324,7 @@ describe('spies and stubs', () => {
         apiStub.lastCall
         apiStub.lastCall.args[1].data
 `,
-      `
+        `
         apiStub.mock.calls[0]
         apiStub.mock.calls[0][1].data
         apiStub.mock.calls[1]
@@ -318,13 +334,13 @@ describe('spies and stubs', () => {
         apiStub.mock.lastCall
         apiStub.mock.lastCall[1].data
 `
-    )
-  })
+      )
+    })
 
-  it('handles .callsArg*', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+    it('handles .callsArg*', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
 
         apiStub.callsArg(0)
         apiStub.callsArgOn(1, thisArg)
@@ -334,7 +350,7 @@ describe('spies and stubs', () => {
 
         apiStub.callsArg() // Ignored
 `,
-      `
+        `
         apiStub.mockImplementation((...args) => args[0]())
         apiStub.mockImplementation((...args) => args[1].call(thisArg))
         apiStub.mockImplementation((...args) => args[2]('a', 'b'))
@@ -343,12 +359,12 @@ describe('spies and stubs', () => {
 
         apiStub.callsArg() // Ignored
 `
-    )
-  })
-  it('handles .callsArg* (parser: ts)', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+      )
+    })
+    it('handles .callsArg* (parser: ts)', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
 
         apiStub.callsArg(0)
         apiStub.callsArgOn(1, thisArg)
@@ -358,7 +374,7 @@ describe('spies and stubs', () => {
 
         apiStub.callsArg() // Ignored
 `,
-      `
+        `
         apiStub.mockImplementation((...args: any[]) => args[0]())
         apiStub.mockImplementation((...args: any[]) => args[1].call(thisArg))
         apiStub.mockImplementation((...args: any[]) => args[2]('a', 'b'))
@@ -367,14 +383,14 @@ describe('spies and stubs', () => {
 
         apiStub.callsArg() // Ignored
 `,
-      { parser: 'ts' }
-    )
-  })
+        { parser: 'ts' }
+      )
+    })
 
-  it('handles on*Call', () => {
-    expectTransformation(
-      `
-      import sinon from 'sinon-sandbox'
+    it('handles on*Call', () => {
+      expectTransformation(
+        `
+      ${sinonSandboxImport}
 
       stub.onFirstCall().returns(5)
       stub.onSecondCall().returns(6, 7)
@@ -385,7 +401,7 @@ describe('spies and stubs', () => {
       // invalid onCall() params
       stub.onCall().returns('invalid')
 `,
-      `
+        `
       stub.mockImplementation(() => {
             if (stub.mock.calls.length === 0) {
                   return 5;
@@ -411,12 +427,12 @@ describe('spies and stubs', () => {
       // invalid onCall() params
       stub.onCall().mockReturnValue('invalid')
 `
-    )
-  })
-  it('handles on*Call (parser: ts)', () => {
-    expectTransformation(
-      `
-      import sinon from 'sinon-sandbox'
+      )
+    })
+    it('handles on*Call (parser: ts)', () => {
+      expectTransformation(
+        `
+      ${sinonSandboxImport}
 
       stub.onThirdCall().returns([8, 9, 10])
       stub.onCall(3).returns(biscuits)
@@ -424,7 +440,7 @@ describe('spies and stubs', () => {
       stub.onThirdCall().returnsArg(2)
       stub.onCall(3).returnsArg(biscuits)
 `,
-      `
+        `
       stub.mockImplementation(() => {
             if (stub.mock.calls.length === 2) {
                   return [8, 9, 10];
@@ -447,28 +463,28 @@ describe('spies and stubs', () => {
             }
       })
 `,
-      { parser: 'tsx' }
-    )
+        { parser: 'tsx' }
+      )
+    })
   })
-})
 
-describe('mocks', () => {
-  it('handles creating mocks', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon-sandbox'
+  describe('mocks', () => {
+    it('handles creating mocks', () => {
+      expectTransformation(
+        `
+        ${sinonSandboxImport}
         const stub = sinon.stub()
 `,
-      `
+        `
         const stub = jest.fn()
 `
-    )
-  })
+      )
+    })
 
-  it('handles resets/clears', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon-sandbox'
+    it('handles resets/clears', () => {
+      expectTransformation(
+        `
+        ${sinonSandboxImport}
         stub.restore()
         Api.get.restore()
         Api.get.reset()
@@ -476,7 +492,7 @@ describe('mocks', () => {
         stub.resetBehavior()
         stub.resetHistory()
 `,
-      `
+        `
         stub.mockRestore()
         Api.get.mockRestore()
         Api.get.mockReset()
@@ -484,15 +500,15 @@ describe('mocks', () => {
         stub.mockReset()
         stub.mockReset()
 `
-    )
+      )
+    })
   })
-})
 
-describe('sinon.match', () => {
-  it('handles creating mocks', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon-sandbox'
+  describe('sinon.match', () => {
+    it('handles creating mocks', () => {
+      expectTransformation(
+        `
+        ${sinonSandboxImport}
 
         sinon.match({
           foo: 'foo'
@@ -510,7 +526,7 @@ describe('sinon.match', () => {
         foo(sinon.match.array)
         foo(sinon.match.any)
 `,
-      `
+        `
         expect.objectContaining({
           foo: 'foo'
         })
@@ -527,15 +543,15 @@ describe('sinon.match', () => {
         foo(expect.any(Array))
         foo(expect.anything())
 `
-    )
+      )
+    })
   })
-})
 
-describe('sinon.assert', () => {
-  it('handles assertions', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+  describe('sinon.assert', () => {
+    it('handles assertions', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
 
         sinon.assert.called(spy);
         sinon.assert.notCalled(spy);
@@ -547,7 +563,7 @@ describe('sinon.assert', () => {
         sinon.assert.calledWith(spy, sinon.match({ author: "cjno" }));
         sinon.assert.neverCalledWith(spy, arg1, arg2);
       `,
-      `
+        `
         expect(spy).toHaveBeenCalled();
         expect(spy).not.toHaveBeenCalled();
         expect(spy).toHaveBeenCalledTimes(1);
@@ -558,15 +574,15 @@ describe('sinon.assert', () => {
         expect(spy).toHaveBeenCalledWith(expect.objectContaining({ author: "cjno" }));
         expect(spy).not.toHaveBeenCalledWith(arg1, arg2);
       `
-    )
+      )
+    })
   })
-})
 
-describe('spy count and call assertions', () => {
-  it('handles call count assertions', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon-sandbox'
+  describe('spy count and call assertions', () => {
+    it('handles call count assertions', () => {
+      expectTransformation(
+        `
+        ${sinonSandboxImport}
 
         // basic cases
         expect(Api.get.callCount).to.equal(1)
@@ -599,7 +615,7 @@ describe('spy count and call assertions', () => {
         expect(spy.notCalled).to.equal(true)
         expect(spy.notCalled).to.equal(false)
 `,
-      `
+        `
         expect(Api.get).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledTimes(1)
 
@@ -630,60 +646,60 @@ describe('spy count and call assertions', () => {
         expect(spy).not.toHaveBeenCalled()
         expect(spy).toHaveBeenCalled()
 `
-    )
-  })
+      )
+    })
 
-  it(`handles .toHaveProperty('callCount', n)`, () => {
-    expectTransformation(
-      `
-      import sinon from 'sinon-sandbox'
+    it(`handles .toHaveProperty('callCount', n)`, () => {
+      expectTransformation(
+        `
+      ${sinonSandboxImport}
 
       expect(stub).toHaveProperty('callCount', 1);
     `,
-      `
+        `
       expect(stub).toHaveBeenCalledTimes(1);
     `
-    )
-  })
+      )
+    })
 
-  it('handles call counts with args', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon-sandbox'
+    it('handles call counts with args', () => {
+      expectTransformation(
+        `
+        ${sinonSandboxImport}
         expect(spy.withArgs('foo', bar).called).to.be(true)
         expect(spy.withArgs('foo', bar).called).to.be(false)
 `,
-      `
+        `
         expect(spy).toHaveBeenCalledWith('foo', bar)
         expect(spy).not.toHaveBeenCalledWith('foo', bar)
 `
-    )
-  })
+      )
+    })
 
-  it('handles calledWith', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon-sandbox'
+    it('handles calledWith', () => {
+      expectTransformation(
+        `
+        ${sinonSandboxImport}
         expect(spy.calledWith(1, 2, 3)).to.be(true)
         expect(spy.notCalledWith(1, 2, 3)).to.be(true)
         expect(spy.calledWith(foo, 'bar')).to.be(false)
         expect(spy.notCalledWith(foo, 'bar')).to.be(false)
 `,
-      `
+        `
         expect(spy).toHaveBeenCalledWith(1, 2, 3)
         expect(spy).not.toHaveBeenCalledWith(1, 2, 3)
         expect(spy).not.toHaveBeenCalledWith(foo, 'bar')
         expect(spy).toHaveBeenCalledWith(foo, 'bar')
 `
-    )
+      )
+    })
   })
-})
 
-describe('mock timers', () => {
-  it('handles timers', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon-sandbox'
+  describe('mock timers', () => {
+    it('handles timers', () => {
+      expectTransformation(
+        `
+        ${sinonSandboxImport}
         sinon.useFakeTimers()
         clock.restore()
         clock.tick(5)
@@ -704,7 +720,7 @@ describe('mock timers', () => {
           clock1 = sinon.useFakeTimers(new Date(2015, 2, 14, 0, 0).getTime())
         })
 `,
-      `
+        `
         jest.useFakeTimers()
         jest.useRealTimers()
         jest.advanceTimersByTime(5)
@@ -724,15 +740,15 @@ describe('mock timers', () => {
           jest.useFakeTimers().setSystemTime(new Date(2015, 2, 14, 0, 0).getTime())
         })
 `
-    )
+      )
+    })
   })
-})
 
-describe('updates types', () => {
-  it('rewrites types for mocks & stubs', () => {
-    expectTransformation(
-      `
-      import sinon from 'sinon-sandbox'
+  describe('updates types', () => {
+    it('rewrites types for mocks & stubs', () => {
+      expectTransformation(
+        `
+      ${sinonSandboxImport}
 
       let stub1: sinon.SinonStub
       let stub2: sinon.SinonStub = getStub()
@@ -746,7 +762,7 @@ describe('updates types', () => {
       let str: string = 'asdf'
       let keys = (obj: object) => Object.keys(obj)
 `,
-      `
+        `
       let stub1: jest.Mock
       let stub2: jest.Mock = getStub()
       let spy1: jest.SpyInstance
@@ -759,23 +775,24 @@ describe('updates types', () => {
       let str: string = 'asdf'
       let keys = (obj: object) => Object.keys(obj)
 `,
-      { parser: 'ts' }
-    )
+        { parser: 'ts' }
+      )
+    })
   })
-})
 
-describe('prototype', () => {
-  it('toString', () => {
-    expectTransformation(
-      `
-        import sinon from 'sinon'
+  describe('prototype', () => {
+    it('toString', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
         const x = 1
         const y = x.toString()
       `,
-      `
+        `
         const x = 1
         const y = x.toString()
       `
-    )
+      )
+    })
   })
 })
