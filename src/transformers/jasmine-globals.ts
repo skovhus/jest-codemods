@@ -161,10 +161,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         // if it's `*.and.callThrough()` we should remove
         // `and.callThrough()` because jest calls through by default
         case 'callThrough': {
-          const { callee } = path.node.callee.object.object
-          const arg = path.node.callee.object.object.arguments
-          path.node.callee = callee
-          path.node.arguments = arg
+          j(path).replaceWith(path.node.callee.object.object)
           break
         }
         // if it's `*.and.callFake()`, replace with jest's
