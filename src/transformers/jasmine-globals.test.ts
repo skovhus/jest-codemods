@@ -43,7 +43,7 @@ test('spyOn', () => {
     jest.spyOn(stuff).mockResolvedValue('lmao');
     jest.spyOn(stuff).mockRejectedValue('oh no');
     const fetchSpy = jest.spyOn(window, 'fetch').mockResolvedValue({json: {}});
-    existingSpy;
+    existingSpy.mockRestore();
     `
   )
 })

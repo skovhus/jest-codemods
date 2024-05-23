@@ -161,7 +161,17 @@ export default function jasmineGlobals(fileInfo, api, options) {
         // if it's `*.and.callThrough()` we should remove
         // `and.callThrough()` because jest calls through by default
         case 'callThrough': {
-          j(path).replaceWith(path.node.callee.object.object)
+          // if this comes from an `Identifier` (e.g. `existingSpy.and.callThrough()`),
+          // we assume the intent is to restore an existing spy
+          // to its original implementation using `*.mockRestore()`
+          if (path.node.callee.object.object.type === 'Identifier') {
+            path.node.callee.object = path.node.callee.object.object
+            path.node.callee.property.name = 'mockRestore'
+          } else {
+            // otherwise, we just remove the `.and.callThrough()`
+            // since this is the default behavior in jest
+            j(path).replaceWith(path.node.callee.object.object)
+          }
           break
         }
         // if it's `*.and.callFake()`, replace with jest's
