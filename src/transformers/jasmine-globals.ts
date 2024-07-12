@@ -372,7 +372,9 @@ export default function jasmineGlobals(fileInfo, api, options) {
       )
 
       // make it `*.mock.calls[index]`
-      j(path).replaceWith(j.memberExpression(expressionMockCalls, path.node.arguments[0]))
+      j(path).replaceWith(
+        j.memberExpression(expressionMockCalls, j.literal(path.node.arguments[0].value))
+      )
     })
 
   root
