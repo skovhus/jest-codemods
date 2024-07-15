@@ -167,10 +167,12 @@ test.each(['babel', 'flow', 'ts'])('*.calls.argsFor() with parser `%s`', (parser
     `
     oklahoma.calls.argsFor(0)
     idaho.calls.argsFor(0)[1]
+    mySpy.calls.argsFor(myCounter)[0]
     `,
     `
     oklahoma.mock.calls[0]
     idaho.mock.calls[0][1]
+    mySpy.mock.calls[myCounter][0]
     `,
     {
       parser,
