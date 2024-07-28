@@ -162,16 +162,21 @@ test('*.argsForCall', () => {
   )
 })
 
-test('*.calls.argsFor()', () => {
+test.each(['babel', 'flow', 'ts'])('*.calls.argsFor() with parser `%s`', (parser) => {
   expectTransformation(
     `
     oklahoma.calls.argsFor(0)
     idaho.calls.argsFor(0)[1]
+    mySpy.calls.argsFor(myCounter)[0]
     `,
     `
     oklahoma.mock.calls[0]
     idaho.mock.calls[0][1]
-    `
+    mySpy.mock.calls[myCounter][0]
+    `,
+    {
+      parser,
+    }
   )
 })
 
@@ -252,7 +257,7 @@ test('return value', () => {
   )
 })
 
-function expectTransformation(source, expectedOutput) {
-  const result = wrappedPlugin(source)
+function expectTransformation(source, expectedOutput, options = {}) {
+  const result = wrappedPlugin(source, options)
   expect(result).toBe(expectedOutput)
 }

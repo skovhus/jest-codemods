@@ -371,8 +371,16 @@ export default function jasmineGlobals(fileInfo, api, options) {
         j.identifier('calls')
       )
 
+      const expressionIndex =
+        path.node.arguments[0].type === 'Identifier'
+          ? j.memberExpression(expressionMockCalls, path.node.arguments[0], true)
+          : j.memberExpression(
+              expressionMockCalls,
+              j.literal(path.node.arguments[0].value)
+            )
+
       // make it `*.mock.calls[index]`
-      j(path).replaceWith(j.memberExpression(expressionMockCalls, path.node.arguments[0]))
+      j(path).replaceWith(expressionIndex)
     })
 
   root
