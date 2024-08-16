@@ -1,4 +1,5 @@
 /* eslint-env jest */
+import { describe } from '@jest/globals'
 import chalk from 'chalk'
 
 import { wrapPlugin } from '../utils/test-helpers'
@@ -226,19 +227,87 @@ test('jasmine.<jasmineToExpectFunctionName>(*)', () => {
   )
 })
 
-test('createSpyObj', () => {
-  expectTransformation(
-    `
+describe('createSpyObj', () => {
+  test('with methodNames array and no properties', () => {
+    expectTransformation(
+      `
     const spyObj = jasmine.createSpyObj('label', ['a', 'b', 'hyphen-ated']);
     `,
-    `
+      `
     const spyObj = {
         'a': jest.fn(),
         'b': jest.fn(),
         'hyphen-ated': jest.fn()
     };
     `
-  )
+    )
+  })
+
+  test('with methodNames array and properties object', () => {
+    expectTransformation(
+      `
+    const spyObj = jasmine.createSpyObj('', ['a', 'b'], { c: 5 });
+    `,
+      `
+    const spyObj = {
+        'a': jest.fn(),
+        'b': jest.fn(),
+        'c': 5
+    };
+    `
+    )
+  })
+
+  test('with methods object and no properties', () => {
+    expectTransformation(
+      `
+    const spyObj = jasmine.createSpyObj('label', {
+        a: 42,
+        b: true,
+        c: of(undefined)
+    });
+    `,
+      `
+    const spyObj = {
+        'a': jest.fn(() => {
+            return 42;
+        }),
+
+        'b': jest.fn(() => {
+            return true;
+        }),
+
+        'c': jest.fn(() => {
+            return of(undefined);
+        })
+    };
+    `
+    )
+  })
+
+  test('with methods object and properties array', () => {
+    expectTransformation(
+      `
+    const spyObj = jasmine.createSpyObj('label', {
+        a: 42,
+        b: true
+    }, ['c']);
+    `,
+      `
+    const spyObj = {
+        'a': jest.fn(() => {
+            return 42;
+        }),
+
+        'b': jest.fn(() => {
+            return true;
+        }),
+
+        'c': null
+    };
+    `
+    )
+  })
 })
 
 test('return value', () => {

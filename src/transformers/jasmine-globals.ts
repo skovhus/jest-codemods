@@ -1,6 +1,8 @@
 /**
  * Codemod for transforming Jasmine globals into Jest.
  */
+import { ObjectProperty } from 'jscodeshift'
+
 import finale from '../utils/finale'
 import logger from '../utils/logger'
 
@@ -532,21 +534,57 @@ export default function jasmineGlobals(fileInfo, api, options) {
         },
       },
     })
-    .filter(
-      (path) =>
-        path.node.arguments.length === 2 &&
-        path.node.arguments[1].type === 'ArrayExpression'
-    )
-    .forEach((path) => {
-      const properties = path.node.arguments[1].elements.map((arg) =>
-        j.objectProperty(
-          j.literal(arg.value),
-          j.callExpression(
-            j.memberExpression(j.identifier('jest'), j.identifier('fn')),
-            []
-          )
-        )
+    .filter((path) => {
+      const args = path.node.arguments
+
+      return (
+        (args.length === 2 || args.length === 3) &&
+        (args[1].type === 'ArrayExpression' || args[1].type === 'ObjectExpression') &&
+        (args[2] === undefined ||
+          args[2].type === 'ArrayExpression' ||
+          args[2].type === 'ObjectExpression')
       )
+    })
+    .forEach((path) => {
+      const [, spyObjMethods, spyObjProperties] = path.node.arguments
+
+      const properties: ObjectProperty[] =
+        spyObjMethods.type === 'ArrayExpression'
+          ? spyObjMethods.elements.map((arg) =>
+              j.objectProperty(
+                j.literal(arg.value),
+                j.callExpression(
+                  j.memberExpression(j.identifier('jest'), j.identifier('fn')),
+                  []
+                )
+              )
+            )
+          : spyObjMethods.properties.map((arg) =>
+              j.objectProperty(
+                j.literal(arg.key.name),
+                j.callExpression(
+                  j.memberExpression(j.identifier('jest'), j.identifier('fn')),
+                  [
+                    j.arrowFunctionExpression(
+                      [],
+                      j.blockStatement([j.returnStatement(arg.value)])
+                    ),
+                  ]
+                )
+              )
+            )
+
+      if (spyObjProperties !== undefined) {
+        properties.push(
+          ...(spyObjProperties.type === 'ArrayExpression'
+            ? spyObjProperties.elements.map((arg) =>
+                j.objectProperty(j.literal(arg.value), j.literal(null))
+              )
+            : spyObjProperties.properties.map((arg) =>
+                j.objectProperty(j.literal(arg.key.name), arg.value)
+              ))
+        )
+      }
 
       j(path).replaceWith(j.objectExpression(properties))
     })
