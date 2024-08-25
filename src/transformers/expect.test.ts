@@ -65,11 +65,13 @@ test('maps expect matchers', () => {
       expect(stuff).toExist('message');
       expect(stuff).toBeTruthy();
       expect(stuff).toBeTruthy('message');
+      expect(stuff).toBeTrue();
 
       expect(stuff).toNotExist();
       expect(stuff).toNotExist('message');
       expect(stuff).toBeFalsy();
       expect(stuff).toBeFalsy('message');
+      expect(stuff).toBeFalse();
 
       expect(stuff).toBe(null);
       expect(stuff).toBe(null, 'message');
@@ -119,11 +121,13 @@ test('maps expect matchers', () => {
       expect(stuff).toBeTruthy();
       expect(stuff).toBeTruthy();
       expect(stuff).toBeTruthy();
+      expect(stuff).toBe(true);
 
       expect(stuff).toBeFalsy();
       expect(stuff).toBeFalsy();
       expect(stuff).toBeFalsy();
       expect(stuff).toBeFalsy();
+      expect(stuff).toBe(false);
 
       expect(stuff).toBe(null);
       expect(stuff).toBe(null);

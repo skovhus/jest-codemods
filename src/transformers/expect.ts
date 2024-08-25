@@ -32,25 +32,7 @@ const matcherRenaming = {
   toNotContain: 'not.toContain',
   toNotInclude: 'not.toContain',
   toNotHaveBeenCalled: 'not.toHaveBeenCalled',
-}
-
-const matchersToBe = new Set(['toBeA', 'toBeAn', 'toNotBeA', 'toNotBeAn'])
-
-const matchersWithKey = new Set([
-  'toContainKey',
-  'toExcludeKey',
-  'toIncludeKey',
-  'toNotContainKey',
-  'toNotIncludeKey',
-])
-
-const matchersWithKeys = new Set([
-  'toContainKeys',
-  'toExcludeKeys',
-  'toIncludeKeys',
-  'toNotContainKeys',
-  'toNotIncludeKeys',
-])
+} as const
 
 const expectSpyFunctions = new Set(['createSpy', 'spyOn', 'isSpy', 'restoreSpies'])
 const unsupportedSpyFunctions = new Set(['isSpy', 'restoreSpies'])
@@ -174,38 +156,68 @@ export default function expectTransformer(fileInfo, api, options) {
         matcher.name = matcherRenaming[matcherName]
       }
 
-      if (matchersToBe.has(matcherName)) {
-        if (matcherArgs[0].type === 'Literal') {
-          expectArgs[0] = j.unaryExpression('typeof', expectArgs[0])
-          matcher.name = isNot ? 'not.toBe' : 'toBe'
+      switch (matcherName) {
+        case 'toBeA':
+        case 'toBeAn':
+        case 'toNotBeA':
+        case 'toNotBeAn': {
+          if (matcherArgs[0].type === 'Literal') {
+            expectArgs[0] = j.unaryExpression('typeof', expectArgs[0])
+            matcher.name = isNot ? 'not.toBe' : 'toBe'
+          }
+          break
         }
-      }
 
-      if (matchersWithKey.has(matcherName)) {
-        expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`
-        matcher.name = isNot ? 'not.toContain' : 'toContain'
-      }
+        case 'toContainKey':
+        case 'toExcludeKey':
+        case 'toIncludeKey':
+        case 'toNotContainKey':
+        case 'toNotIncludeKey': {
+          expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`
+          matcher.name = isNot ? 'not.toContain' : 'toContain'
+          break
+        }
 
-      if (matchersWithKeys.has(matcherName)) {
-        const keys = matcherArgs[0]
-        matcherArgs[0] = j.identifier('e')
-        expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`
-        matcher.name = isNot ? 'not.toContain' : 'toContain'
-        j(path.parentPath).replaceWith(j.template.expression`\
+        case 'toContainKeys':
+        case 'toExcludeKeys':
+        case 'toIncludeKeys':
+        case 'toNotContainKeys':
+        case 'toNotIncludeKeys': {
+          const keys = matcherArgs[0]
+          matcherArgs[0] = j.identifier('e')
+          expectArgs[0] = j.template.expression`Object.keys(${expectArgs[0]})`
+          matcher.name = isNot ? 'not.toContain' : 'toContain'
+          j(path.parentPath).replaceWith(j.template.expression`\
 ${keys}.forEach(e => {
   ${matcherNode}
 })`)
-      }
+          break
+        }
 
-      if (matcherName === 'toMatch' || matcherName === 'toNotMatch') {
-        // expect toMatch handles string, reg exp and object.
-        const { name, type } = matcherArgs[0]
-        if (type === 'ObjectExpression' || type === 'Identifier') {
-          matcher.name = isNot ? 'not.toMatchObject' : 'toMatchObject'
+        case 'toMatch':
+        case 'toNotMatch': {
+          // expect toMatch handles string, reg exp and object.
+          const { name, type } = matcherArgs[0]
+          if (type === 'ObjectExpression' || type === 'Identifier') {
+            matcher.name = isNot ? 'not.toMatchObject' : 'toMatchObject'
 
-          if (type === 'Identifier') {
-            logWarning(`Use "toMatch" if "${name}" is not an object`, path)
+            if (type === 'Identifier') {
+              logWarning(`Use "toMatch" if "${name}" is not an object`, path)
+            }
           }
+          break
+        }
+
+        case 'toBeTrue': {
+          matcherArgs[0] = j.literal(true)
+          matcher.name = 'toBe'
+          break
+        }
+
+        case 'toBeFalse': {
+          matcherArgs[0] = j.literal(false)
+          matcher.name = 'toBe'
+          break
         }
       }
 
