@@ -304,7 +304,7 @@ test('maps spy creation calls', () => {
   )
 })
 
-test('maps spy methods on intitialized spies', () => {
+test('maps spy methods on initialized spies', () => {
   expectTransformation(
     `
     import expect from 'expect';
@@ -361,7 +361,7 @@ test('maps spy methods on intitialized spies', () => {
   )
 })
 
-test('maps spy methods on intitialized spies (spread import)', () => {
+test('maps spy methods on initialized spies (spread import)', () => {
   expectTransformation(
     `
     import { createSpy, spyOn } from 'expect'
