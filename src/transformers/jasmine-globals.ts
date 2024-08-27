@@ -190,6 +190,23 @@ export default function jasmineGlobals(fileInfo, api, options) {
           path.node.callee.property.name = 'mockReturnValue'
           break
         }
+
+        case 'returnValues': {
+          let mockReturnValuesCall = j.callExpression(
+            j.memberExpression(j.identifier('jest'), j.identifier('spyOn')),
+            path.node.callee.object.object.arguments ?? []
+          )
+
+          for (const argument of path.node.arguments) {
+            mockReturnValuesCall = j.callExpression(
+              j.memberExpression(mockReturnValuesCall, j.identifier('mockReturnValue')),
+              [argument]
+            )
+          }
+
+          j(path).replaceWith(mockReturnValuesCall)
+          break
+        }
         // `*.and.resolveTo()` is equivalent of jest
         // `*.mockResolvedValue()`
         case 'resolveTo': {
