@@ -331,6 +331,33 @@ export default function jasmineGlobals(fileInfo, api, options) {
       )
     })
 
+  root
+    .find(j.CallExpression, {
+      // find `*.calls.allArgs()`
+      callee: {
+        type: 'MemberExpression',
+        object: {
+          type: 'MemberExpression',
+          property: {
+            type: 'Identifier',
+            name: 'calls',
+          },
+        },
+        property: {
+          type: 'Identifier',
+          name: 'allArgs',
+        },
+      },
+    })
+    .forEach((path) => {
+      j(path).replaceWith(
+        j.memberExpression(
+          j.memberExpression(path.node.callee.object.object, j.identifier('mock')),
+          j.identifier('calls')
+        )
+      )
+    })
+
   root // find anything that accesses property on `args`
     // like `stuff.mostRecentCall.args[0]`
     .find(j.MemberExpression, {

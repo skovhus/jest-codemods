@@ -152,6 +152,23 @@ test('*.calls.mostRecent()', () => {
   )
 })
 
+test('*.calls.allArgs()', () => {
+  expectTransformation(
+    `
+    const args = someSpy.calls.allArgs();
+    anotherSpy.calls.allArgs()[0];
+
+    foo.allArgs();
+    `,
+    `
+    const args = someSpy.mock.calls;
+    anotherSpy.mock.calls[0];
+
+    foo.allArgs();
+    `
+  )
+})
+
 test('*.argsForCall', () => {
   expectTransformation(
     `
