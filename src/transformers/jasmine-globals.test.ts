@@ -51,6 +51,19 @@ test('spyOn', () => {
   )
 })
 
+test('spyOnProperty', () => {
+  expectTransformation(
+    `
+    spyOnProperty(component, 'propertyName1').and.returnValue(42);
+    spyOnProperty(component, 'propertyName2', 'get').and.returnValue(true);
+    jest.spyOn(something, 'property', 'get');`,
+    `
+    jest.spyOn(component, 'propertyName1', 'get').mockReturnValue(42);
+    jest.spyOn(component, 'propertyName2', 'get').mockReturnValue(true);
+    jest.spyOn(something, 'property', 'get');`
+  )
+})
+
 test('jasmine.createSpy', () => {
   expectTransformation(
     `

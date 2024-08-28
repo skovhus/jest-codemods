@@ -236,6 +236,19 @@ export default function jasmineGlobals(fileInfo, api, options) {
 
   root
     .find(j.CallExpression, {
+      callee: { type: 'Identifier', name: 'spyOnProperty' },
+    })
+    .forEach((path) => {
+      path.node.callee = j.memberExpression(j.identifier('jest'), j.identifier('spyOn'))
+
+      // explicitly add third parameter, which is defaulted as 'get' in jasmine
+      if (path.node.arguments.length === 2) {
+        path.node.arguments.push(j.literal('get'))
+      }
+    })
+
+  root
+    .find(j.CallExpression, {
       // find all `*.calls.count()`
       callee: {
         type: 'MemberExpression',
