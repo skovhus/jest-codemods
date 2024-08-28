@@ -259,6 +259,27 @@ export default function jasmineGlobals(fileInfo, api, options) {
     })
 
   root
+    .find(j.CallExpression, {
+      // find all `*.calls.reset()`
+      callee: {
+        type: 'MemberExpression',
+        property: { type: 'Identifier', name: 'reset' },
+        object: {
+          type: 'MemberExpression',
+          property: { type: 'Identifier', name: 'calls' },
+        },
+      },
+    })
+    .forEach((path) => {
+      j(path).replaceWith(
+        j.callExpression(
+          j.memberExpression(path.node.callee.object.object, j.identifier('mockReset')),
+          []
+        )
+      )
+    })
+
+  root
     .find(j.MemberExpression, {
       // find all `stuff.callCount`
       property: {
