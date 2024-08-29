@@ -236,6 +236,19 @@ export default function jasmineGlobals(fileInfo, api, options) {
 
   root
     .find(j.CallExpression, {
+      callee: { type: 'Identifier', name: 'spyOnProperty' },
+    })
+    .forEach((path) => {
+      path.node.callee = j.memberExpression(j.identifier('jest'), j.identifier('spyOn'))
+
+      // explicitly add third parameter, which is defaulted as 'get' in jasmine
+      if (path.node.arguments.length === 2) {
+        path.node.arguments.push(j.literal('get'))
+      }
+    })
+
+  root
+    .find(j.CallExpression, {
       // find all `*.calls.count()`
       callee: {
         type: 'MemberExpression',
@@ -256,6 +269,27 @@ export default function jasmineGlobals(fileInfo, api, options) {
         j.identifier('mock')
       )
       j(path).replaceWith(path.node.callee)
+    })
+
+  root
+    .find(j.CallExpression, {
+      // find all `*.calls.reset()`
+      callee: {
+        type: 'MemberExpression',
+        property: { type: 'Identifier', name: 'reset' },
+        object: {
+          type: 'MemberExpression',
+          property: { type: 'Identifier', name: 'calls' },
+        },
+      },
+    })
+    .forEach((path) => {
+      j(path).replaceWith(
+        j.callExpression(
+          j.memberExpression(path.node.callee.object.object, j.identifier('mockReset')),
+          []
+        )
+      )
     })
 
   root
