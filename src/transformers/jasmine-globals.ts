@@ -614,13 +614,21 @@ export default function jasmineGlobals(fileInfo, api, options) {
     })
     .filter((path) => {
       const args = path.node.arguments
+      const isArrayOrObjectExpression = (arg) =>
+        arg.type === 'ArrayExpression' || arg.type === 'ObjectExpression'
+
+      const firstArgumentIsMethodNames = isArrayOrObjectExpression(args[0])
+      if (firstArgumentIsMethodNames) {
+        // ensure that optional baseName is always filled, to simplify arguments handling
+        args.unshift(j.literal(''))
+      }
+
+      const [, spyObjMethods, spyObjProperties] = args
 
       return (
         (args.length === 2 || args.length === 3) &&
-        (args[1].type === 'ArrayExpression' || args[1].type === 'ObjectExpression') &&
-        (args[2] === undefined ||
-          args[2].type === 'ArrayExpression' ||
-          args[2].type === 'ObjectExpression')
+        isArrayOrObjectExpression(spyObjMethods) &&
+        (spyObjProperties === undefined || isArrayOrObjectExpression(spyObjProperties))
       )
     })
     .forEach((path) => {

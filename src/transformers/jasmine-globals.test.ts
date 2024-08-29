@@ -355,6 +355,33 @@ describe('createSpyObj', () => {
     `
     )
   })
+
+  test('without base name and methods names only', () => {
+    expectTransformation(
+      `
+    const spyObj = jasmine.createSpyObj(['someMethod']);
+    `,
+      `
+    const spyObj = {
+        'someMethod': jest.fn()
+    };
+    `
+    )
+  })
+
+  test('without base name and methods names as well as properties object', () => {
+    expectTransformation(
+      `
+    const spyObj = jasmine.createSpyObj(['someMethod'], {property: true});
+    `,
+      `
+    const spyObj = {
+        'someMethod': jest.fn(),
+        'property': true
+    };
+    `
+    )
+  })
 })
 
 test('return value', () => {
