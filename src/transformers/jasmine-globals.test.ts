@@ -135,6 +135,21 @@ test('*.calls.count()', () => {
   )
 })
 
+test('*.calls.reset()', () => {
+  expectTransformation(
+    `
+    someMock.calls.reset();
+    stuff.someMock.calls.reset();
+    getMock(stuff).calls.reset();
+    `,
+    `
+    someMock.mockReset();
+    stuff.someMock.mockReset();
+    getMock(stuff).mockReset();
+    `
+  )
+})
+
 test('*.mostRecentCall', () => {
   expectTransformation(
     `
