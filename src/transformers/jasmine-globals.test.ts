@@ -94,6 +94,24 @@ test('jasmine.createSpy', () => {
   expect(consoleWarnings).toEqual([])
 })
 
+test('jasmine.createSpy with generic types', () => {
+  expectTransformation(
+    `
+    import type log from './log';
+    
+    jasmine.createSpy<typeof log>();
+    jasmine.createSpy<() => void>();
+    `,
+    `
+    import type log from './log';
+    
+    jest.fn<typeof log>();
+    jest.fn<() => void>();
+    `,
+    { parser: 'ts' }
+  )
+})
+
 test('not supported jasmine.createSpy().and.*', () => {
   wrappedPlugin(`
         jasmine.createSpy().and.unknownUtil();

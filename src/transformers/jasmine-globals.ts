@@ -111,6 +111,12 @@ export default function jasmineGlobals(fileInfo, api, options) {
       // make it `jest.fn()`
       path.node.callee = j.memberExpression(j.identifier('jest'), j.identifier('fn'))
       path.node.arguments = []
+
+      const { typeParameters } = path.node
+      // Check if `createSpy` has type parameters and apply the same type parameters to `jest.fn()`
+      if (typeParameters) {
+        path.node.typeParameters = typeParameters
+      }
     })
 
   root // find all global `spyOn` calls that are standalone expressions.
