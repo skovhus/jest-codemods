@@ -384,6 +384,40 @@ describe('createSpyObj', () => {
   })
 })
 
+describe('types', () => {
+  test('jasmine.SpyObj', () =>
+    expectTransformation(
+      `
+      let loggerSpy: jasmine.SpyObj<LoggerService>;
+      let unknownSpy: jasmine.SpyObj<unknown>;
+      const errorHandlerSpy: jasmine.SpyObj<ErrorHandler> = jasmine.createSpyObj('ErrorHandler', ['handleError']);
+      `,
+      `
+      let loggerSpy: jest.Mocked<LoggerService>;
+      let unknownSpy: jest.Mocked<unknown>;
+      const errorHandlerSpy: jest.Mocked<ErrorHandler> = {
+            'handleError': jest.fn()
+      };
+      `,
+      { parser: 'ts' }
+    ))
+
+  test('jasmine.Spy', () =>
+    expectTransformation(
+      `
+        let setLanguageSpy: jasmine.Spy;
+        let logSpy: jasmine.Spy<(message: string) => void>;
+        const handleErrorSpy: jasmine.Spy<ErrorHandler['handleError']> = jasmine.createSpy();
+        `,
+      `
+        let setLanguageSpy: jest.Mock;
+        let logSpy: jest.Mock<(message: string) => void>;
+        const handleErrorSpy: jest.Mock<ErrorHandler['handleError']> = jest.fn();
+        `,
+      { parser: 'ts' }
+    ))
+})
+
 test('return value', () => {
   expectTransformation(
     `
