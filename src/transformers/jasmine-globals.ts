@@ -113,7 +113,6 @@ export default function jasmineGlobals(fileInfo, api, options) {
       path.node.arguments = []
 
       const { typeParameters } = path.node
-      // Check if `createSpy` has type parameters and apply the same type parameters to `jest.fn()`
       if (typeParameters) {
         path.node.typeParameters = typeParameters
       }
@@ -638,6 +637,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
       )
     })
     .forEach((path) => {
+      const { typeParameters } = path.node
       const [, spyObjMethods, spyObjProperties] = path.node.arguments
 
       const properties: ObjectProperty[] =
@@ -675,6 +675,15 @@ export default function jasmineGlobals(fileInfo, api, options) {
             : spyObjProperties.properties.map((arg) =>
                 j.objectProperty(j.literal(arg.key.name), arg.value)
               ))
+        )
+      }
+
+      if (typeParameters) {
+        path.parentPath.node.id.typeAnnotation = j.tsTypeAnnotation(
+          j.tsTypeReference(
+            j.tsQualifiedName(j.identifier('jest'), j.identifier('Mocked')),
+            typeParameters
+          )
         )
       }
 

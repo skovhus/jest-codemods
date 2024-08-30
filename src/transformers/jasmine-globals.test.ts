@@ -400,6 +400,24 @@ describe('createSpyObj', () => {
     `
     )
   })
+
+  test('with types', () => {
+    expectTransformation(
+      `
+    import { LoggerService } from './logger-service.ts';
+
+    const loggerSpy = jasmine.createSpyObj<LoggerService>('LoggerService', ['log']);
+    `,
+      `
+    import { LoggerService } from './logger-service.ts';
+
+    const loggerSpy: jest.Mocked<LoggerService> = {
+        'log': jest.fn()
+    };
+    `,
+      { parser: 'ts' }
+    )
+  })
 })
 
 describe('types', () => {
