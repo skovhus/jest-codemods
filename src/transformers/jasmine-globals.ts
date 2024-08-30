@@ -713,10 +713,6 @@ export default function jasmineGlobals(fileInfo, api, options) {
       switch (typeName.right.name) {
         case 'Spy': {
           path.value.id.typeAnnotation = j.tsTypeAnnotation(
-            j.tsTypeReference(j.identifier('jest.Mock'))
-          )
-
-          path.value.id.typeAnnotation = j.tsTypeAnnotation(
             j.tsTypeReference(
               j.tsQualifiedName(j.identifier('jest'), j.identifier('Mock')),
               typeArgument ? j.tsTypeParameterInstantiation([typeArgument]) : null
