@@ -384,6 +384,19 @@ describe('createSpyObj', () => {
   })
 })
 
+test('arrayWithExactContents', () => {
+  expectTransformation(
+    `
+    expect(array1).toEqual(jasmine.arrayWithExactContents(array2));
+    expect([3,1,2]).toStrictEqual(jasmine.arrayWithExactContents([1,2,3]));
+    `,
+    `
+    expect(array1.sort()).toEqual(array2.sort());
+    expect([3,1,2].sort()).toStrictEqual([1,2,3].sort());
+    `
+  )
+})
+
 test('return value', () => {
   expectTransformation(
     `

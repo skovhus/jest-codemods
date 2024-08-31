@@ -675,5 +675,62 @@ export default function jasmineGlobals(fileInfo, api, options) {
       j(path).replaceWith(j.objectExpression(properties))
     })
 
+  root
+    .find(j.CallExpression, {
+      callee: {
+        type: 'MemberExpression',
+        object: {
+          type: 'CallExpression',
+          callee: {
+            type: 'Identifier',
+            name: 'expect',
+          },
+        },
+        property: {
+          type: 'Identifier',
+          name: (name) => name === 'toEqual' || name === 'toStrictEqual',
+        },
+      },
+      arguments: [
+        {
+          type: 'CallExpression',
+          callee: {
+            type: 'MemberExpression',
+            object: {
+              type: 'Identifier',
+              name: 'jasmine',
+            },
+            property: {
+              type: 'Identifier',
+              name: 'arrayWithExactContents',
+            },
+          },
+        },
+      ],
+    })
+    .replaceWith((path) => {
+      const expectArgument = path.value.callee.object.arguments[0]
+      const jasmineArgument = path.value.arguments[0].arguments[0]
+      const methodName = path.value.callee.property.name
+
+      const newExpectArgument = j.callExpression(
+        j.memberExpression(expectArgument, j.identifier('sort')),
+        []
+      )
+
+      const newJasmineArgument = j.callExpression(
+        j.memberExpression(jasmineArgument, j.identifier('sort')),
+        []
+      )
+
+      return j.callExpression(
+        j.memberExpression(
+          j.callExpression(j.identifier('expect'), [newExpectArgument]),
+          j.identifier(methodName)
+        ),
+        [newJasmineArgument]
+      )
+    })
+
   return finale(fileInfo, j, root, options)
 }
