@@ -94,6 +94,24 @@ test('jasmine.createSpy', () => {
   expect(consoleWarnings).toEqual([])
 })
 
+test('jasmine.createSpy with generic types', () => {
+  expectTransformation(
+    `
+    import type log from './log';
+    
+    jasmine.createSpy<typeof log>();
+    jasmine.createSpy<() => void>();
+    `,
+    `
+    import type log from './log';
+    
+    jest.fn<typeof log>();
+    jest.fn<() => void>();
+    `,
+    { parser: 'ts' }
+  )
+})
+
 test('not supported jasmine.createSpy().and.*', () => {
   wrappedPlugin(`
         jasmine.createSpy().and.unknownUtil();
@@ -382,6 +400,58 @@ describe('createSpyObj', () => {
     `
     )
   })
+
+  test('with types', () => {
+    expectTransformation(
+      `
+    import { LoggerService } from './logger-service.ts';
+
+    const loggerSpy = jasmine.createSpyObj<LoggerService>('LoggerService', ['log']);
+    `,
+      `
+    import { LoggerService } from './logger-service.ts';
+
+    const loggerSpy: jest.Mocked<LoggerService> = {
+        'log': jest.fn()
+    };
+    `,
+      { parser: 'ts' }
+    )
+  })
+})
+
+describe('types', () => {
+  test('jasmine.SpyObj', () =>
+    expectTransformation(
+      `
+      let loggerSpy: jasmine.SpyObj<LoggerService>;
+      let unknownSpy: jasmine.SpyObj<unknown>;
+      const errorHandlerSpy: jasmine.SpyObj<ErrorHandler> = jasmine.createSpyObj('ErrorHandler', ['handleError']);
+      `,
+      `
+      let loggerSpy: jest.Mocked<LoggerService>;
+      let unknownSpy: jest.Mocked<unknown>;
+      const errorHandlerSpy: jest.Mocked<ErrorHandler> = {
+            'handleError': jest.fn()
+      };
+      `,
+      { parser: 'ts' }
+    ))
+
+  test('jasmine.Spy', () =>
+    expectTransformation(
+      `
+        let setLanguageSpy: jasmine.Spy;
+        let logSpy: jasmine.Spy<(message: string) => void>;
+        const handleErrorSpy: jasmine.Spy<ErrorHandler['handleError']> = jasmine.createSpy();
+        `,
+      `
+        let setLanguageSpy: jest.Mock;
+        let logSpy: jest.Mock<(message: string) => void>;
+        const handleErrorSpy: jest.Mock<ErrorHandler['handleError']> = jest.fn();
+        `,
+      { parser: 'ts' }
+    ))
 })
 
 test('arrayWithExactContents', () => {

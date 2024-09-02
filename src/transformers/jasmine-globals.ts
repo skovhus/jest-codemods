@@ -632,6 +632,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
       )
     })
     .forEach((path) => {
+      const { typeParameters } = path.node
       const [, spyObjMethods, spyObjProperties] = path.node.arguments
 
       const properties: ObjectProperty[] =
@@ -672,7 +673,58 @@ export default function jasmineGlobals(fileInfo, api, options) {
         )
       }
 
+      if (typeParameters) {
+        path.parentPath.node.id.typeAnnotation = j.tsTypeAnnotation(
+          j.tsTypeReference(
+            j.tsQualifiedName(j.identifier('jest'), j.identifier('Mocked')),
+            typeParameters
+          )
+        )
+      }
+
       j(path).replaceWith(j.objectExpression(properties))
+    })
+
+  root
+    .find(j.VariableDeclarator)
+    .filter((path) => {
+      const { typeAnnotation } = path.value.id
+      if (!typeAnnotation) return false
+
+      const { typeName } = typeAnnotation.typeAnnotation
+
+      return (
+        typeName &&
+        typeName.type === 'TSQualifiedName' &&
+        typeName.left.name === 'jasmine' &&
+        (typeName.right.name === 'Spy' || typeName.right.name === 'SpyObj')
+      )
+    })
+    .forEach((path) => {
+      const { typeAnnotation } = path.value.id
+      const { typeName } = typeAnnotation.typeAnnotation
+      const typeArgument = typeAnnotation.typeAnnotation.typeParameters?.params[0]
+
+      switch (typeName.right.name) {
+        case 'Spy': {
+          path.value.id.typeAnnotation = j.tsTypeAnnotation(
+            j.tsTypeReference(
+              j.tsQualifiedName(j.identifier('jest'), j.identifier('Mock')),
+              typeArgument ? j.tsTypeParameterInstantiation([typeArgument]) : null
+            )
+          )
+          break
+        }
+        case 'SpyObj': {
+          path.value.id.typeAnnotation = j.tsTypeAnnotation(
+            j.tsTypeReference(
+              j.tsQualifiedName(j.identifier('jest'), j.identifier('Mocked')),
+              j.tsTypeParameterInstantiation([typeArgument])
+            )
+          )
+          break
+        }
+      }
     })
 
   root
