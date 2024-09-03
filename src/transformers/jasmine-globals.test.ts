@@ -444,11 +444,17 @@ describe('types', () => {
         let setLanguageSpy: jasmine.Spy;
         let logSpy: jasmine.Spy<(message: string) => void>;
         const handleErrorSpy: jasmine.Spy<ErrorHandler['handleError']> = jasmine.createSpy();
+        let translateMock: { translate: jasmine.Spy };
+        class Foo { something: jasmine.Spy<(value: string) => void>; }
+        type MySpy = jasmine.Spy<(value: string) => void>;
         `,
       `
         let setLanguageSpy: jest.Mock;
         let logSpy: jest.Mock<(message: string) => void>;
         const handleErrorSpy: jest.Mock<ErrorHandler['handleError']> = jest.fn();
+        let translateMock: { translate: jest.Mock };
+        class Foo { something: jest.Mock<(value: string) => void>; }
+        type MySpy = jest.Mock<(value: string) => void>;
         `,
       { parser: 'ts' }
     ))
