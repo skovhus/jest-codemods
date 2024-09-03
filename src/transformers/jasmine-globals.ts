@@ -711,22 +711,6 @@ export default function jasmineGlobals(fileInfo, api, options) {
     .forEach((path) => path.replace(transformJasmineTypeToJest(path.value)))
 
   root
-    .find(j.TSTypeLiteral)
-    .map((path) =>
-      path.value.members.filter(
-        (member) =>
-          member.type === 'TSPropertySignature' &&
-          isJasmineSpyType(member.typeAnnotation?.typeAnnotation)
-      )
-    )
-    .forEach(
-      (member) =>
-        (member.typeAnnotation.typeAnnotation = transformJasmineTypeToJest(
-          member.typeAnnotation.typeAnnotation
-        ))
-    )
-
-  root
     .find(j.CallExpression, {
       callee: {
         type: 'MemberExpression',
