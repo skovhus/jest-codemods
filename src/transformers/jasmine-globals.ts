@@ -685,47 +685,30 @@ export default function jasmineGlobals(fileInfo, api, options) {
       j(path).replaceWith(j.objectExpression(properties))
     })
 
+  const isJasmineSpyType = (typeAnnotation) =>
+    typeAnnotation &&
+    typeAnnotation.type === 'TSTypeReference' &&
+    typeAnnotation.typeName.type === 'TSQualifiedName' &&
+    typeAnnotation.typeName.left.name === 'jasmine' &&
+    (typeAnnotation.typeName.right.name === 'Spy' ||
+      typeAnnotation.typeName.right.name === 'SpyObj')
+
+  const transformJasmineTypeToJest = (type) => {
+    if (!type) return type
+
+    const typeArgument = type.typeParameters?.params[0]
+    const jestType = type.typeName.right.name === 'Spy' ? 'Mock' : 'Mocked'
+
+    return j.tsTypeReference(
+      j.tsQualifiedName(j.identifier('jest'), j.identifier(jestType)),
+      typeArgument ? j.tsTypeParameterInstantiation([typeArgument]) : null
+    )
+  }
+
   root
-    .find(j.VariableDeclarator)
-    .filter((path) => {
-      const { typeAnnotation } = path.value.id
-      if (!typeAnnotation) return false
-
-      const { typeName } = typeAnnotation.typeAnnotation
-
-      return (
-        typeName &&
-        typeName.type === 'TSQualifiedName' &&
-        typeName.left.name === 'jasmine' &&
-        (typeName.right.name === 'Spy' || typeName.right.name === 'SpyObj')
-      )
-    })
-    .forEach((path) => {
-      const { typeAnnotation } = path.value.id
-      const { typeName } = typeAnnotation.typeAnnotation
-      const typeArgument = typeAnnotation.typeAnnotation.typeParameters?.params[0]
-
-      switch (typeName.right.name) {
-        case 'Spy': {
-          path.value.id.typeAnnotation = j.tsTypeAnnotation(
-            j.tsTypeReference(
-              j.tsQualifiedName(j.identifier('jest'), j.identifier('Mock')),
-              typeArgument ? j.tsTypeParameterInstantiation([typeArgument]) : null
-            )
-          )
-          break
-        }
-        case 'SpyObj': {
-          path.value.id.typeAnnotation = j.tsTypeAnnotation(
-            j.tsTypeReference(
-              j.tsQualifiedName(j.identifier('jest'), j.identifier('Mocked')),
-              j.tsTypeParameterInstantiation([typeArgument])
-            )
-          )
-          break
-        }
-      }
-    })
+    .find(j.TSTypeReference)
+    .filter((path) => isJasmineSpyType(path.value))
+    .forEach((path) => path.replace(transformJasmineTypeToJest(path.value)))
 
   root
     .find(j.CallExpression, {
