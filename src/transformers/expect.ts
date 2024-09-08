@@ -219,6 +219,83 @@ ${keys}.forEach(e => {
           matcher.name = 'toBe'
           break
         }
+
+        case 'toBePositiveInfinity': {
+          matcherArgs[0] = j.literal(Infinity)
+          matcher.name = 'toBe'
+          break
+        }
+
+        case 'toBeNegativeInfinity': {
+          matcherArgs[0] = j.literal(-Infinity)
+          matcher.name = 'toBe'
+          break
+        }
+
+        case 'toHaveSize': {
+          matcher.name = 'toHaveLength'
+          break
+        }
+
+        case 'toHaveBeenCalledOnceWith': {
+          expectArgs[0] = j.memberExpression(
+            j.memberExpression(expectArgs[0], j.identifier('mock')),
+            j.identifier('calls')
+          )
+          matcher.name = 'toEqual'
+
+          matcherNode.arguments = [j.arrayExpression([j.arrayExpression(matcherArgs)])]
+          break
+        }
+
+        case 'toHaveBeenCalledBefore': {
+          const getMinInvocationOrder = (spy) =>
+            j.callExpression(
+              j.memberExpression(j.identifier('Math'), j.identifier('min')),
+              [
+                j.spreadElement(
+                  j.memberExpression(
+                    j.memberExpression(spy, j.identifier('mock')),
+                    j.identifier('invocationOrder')
+                  )
+                ),
+              ]
+            )
+
+          expectArgs[0] = getMinInvocationOrder(expectArgs[0])
+          matcherArgs[0] = getMinInvocationOrder(matcherArgs[0])
+          matcher.name = 'toBeLessThan'
+          break
+        }
+
+        case 'toHaveSpyInteractions': {
+          expectArgs[0] = j.callExpression(
+            j.memberExpression(
+              j.callExpression(
+                j.memberExpression(j.identifier('Object'), j.identifier('values')),
+                [expectArgs[0]]
+              ),
+              j.identifier('some')
+            ),
+            [
+              j.arrowFunctionExpression(
+                [j.identifier('spy')],
+                j.optionalMemberExpression(
+                  j.optionalMemberExpression(
+                    j.memberExpression(j.identifier('spy'), j.identifier('mock')),
+                    j.identifier('calls'),
+                    false,
+                    true
+                  ),
+                  j.identifier('length')
+                )
+              ),
+            ]
+          )
+          matcherArgs[0] = j.literal(true)
+          matcher.name = 'toBe'
+          break
+        }
       }
 
       balanceMatcherNodeArguments(matcherNode, matcher, path)
