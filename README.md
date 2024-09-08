@@ -16,13 +16,11 @@ and
 [Node-Tap](https://github.com/tapjs/node-tap)
 to [Jest](https://facebook.github.io/jest/).
 
-[![Build Status](https://travis-ci.org/skovhus/jest-codemods.svg?branch=master)](https://travis-ci.org/skovhus/jest-codemods)
 [![version][version-badge]][package]
 [![downloads](https://img.shields.io/npm/dm/jest-codemods.svg?style=flat-square)](http://npm-stat.com/charts.html?package=jest-codemods&from=2017-07-17)
 [![Code Coverage](https://img.shields.io/codecov/c/github/skovhus/jest-codemods.svg?style=flat-square)](https://codecov.io/github/skovhus/jest-codemods)
 [![MIT License](https://img.shields.io/npm/l/jest-codemods.svg?style=flat-square)](https://github.com/skovhus/jest-codemods/blob/master/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-[![Tweet][twitter-badge]][twitter]
 
 </div>
 
@@ -155,5 +153,3 @@ MIT
 
 [version-badge]: https://img.shields.io/npm/v/jest-codemods.svg?style=flat-square
 [package]: https://www.npmjs.com/package/jest-codemods
-[twitter]: https://twitter.com/intent/tweet?text=Check%20out%20jest-codemods!%20https://github.com/skovhus/jest-codemods%20%F0%9F%91%8D
-[twitter-badge]: https://img.shields.io/twitter/url/https/github.com/skovhus/jest-codemods.svg?style=social
