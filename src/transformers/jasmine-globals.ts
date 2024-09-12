@@ -15,6 +15,126 @@ export default function jasmineGlobals(fileInfo, api, options) {
   const logWarning = (msg, path) => logger(fileInfo, msg, path)
 
   root
+    .find(j.MemberExpression, {
+      object: {
+        type: 'CallExpression',
+        callee: { type: 'Identifier', name: 'expect' },
+      },
+      property: { type: 'Identifier' },
+    })
+    .forEach((path) => {
+      const matcher = path.node.property
+      const matcherName = matcher.name
+      const matcherNode = path.parentPath.node
+      const matcherArgs = matcherNode.arguments
+      const expectArgs = path.node.object.arguments
+
+      switch (matcherName) {
+        case 'toBeTrue': {
+          matcherArgs[0] = j.literal(true)
+          matcher.name = 'toBe'
+          break
+        }
+
+        case 'toBeFalse': {
+          matcherArgs[0] = j.literal(false)
+          matcher.name = 'toBe'
+          break
+        }
+
+        case 'toBePositiveInfinity': {
+          matcherArgs[0] = j.literal(Infinity)
+          matcher.name = 'toBe'
+          break
+        }
+
+        case 'toBeNegativeInfinity': {
+          matcherArgs[0] = j.literal(-Infinity)
+          matcher.name = 'toBe'
+          break
+        }
+
+        case 'toHaveSize': {
+          matcher.name = 'toHaveLength'
+          break
+        }
+
+        case 'toHaveClass': {
+          expectArgs[0] = j.callExpression(
+            j.memberExpression(
+              j.memberExpression(expectArgs[0], j.identifier('classList')),
+              j.identifier('contains')
+            ),
+            [...matcherArgs]
+          )
+          matcherArgs[0] = j.literal(true)
+          matcher.name = 'toBe'
+          break
+        }
+
+        case 'toHaveBeenCalledOnceWith': {
+          expectArgs[0] = j.memberExpression(
+            j.memberExpression(expectArgs[0], j.identifier('mock')),
+            j.identifier('calls')
+          )
+          matcher.name = 'toEqual'
+
+          matcherNode.arguments = [j.arrayExpression([j.arrayExpression(matcherArgs)])]
+          break
+        }
+
+        case 'toHaveBeenCalledBefore': {
+          const getMinInvocationOrder = (spy) =>
+            j.callExpression(
+              j.memberExpression(j.identifier('Math'), j.identifier('min')),
+              [
+                j.spreadElement(
+                  j.memberExpression(
+                    j.memberExpression(spy, j.identifier('mock')),
+                    j.identifier('invocationOrder')
+                  )
+                ),
+              ]
+            )
+
+          expectArgs[0] = getMinInvocationOrder(expectArgs[0])
+          matcherArgs[0] = getMinInvocationOrder(matcherArgs[0])
+          matcher.name = 'toBeLessThan'
+          break
+        }
+
+        case 'toHaveSpyInteractions': {
+          expectArgs[0] = j.callExpression(
+            j.memberExpression(
+              j.callExpression(
+                j.memberExpression(j.identifier('Object'), j.identifier('values')),
+                [expectArgs[0]]
+              ),
+              j.identifier('some')
+            ),
+            [
+              j.arrowFunctionExpression(
+                [j.identifier('spy')],
+                j.optionalMemberExpression(
+                  j.optionalMemberExpression(
+                    j.memberExpression(j.identifier('spy'), j.identifier('mock')),
+                    j.identifier('calls'),
+                    false,
+                    true
+                  ),
+                  j.identifier('length')
+                )
+              ),
+            ]
+          )
+          matcherArgs[0] = j.literal(true)
+          matcher.name = 'toBe'
+          break
+        }
+      }
+    })
+
+  root
     .find(j.CallExpression, {
       // find `jasmine.createSpy(*).and.*()` expressions
       callee: {
