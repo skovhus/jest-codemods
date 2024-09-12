@@ -793,7 +793,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         )
       }
 
-      if (typeParameters) {
+      if (typeParameters && path.parentPath.node.id) {
         path.parentPath.node.id.typeAnnotation = j.tsTypeAnnotation(
           j.tsTypeReference(
             j.tsQualifiedName(j.identifier('jest'), j.identifier('Mocked')),

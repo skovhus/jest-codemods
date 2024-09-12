@@ -477,12 +477,18 @@ describe('types', () => {
       let loggerSpy: jasmine.SpyObj<LoggerService>;
       let unknownSpy: jasmine.SpyObj<unknown>;
       const errorHandlerSpy: jasmine.SpyObj<ErrorHandler> = jasmine.createSpyObj('ErrorHandler', ['handleError']);
+      let translateSpy: jasmine.SpyObj<TranslateService>;
+      translateSpy = jasmine.createSpyObj<TranslateService>(['translate']);
       `,
       `
       let loggerSpy: jest.Mocked<LoggerService>;
       let unknownSpy: jest.Mocked<unknown>;
       const errorHandlerSpy: jest.Mocked<ErrorHandler> = {
             'handleError': jest.fn()
+      };
+      let translateSpy: jest.Mocked<TranslateService>;
+      translateSpy = {
+            'translate': jest.fn()
       };
       `,
       { parser: 'ts' }
