@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { describe } from '@jest/globals'
+import { describe, test } from '@jest/globals'
 import chalk from 'chalk'
 
 import { wrapPlugin } from '../utils/test-helpers'
@@ -12,6 +12,56 @@ let consoleWarnings = []
 beforeEach(() => {
   consoleWarnings = []
   jest.spyOn(console, 'warn').mockImplementation((v) => consoleWarnings.push(v))
+})
+
+describe('jasmine matchers', () => {
+  test('toBeTrue', () =>
+    expectTransformation('expect(stuff).toBeTrue()', 'expect(stuff).toBe(true)'))
+
+  test('toBeFalse', () =>
+    expectTransformation('expect(stuff).toBeFalse()', 'expect(stuff).toBe(false)'))
+
+  test('toBePositiveInfinity', () =>
+    expectTransformation(
+      'expect(foo).toBePositiveInfinity()',
+      'expect(foo).toBe(Infinity)'
+    ))
+
+  test('toBeNegativeInfinity', () =>
+    expectTransformation(
+      'expect(foo).toBeNegativeInfinity()',
+      'expect(foo).toBe(-Infinity)'
+    ))
+
+  test('toHaveSize', () =>
+    expectTransformation(
+      'expect([1, 2]).toHaveSize(2)',
+      'expect([1, 2]).toHaveLength(2)'
+    ))
+
+  test('toHaveClass', () =>
+    expectTransformation(
+      `expect(element).toHaveClass('active')`,
+      `expect(element.classList.contains('active')).toBe(true)`
+    ))
+
+  test('toHaveBeenCalledOnceWith', () =>
+    expectTransformation(
+      `expect(mySpy).toHaveBeenCalledOnceWith('foo', 'bar')`,
+      `expect(mySpy.mock.calls).toEqual([['foo', 'bar']])`
+    ))
+
+  test('toHaveBeenCalledBefore', () =>
+    expectTransformation(
+      'expect(mySpy).toHaveBeenCalledBefore(myOtherSpy)',
+      'expect(Math.min(...mySpy.mock.invocationOrder)).toBeLessThan(Math.min(...myOtherSpy.mock.invocationOrder))'
+    ))
+
+  test('toHaveSpyInteractions', () =>
+    expectTransformation(
+      'expect(mySpyObj).toHaveSpyInteractions()',
+      'expect(Object.values(mySpyObj).some(spy => spy.mock?.calls?.length)).toBe(true)'
+    ))
 })
 
 test('spyOn', () => {

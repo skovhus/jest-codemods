@@ -65,13 +65,11 @@ test('maps expect matchers', () => {
       expect(stuff).toExist('message');
       expect(stuff).toBeTruthy();
       expect(stuff).toBeTruthy('message');
-      expect(stuff).toBeTrue();
 
       expect(stuff).toNotExist();
       expect(stuff).toNotExist('message');
       expect(stuff).toBeFalsy();
       expect(stuff).toBeFalsy('message');
-      expect(stuff).toBeFalse();
 
       expect(stuff).toBe(null);
       expect(stuff).toBe(null, 'message');
@@ -96,13 +94,8 @@ test('maps expect matchers', () => {
       expect(stuff).toBeAn(Array);
       expect(new Stuff).toBeAn(Stuff, 'Message');
 
-      expect([1, 2]).toHaveSize(2);
-
       expect(stuff).toNotBeA(Number);
       expect(stuff).toNotBeAn(Array);
-
-      expect(foo).toBePositiveInfinity();
-      expect(foo).toBeNegativeInfinity();
 
       expect(stuff).toMatch({foo: 'bar'});
       expect(stuff).toMatch({foo: 'bar'}, 'message');
@@ -118,10 +111,6 @@ test('maps expect matchers', () => {
       expect(stuff).toNotHaveBeenCalled();
       expect(stuff).toNotHaveBeenCalled('msg');
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
-
-      expect(mySpy).toHaveBeenCalledOnceWith('foo', 'bar');
-      expect(mySpy).toHaveBeenCalledBefore(myOtherSpy);
-      expect(mySpyObj).toHaveSpyInteractions()
     });
     `,
     `
@@ -130,13 +119,11 @@ test('maps expect matchers', () => {
       expect(stuff).toBeTruthy();
       expect(stuff).toBeTruthy();
       expect(stuff).toBeTruthy();
-      expect(stuff).toBe(true);
 
       expect(stuff).toBeFalsy();
       expect(stuff).toBeFalsy();
       expect(stuff).toBeFalsy();
       expect(stuff).toBeFalsy();
-      expect(stuff).toBe(false);
 
       expect(stuff).toBe(null);
       expect(stuff).toBe(null);
@@ -161,13 +148,8 @@ test('maps expect matchers', () => {
       expect(stuff).toBeInstanceOf(Array);
       expect(new Stuff).toBeInstanceOf(Stuff);
 
-      expect([1, 2]).toHaveLength(2);
-
       expect(stuff).not.toBeInstanceOf(Number);
       expect(stuff).not.toBeInstanceOf(Array);
-
-      expect(foo).toBe(Infinity);
-      expect(foo).toBe(-Infinity);
 
       expect(stuff).toMatchObject({foo: 'bar'});
       expect(stuff).toMatchObject({foo: 'bar'});
@@ -183,10 +165,6 @@ test('maps expect matchers', () => {
       expect(stuff).not.toHaveBeenCalled();
       expect(stuff).not.toHaveBeenCalled();
       expect(stuff).toHaveBeenCalledWith('foo', 'bar');
-
-      expect(mySpy.mock.calls).toEqual([['foo', 'bar']]);
-      expect(Math.min(...mySpy.mock.invocationOrder)).toBeLessThan(Math.min(...myOtherSpy.mock.invocationOrder));
-      expect(Object.values(mySpyObj).some(spy => spy.mock?.calls?.length)).toBe(true)
     });
     `
   )
