@@ -766,20 +766,23 @@ export default function jasmineGlobals(fileInfo, api, options) {
                 )
               )
             )
-          : spyObjMethods.properties.map((arg) =>
-              j.objectProperty(
+          : spyObjMethods.properties.map((arg) => {
+              const alreadyTransformed =
+                arg.value.type === 'CallExpression' &&
+                arg.value.callee.type === 'MemberExpression' &&
+                arg.value.callee.object.name === 'jest' &&
+                arg.value.callee.property.name === 'fn'
+
+              return j.objectProperty(
                 j.literal(arg.key.name),
-                j.callExpression(
-                  j.memberExpression(j.identifier('jest'), j.identifier('fn')),
-                  [
-                    j.arrowFunctionExpression(
-                      [],
-                      j.blockStatement([j.returnStatement(arg.value)])
-                    ),
-                  ]
-                )
+                !alreadyTransformed
+                  ? j.callExpression(
+                      j.memberExpression(j.identifier('jest'), j.identifier('fn')),
+                      [j.arrowFunctionExpression([], arg.value)]
+                    )
+                  : arg.value
               )
-            )
+            })
 
       if (spyObjProperties !== undefined) {
         properties.push(
