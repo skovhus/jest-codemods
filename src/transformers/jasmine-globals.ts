@@ -341,6 +341,27 @@ export default function jasmineGlobals(fileInfo, api, options) {
           path.node.callee.property.name = 'mockRejectedValue'
           break
         }
+
+        case 'throwError': {
+          const throwArg = path.node.arguments[0]
+          const isStringLiteral =
+            throwArg.type === 'Literal' && typeof throwArg.value === 'string'
+
+          path.node.callee.object = path.node.callee.object.object
+          path.node.callee.property.name = 'mockImplementation'
+
+          path.node.arguments = [
+            j.arrowFunctionExpression(
+              [],
+              isStringLiteral
+                ? j.blockStatement([
+                    j.throwStatement(j.newExpression(j.identifier('Error'), [throwArg])),
+                  ])
+                : j.blockStatement([j.throwStatement(throwArg)])
+            ),
+          ]
+          break
+        }
       }
     })
 

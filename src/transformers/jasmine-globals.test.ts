@@ -126,6 +126,9 @@ test('jasmine.createSpy', () => {
     jasmine.createSpy().and.resolveTo('lmao');
     jasmine.createSpy().and.rejectWith('oh no');
     const spy3 = jasmine.createSpy().and.resolveTo('lmao');
+    spy.and.throwError('my error message');
+    spy.and.throwError(new Error('awesome error'));
+    spy.and.throwError(42);
     `,
     `
     jest.fn();
@@ -137,6 +140,15 @@ test('jasmine.createSpy', () => {
     jest.fn().mockResolvedValue('lmao');
     jest.fn().mockRejectedValue('oh no');
     const spy3 = jest.fn().mockResolvedValue('lmao');
+    spy.mockImplementation(() => {
+        throw new Error('my error message');
+    });
+    spy.mockImplementation(() => {
+        throw new Error('awesome error');
+    });
+    spy.mockImplementation(() => {
+        throw 42;
+    });
     `
   )
 
