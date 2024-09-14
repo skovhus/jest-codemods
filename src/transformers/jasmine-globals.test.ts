@@ -396,17 +396,9 @@ describe('createSpyObj', () => {
     `,
       `
     const spyObj = {
-        'a': jest.fn(() => {
-            return 42;
-        }),
-
-        'b': jest.fn(() => {
-            return true;
-        }),
-
-        'c': jest.fn(() => {
-            return of(undefined);
-        })
+        'a': jest.fn(() => 42),
+        'b': jest.fn(() => true),
+        'c': jest.fn(() => of(undefined))
     };
     `
     )
@@ -422,14 +414,8 @@ describe('createSpyObj', () => {
     `,
       `
     const spyObj = {
-        'a': jest.fn(() => {
-            return 42;
-        }),
-
-        'b': jest.fn(() => {
-            return true;
-        }),
-
+        'a': jest.fn(() => 42),
+        'b': jest.fn(() => true),
         'c': null
     };
     `
@@ -478,6 +464,25 @@ describe('createSpyObj', () => {
     };
     `,
       { parser: 'ts' }
+    )
+  })
+
+  test('with methods object that contain nested jasmine Spies', () => {
+    expectTransformation(
+      `
+    const spyObj = jasmine.createSpyObj({
+        a: jasmine.createSpy(),
+        b: jasmine.createSpy().and.returnValue(true),
+        c: of(42)
+    });
+    `,
+      `
+    const spyObj = {
+        'a': jest.fn(),
+        'b': jest.fn(() => true),
+        'c': jest.fn(() => of(42))
+    };
+    `
     )
   })
 })
