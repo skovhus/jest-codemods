@@ -176,11 +176,8 @@ export default function jasmineGlobals(fileInfo, api, options) {
           break
         }
         // This is transformed by the *.and.*() expression handling below
+        case 'rejectWith':
         case 'resolveTo': {
-          break
-        }
-        // This is transformed by the *.and.*() expression handling below
-        case 'rejectWith': {
           break
         }
         default: {
@@ -360,6 +357,17 @@ export default function jasmineGlobals(fileInfo, api, options) {
                 : j.blockStatement([j.throwStatement(throwArg)])
             ),
           ]
+          break
+        }
+
+        case 'stub': {
+          if (path.parentPath.node.type === 'MemberExpression') {
+            j(path).replaceWith(path.node.callee.object.object)
+          } else {
+            path.node.callee.object = path.node.callee.object.object
+            path.node.callee.property.name = 'mockImplementation'
+            path.node.arguments = [emptyArrowFn]
+          }
           break
         }
       }
