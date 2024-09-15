@@ -81,6 +81,8 @@ test('spyOn', () => {
     jest.spyOn(stuff).and.rejectWith('oh no');
     const fetchSpy = spyOn(window, 'fetch').and.resolveTo({json: {}});
     existingSpy.and.callThrough();
+    spyOn(something, 'foo').and.stub().and.returnValue(42);
+    mySpy.and.stub();
     `,
     `
     jest.spyOn().mockReturnValue();
@@ -97,6 +99,8 @@ test('spyOn', () => {
     jest.spyOn(stuff).mockRejectedValue('oh no');
     const fetchSpy = jest.spyOn(window, 'fetch').mockResolvedValue({json: {}});
     existingSpy.mockRestore();
+    jest.spyOn(something, 'foo').mockReturnValue(42);
+    mySpy.mockImplementation(() => {});
     `
   )
 })
