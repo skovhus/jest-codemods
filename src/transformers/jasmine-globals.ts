@@ -23,13 +23,19 @@ export default function jasmineGlobals(fileInfo, api, options) {
       property: { type: 'Identifier' },
     })
     .forEach((path) => {
-      const matcher = path.node.property
-      const matcherName = matcher.name
-      const matcherNode = path.parentPath.node
-      const matcherArgs = matcherNode.arguments
-      const expectArgs = path.node.object.arguments
+      const isNegatedMatcher = path.node.property.name === 'not'
+      const matcher = isNegatedMatcher ? path.parent.node.property : path.node.property
 
-      switch (matcherName) {
+      const expectArgs = isNegatedMatcher
+        ? path.parent.node.object.object.arguments
+        : path.node.object.arguments
+
+      const matcherNode = isNegatedMatcher
+        ? path.parent.parentPath.node
+        : path.parentPath.node
+      const matcherArgs = matcherNode.arguments ?? []
+
+      switch (matcher.name) {
         case 'toBeTrue': {
           matcherArgs[0] = j.literal(true)
           matcher.name = 'toBe'

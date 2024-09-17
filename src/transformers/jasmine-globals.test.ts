@@ -18,13 +18,28 @@ describe('jasmine matchers', () => {
   test('toBeTrue', () =>
     expectTransformation('expect(stuff).toBeTrue()', 'expect(stuff).toBe(true)'))
 
+  test('not.toBeTrue', () =>
+    expectTransformation('expect(stuff).not.toBeTrue()', 'expect(stuff).not.toBe(true)'))
+
   test('toBeFalse', () =>
     expectTransformation('expect(stuff).toBeFalse()', 'expect(stuff).toBe(false)'))
+
+  test('not.toBeFalse', () =>
+    expectTransformation(
+      'expect(stuff).not.toBeFalse()',
+      'expect(stuff).not.toBe(false)'
+    ))
 
   test('toBePositiveInfinity', () =>
     expectTransformation(
       'expect(foo).toBePositiveInfinity()',
       'expect(foo).toBe(Infinity)'
+    ))
+
+  test('not.toBePositiveInfinity', () =>
+    expectTransformation(
+      'expect(foo).not.toBePositiveInfinity()',
+      'expect(foo).not.toBe(Infinity)'
     ))
 
   test('toBeNegativeInfinity', () =>
@@ -33,10 +48,22 @@ describe('jasmine matchers', () => {
       'expect(foo).toBe(-Infinity)'
     ))
 
+  test('not.toBeNegativeInfinity', () =>
+    expectTransformation(
+      'expect(foo).not.toBeNegativeInfinity()',
+      'expect(foo).not.toBe(-Infinity)'
+    ))
+
   test('toHaveSize', () =>
     expectTransformation(
       'expect([1, 2]).toHaveSize(2)',
       'expect([1, 2]).toHaveLength(2)'
+    ))
+
+  test('not.toHaveSize', () =>
+    expectTransformation(
+      'expect([1]).not.toHaveSize(2)',
+      'expect([1]).not.toHaveLength(2)'
     ))
 
   test('toHaveClass', () =>
@@ -45,10 +72,22 @@ describe('jasmine matchers', () => {
       `expect(element.classList.contains('active')).toBe(true)`
     ))
 
+  test('not.toHaveClass', () =>
+    expectTransformation(
+      `expect(element).not.toHaveClass('danger')`,
+      `expect(element.classList.contains('danger')).not.toBe(true)`
+    ))
+
   test('toHaveBeenCalledOnceWith', () =>
     expectTransformation(
       `expect(mySpy).toHaveBeenCalledOnceWith('foo', 'bar')`,
       `expect(mySpy.mock.calls).toEqual([['foo', 'bar']])`
+    ))
+
+  test('not.toHaveBeenCalledOnceWith', () =>
+    expectTransformation(
+      `expect(mySpy).not.toHaveBeenCalledOnceWith('foo', 'bar')`,
+      `expect(mySpy.mock.calls).not.toEqual([['foo', 'bar']])`
     ))
 
   test('toHaveBeenCalledBefore', () =>
@@ -57,11 +96,32 @@ describe('jasmine matchers', () => {
       'expect(Math.min(...mySpy.mock.invocationOrder)).toBeLessThan(Math.min(...myOtherSpy.mock.invocationOrder))'
     ))
 
+  test('not.toHaveBeenCalledBefore', () =>
+    expectTransformation(
+      'expect(mySpy).not.toHaveBeenCalledBefore(myOtherSpy)',
+      'expect(Math.min(...mySpy.mock.invocationOrder)).not.toBeLessThan(Math.min(...myOtherSpy.mock.invocationOrder))'
+    ))
+
   test('toHaveSpyInteractions', () =>
     expectTransformation(
       'expect(mySpyObj).toHaveSpyInteractions()',
       'expect(Object.values(mySpyObj).some(spy => spy.mock?.calls?.length)).toBe(true)'
     ))
+
+  test('not.toHaveSpyInteractions', () =>
+    expectTransformation(
+      'expect(mySpyObj).not.toHaveSpyInteractions()',
+      'expect(Object.values(mySpyObj).some(spy => spy.mock?.calls?.length)).not.toBe(true)'
+    ))
+
+  test.each([
+    ['toHaveBeenCalled', 'expect(spy).not.toHaveBeenCalled()'],
+    ['toBeNull', 'expect(result).not.toBeNull()'],
+    ['toBe', `expect(foo).not.toBe('')`],
+    ['toEqual', 'expect(foo).not.toEqual(expectedState)'],
+  ])('not.%s', (_name, defaultMatcherStatement) => {
+    expectTransformation(defaultMatcherStatement, defaultMatcherStatement)
+  })
 })
 
 test('spyOn', () => {
