@@ -1,3 +1,4 @@
+import { ExpressionKind } from 'ast-types/gen/kinds'
 import core, { API, FileInfo } from 'jscodeshift'
 
 import {
@@ -27,9 +28,17 @@ const SINON_CALL_COUNT_METHODS = [
   'notCalled',
 ]
 const CHAI_CHAIN_MATCHERS = new Set(
-  ['be', 'eq', 'eql', 'equal', 'toBe', 'toEqual', 'toBeTruthy', 'toBeFalsy'].map((a) =>
-    a.toLowerCase()
-  )
+  [
+    'be',
+    'eq',
+    'eql',
+    'equal',
+    'equals',
+    'toBe',
+    'toEqual',
+    'toBeTruthy',
+    'toBeFalsy',
+  ].map((a) => a.toLowerCase())
 )
 const SINON_CALLED_WITH_METHODS = ['calledWith', 'notCalledWith', 'neverCalledWith']
 const SINON_SPY_METHODS = ['spy', 'stub']
@@ -39,6 +48,7 @@ const SINON_MOCK_RESETS = {
   resetHistory: 'mockReset',
   restore: 'mockRestore',
 }
+const SINON_MOCK_IMPLEMENTERS = new Set(['returns', 'returnsArg'])
 const SINON_MATCHERS = {
   array: 'Array',
   func: 'Function',
@@ -67,7 +77,7 @@ const SINON_CALLS_ARG = new Set([
   'callsArgOnWith',
 ])
 
-/* 
+/*
   stub.callsArg(0) -> stub.mockImplementation((...args: any[]) => args[0]())
   stub.callsArgOn(1, thisArg) -> stub.mockImplementation((...args: any[]) => args[1].call(thisArg))
   stub.callsArgWith(2, arg1, arg2) -> stub.mockImplementation((...args: any[]) => args[2](arg1, arg2))
@@ -139,7 +149,7 @@ function transformCallsArg(j, ast, parser) {
     })
 }
 
-/* 
+/*
   expect(spy.called).to.be(true) -> expect(spy).toHaveBeenCalled()
   expect(spy.callCount).to.equal(2) -> expect(spy).toHaveBeenCalledTimes(2)
   expect(stub).toHaveProperty('callCount', 1) -> expect(stub).toHaveBeenCalledTimes(1)
@@ -175,11 +185,11 @@ function transformCallCountAssertions(j, ast) {
           np.node.arguments = [expectArg.object]
         })
 
-      /* 
+      /*
         handle  `expect(spy.withArgs('foo').called).to.be(true)` ->
                 `expect(spy.calledWith(1,2,3)).to.be(true)`
         and let subsequent transform fn take care of converting to
-        the final form (ie: see `transformCalledWithAssertions`) 
+        the final form (ie: see `transformCalledWithAssertions`)
       */
       if (expectArg.object.callee?.property?.name === 'withArgs') {
         // change .withArgs() -> .calledWith()
@@ -236,7 +246,7 @@ function transformCallCountAssertions(j, ast) {
     })
 }
 
-/* 
+/*
   expect(spy.calledWith(1, 2, 3)).to.be(true) -> expect(spy).toHaveBeenCalledWith(1, 2, 3);
 
   https://github.com/jordalgo/jest-codemods/blob/7de97c1d0370c7915cf5e5cc2a860bc5dd96744b/src/transformers/sinon.js#L267
@@ -286,7 +296,7 @@ function transformCalledWithAssertions(j, ast) {
     })
 }
 
-/* 
+/*
 sinon.stub(Api, 'get') -> jest.spyOn(Api, 'get')
 */
 function transformStub(j, ast, sinonExpression, logWarning) {
@@ -388,6 +398,64 @@ function transformStub(j, ast, sinonExpression, logWarning) {
     })
 }
 
+/** gets one of sinon mock implementer (returns/returnsArg/resolves/...) and returns jest equivalent */
+function getMockImplReplacement(
+  j: core.JSCodeshift,
+  sinonImpl,
+  parser,
+  conditionalExpr?: ExpressionKind
+) {
+  const isReturns = sinonImpl.callee.property.name === 'returns'
+  const isTypescript = parser === 'ts' || parser === 'tsx'
+
+  if (conditionalExpr === undefined) {
+    // TODO: this is for cases without if condition which have direct jest mock impl equivalent (standalone)!
+    if (isReturns) {
+      sinonImpl.callee.property.name = 'mockReturnValue'
+      return sinonImpl
+    }
+  }
+
+  const mockImplementationArgs = [
+    j.spreadPropertyPattern(
+      j.identifier.from({
+        name: 'args',
+        typeAnnotation: isTypescript
+          ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
+          : null,
+      })
+    ),
+  ]
+  const returnExpr = isReturns
+    ? sinonImpl.arguments[0]
+    : j.memberExpression(j.identifier('args'), sinonImpl.arguments[0], true)
+
+  const mockImplementationFn = j.arrowFunctionExpression(
+    mockImplementationArgs,
+    conditionalExpr === undefined
+      ? returnExpr
+      : j.blockStatement([
+          j.ifStatement(
+            conditionalExpr,
+            j.blockStatement([j.returnStatement(returnExpr)])
+          ),
+        ])
+  )
+
+  if (conditionalExpr === undefined) {
+    sinonImpl.callee.property.name = 'mockImplementation'
+    sinonImpl.arguments = [mockImplementationFn]
+    return sinonImpl
+  }
+  return j.callExpression(
+    j.memberExpression(
+      sinonImpl.callee.object.callee.object,
+      j.identifier('mockImplementation')
+    ),
+    [mockImplementationFn]
+  )
+}
+
 /*
   transform .onCall(0), .on{First,Second,Third}Call()
 
@@ -406,7 +474,7 @@ function transformStubOnCalls(j, ast, parser) {
           },
         },
         property: {
-          name: (n) => ['returns', 'returnsArg'].includes(n),
+          name: (n) => SINON_MOCK_IMPLEMENTERS.has(n),
         },
       },
     })
@@ -436,39 +504,7 @@ function transformStubOnCalls(j, ast, parser) {
         index
       )
 
-      const isReturns = node.callee.property.name === 'returns'
-      const isTypescript = parser === 'ts' || parser === 'tsx'
-
-      const mockImplementationArgs = isReturns
-        ? []
-        : [
-            j.spreadPropertyPattern(
-              j.identifier.from({
-                name: 'args',
-                typeAnnotation: isTypescript
-                  ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
-                  : null,
-              })
-            ),
-          ]
-      const mockImplementationReturn = isReturns
-        ? node.arguments[0]
-        : j.memberExpression(j.identifier('args'), node.arguments[0], true)
-
-      const mockImplementationFn = j.arrowFunctionExpression(
-        mockImplementationArgs,
-        j.blockStatement([
-          j.ifStatement(
-            callLengthConditionalExpression,
-            j.blockStatement([j.returnStatement(mockImplementationReturn)])
-          ),
-        ])
-      )
-
-      return j.callExpression(
-        j.memberExpression(mockFn, j.identifier('mockImplementation')),
-        [mockImplementationFn]
-      )
+      return getMockImplReplacement(j, node, parser, callLengthConditionalExpression)
     })
 }
 
@@ -554,7 +590,7 @@ function transformStubGetCalls(j: core.JSCodeshift, ast) {
         return np.node.object
       }
 
-      /* 
+      /*
         replace .args with mock.calls, handles:
         stub.args[0][0] -> stub.mock.calls[0][0]
       */
@@ -562,7 +598,7 @@ function transformStubGetCalls(j: core.JSCodeshift, ast) {
     })
 }
 
-/* 
+/*
   handles:
     .withArgs
     .returns
@@ -580,7 +616,9 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
             },
           },
         },
-        property: { name: 'returns' },
+        property: {
+          name: (n) => SINON_MOCK_IMPLEMENTERS.has(n),
+        },
       },
     })
     .replaceWith((np) => {
@@ -633,73 +671,28 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
           return j.logicalExpression('&&', logicalExp, binExp)
         })
 
-      const mockImplementationArg = j.spreadPropertyPattern(
-        j.identifier.from({
-          name: 'args',
-          typeAnnotation: isTypescript(parser)
-            ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
-            : null,
-        })
-      )
-
-      const mockImplementationFn = j.arrowFunctionExpression(
-        [mockImplementationArg],
-        j.blockStatement([
-          j.ifStatement(
-            mockImplementationConditionalExpression,
-            j.blockStatement([j.returnStatement(mockImplementationReturn[0])])
-          ),
-        ])
-      )
-
-      // `jest.fn` or `jest.spyOn`
-      return j.callExpression(
-        j.memberExpression(mockFn, j.identifier('mockImplementation')),
-        [mockImplementationFn]
+      return getMockImplReplacement(
+        j,
+        node,
+        parser,
+        mockImplementationConditionalExpression
       )
     })
 
-  // any remaining `.returns()` -> `.mockReturnValue()`
+  // any remaining sinon mock impl (returns, returnsArg, etc.)
   ast
     .find(j.CallExpression, {
       callee: {
         type: 'MemberExpression',
-        property: { type: 'Identifier', name: 'returns' },
+        property: {
+          name: (n) => SINON_MOCK_IMPLEMENTERS.has(n),
+        },
       },
     })
-    .forEach((np) => {
-      np.node.callee.property.name = 'mockReturnValue'
-    })
-
-  // .returnsArg
-  ast
-    .find(j.CallExpression, {
-      callee: {
-        type: 'MemberExpression',
-        property: { name: 'returnsArg' },
-      },
-    })
-    .replaceWith((np) => {
-      const { node } = np
-      node.callee.property.name = 'mockImplementation'
-      const argToMock = j.literal(node.arguments[0].value)
-
-      const argsVar = j.identifier.from({
-        name: 'args',
-        typeAnnotation: isTypescript(parser)
-          ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
-          : null,
-      })
-      const mockImplementationFn = j.arrowFunctionExpression(
-        [j.spreadPropertyPattern(argsVar)],
-        j.memberExpression(j.identifier('args'), argToMock)
-      )
-      node.arguments = [mockImplementationFn]
-      return node
-    })
+    .replaceWith(({ node }) => getMockImplReplacement(j, node, parser))
 }
 
-/* 
+/*
   handles mock resets/clears/etc:
   sinon.restore() -> jest.restoreAllMocks()
   stub.restore() -> stub.mockRestore()
@@ -741,7 +734,7 @@ function transformMockResets(j, ast) {
     })
 }
 
-/* 
+/*
   sinon.assert.called(spy) -> expect(spy).toHaveBeenCalled()
   sinon.assert.calledOnce(spy) -> expect(spy).toHaveBeenCalledTimes(1)
   sinon.assert.calledWith(spy, arg1, arg2) -> expect(spy).toHaveBeenCalledWith(arg1, arg2)
@@ -822,7 +815,7 @@ function transformAssert(j, ast) {
     })
 }
 
-/* 
+/*
   sinon.match({ ... }) -> expect.objectContaining({ ... })
   // .any. matches:
   sinon.match.[any|number|string|object|func|array] -> expect.any(type)
@@ -943,7 +936,7 @@ function transformMockTimers(j, ast) {
       node.callee.property.name = 'advanceTimersByTime'
     })
 
-  /* 
+  /*
     `stub.restore` shares the same property name as `sinon.useFakeTimers().restore`
     so only transform those with `clock` object which seems to be the common name used
     for mock timers throughout our codebase

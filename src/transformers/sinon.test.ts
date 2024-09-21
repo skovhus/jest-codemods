@@ -199,6 +199,7 @@ describe.each([
         const stub = sinon.stub(foo, 'bar').withArgs('foo', 1).returns('something')
         sinon.stub(foo, 'bar').withArgs('foo', sinon.match.object).returns('something')
         sinon.stub().withArgs('foo', sinon.match.any).returns('something')
+        sinon.stub().withArgs('boo', sinon.match.any).returnsArg(1)
 `,
         `
         jest.fn().mockImplementation((...args) => {
@@ -236,6 +237,11 @@ describe.each([
                         return 'something';
                 }
         })
+        jest.fn().mockImplementation((...args) => {
+                if (args[0] === 'boo' && args.length >= 2) {
+                        return args[1];
+                }
+        })
 `
       )
     })
@@ -258,7 +264,7 @@ describe.each([
       )
     })
 
-    /* 
+    /*
     apiStub.getCall(0).args[1].data
     apistub.args[1][1]
   */
@@ -402,12 +408,12 @@ describe.each([
       stub.onCall().returns('invalid')
 `,
         `
-      stub.mockImplementation(() => {
+      stub.mockImplementation((...args) => {
             if (stub.mock.calls.length === 0) {
                   return 5;
             }
       })
-      stub.mockImplementation(() => {
+      stub.mockImplementation((...args) => {
             if (stub.mock.calls.length === 1) {
                   return 6;
             }
@@ -441,12 +447,12 @@ describe.each([
       stub.onCall(3).returnsArg(biscuits)
 `,
         `
-      stub.mockImplementation(() => {
+      stub.mockImplementation((...args: any[]) => {
             if (stub.mock.calls.length === 2) {
                   return [8, 9, 10];
             }
       })
-      stub.mockImplementation(() => {
+      stub.mockImplementation((...args: any[]) => {
             if (stub.mock.calls.length === 3) {
                   return biscuits;
             }
@@ -598,6 +604,9 @@ describe.each([
         expect(spy.calledThrice).to.equal(true)
         expect(spy.called).to.equal(true)
 
+        expect(spy.calledOnce).equals(true)
+        expect(spy.called).equals(true)
+
         // .to.be
         expect(Api.get.callCount).to.be(1)
         expect(Api.get.called).to.be(true)
@@ -627,6 +636,9 @@ describe.each([
         expect(spy).toHaveBeenCalledTimes(1)
         expect(spy).toHaveBeenCalledTimes(2)
         expect(spy).toHaveBeenCalledTimes(3)
+        expect(spy).toHaveBeenCalled()
+
+        expect(spy).toHaveBeenCalledTimes(1)
         expect(spy).toHaveBeenCalled()
 
         // .to.be
