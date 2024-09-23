@@ -398,23 +398,8 @@ function getMockImplReplacement(
   if (implReturn === undefined) {
     return sinonImpl
   }
-  const implReturnAst = j(implReturn)
 
-  // TODO: only add `...args` if it's needed (if conditionalExpr needs it or mock impl needs it)
-  // mock impls that don't need `...args`: returns/resolves/rejects/throws
-  // or maybe move `returnExpr` before this and just try to find `args` identifier inside confitionalExpr or returnExpr?
-  const mockImplementationArgs = [
-    j.spreadPropertyPattern(
-      j.identifier.from({
-        name: 'args',
-        typeAnnotation: isTypescript
-          ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
-          : null,
-      })
-    ),
-  ]
-
-  const returnIsExpr = implReturnAst.isOfType(j.Expression)
+  const returnIsExpr = j(implReturn).isOfType(j.Expression)
   let returnBody =
     returnIsExpr && conditionalExpr === undefined
       ? implReturn
@@ -422,6 +407,19 @@ function getMockImplReplacement(
   if (conditionalExpr !== undefined) {
     returnBody = j.blockStatement([j.ifStatement(conditionalExpr, returnBody)])
   }
+  const mockImplementationArgs =
+    j(returnBody).find(j.Identifier, { name: 'args' }).size() === 0
+      ? []
+      : [
+          j.spreadPropertyPattern(
+            j.identifier.from({
+              name: 'args',
+              typeAnnotation: isTypescript
+                ? j.typeAnnotation(j.arrayTypeAnnotation(j.anyTypeAnnotation()))
+                : null,
+            })
+          ),
+        ]
   const mockImplementationFn = j.arrowFunctionExpression(
     mockImplementationArgs,
     returnBody
@@ -628,7 +626,7 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
       // generate conditional expression to match args used in .mockImplementation
       const mockImplementationConditionalExpression = (mockImplementationArgs as any[])
         .map((arg, i) => {
-          const argName = j.identifier(`args[${i}]`)
+          const argName = j.memberExpression(j.identifier('args'), j.literal(i), true)
           // handle sinon matchers
           if (isSinonMatcherArg(arg)) {
             const matcherType = SINON_MATCHERS_WITH_ARGS[arg.property.name]
