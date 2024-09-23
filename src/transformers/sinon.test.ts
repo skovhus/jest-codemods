@@ -408,12 +408,12 @@ describe.each([
       stub.onCall().returns('invalid')
 `,
         `
-      stub.mockImplementation((...args) => {
+      stub.mockImplementation(() => {
             if (stub.mock.calls.length === 0) {
                   return 5;
             }
       })
-      stub.mockImplementation((...args) => {
+      stub.mockImplementation(() => {
             if (stub.mock.calls.length === 1) {
                   return 6;
             }
@@ -447,12 +447,12 @@ describe.each([
       stub.onCall(3).returnsArg(biscuits)
 `,
         `
-      stub.mockImplementation((...args: any[]) => {
+      stub.mockImplementation(() => {
             if (stub.mock.calls.length === 2) {
                   return [8, 9, 10];
             }
       })
-      stub.mockImplementation((...args: any[]) => {
+      stub.mockImplementation(() => {
             if (stub.mock.calls.length === 3) {
                   return biscuits;
             }
