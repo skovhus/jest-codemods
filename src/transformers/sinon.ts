@@ -352,31 +352,37 @@ function getMockImplReturn(j: core.JSCodeshift, sinonImpl) {
     }
   }
 
+  let args = sinonImpl.arguments.slice(0, 1)
+  if (
+    args.length === 0 &&
+    (sinonMethodName === 'rejects' || sinonMethodName === 'throws')
+  ) {
+    args = [j.newExpression(j.identifier('Error'), [])]
+  }
+
   switch (sinonMethodName) {
     case 'returns':
-      return sinonImpl.arguments[0] // TODO: should this support void (empty arguments)?
+      return args[0] ?? j.identifier('undefined')
     case 'returnsArg':
-      return j.memberExpression(j.identifier('args'), sinonImpl.arguments[0], true)
+      return j.memberExpression(j.identifier('args'), args[0], true)
     case 'resolves':
       return j.callExpression(
         j.memberExpression(j.identifier('Promise'), j.identifier('resolve')),
-        sinonImpl.arguments.slice(0, 1)
+        args
       )
     case 'rejects':
       return j.callExpression(
         j.memberExpression(j.identifier('Promise'), j.identifier('reject')),
-        [sinonImpl.arguments[0]]
+        args
       )
     case 'throws':
-      return j.throwStatement(sinonImpl.arguments[0])
+      return j.throwStatement(args[0])
     case 'callsFake':
-      return j.callExpression(sinonImpl.arguments[0], [
-        j.spreadElement(j.identifier('args')),
-      ])
+      return j.callExpression(args[0], [j.spreadElement(j.identifier('args'))])
   }
 }
 
-/** gets one of sinon mock implementer (returns/returnsArg/resolves/...) and returns jest equivalent */
+/** gets one of sinon mock implementers (returns/returnsArg/resolves/...) and returns jest equivalent */
 function getMockImplReplacement(
   j: core.JSCodeshift,
   sinonImpl,
@@ -391,6 +397,10 @@ function getMockImplReplacement(
     SINON_MOCK_IMPLS_TO_JEST[sinonMethodName] !== undefined
   ) {
     sinonImpl.callee.property.name = SINON_MOCK_IMPLS_TO_JEST[sinonMethodName]
+    if (sinonMethodName === 'rejects' && sinonImpl.arguments.length === 0) {
+      // mockRejectedValue without argument does not throw Error like sinon.rejects does, fix args
+      sinonImpl.arguments = [j.newExpression(j.identifier('Error'), [])]
+    }
     return sinonImpl
   }
 
@@ -610,10 +620,9 @@ function transformMock(j: core.JSCodeshift, ast, parser: string) {
       // `jest.spyOn` or `jest.fn`
       const mockFn = node.callee.object.callee.object
       const mockImplementationArgs = node.callee.object.arguments
-      const mockImplementationReturn = node.arguments
 
       // unsupported/untransformable .withArgs, just remove .withArgs from chain
-      if (!mockImplementationArgs?.length || !mockImplementationReturn?.length) {
+      if (!mockImplementationArgs?.length) {
         node.callee = j.memberExpression(mockFn, node.callee.property)
         return node
       }

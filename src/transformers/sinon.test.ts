@@ -187,6 +187,58 @@ describe.each([
       )
     })
 
+    it('handles .resolves/.rejects', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
+        sinon.stub().resolves();
+        sinon.stub().resolves(1);
+        sinon.stub().rejects();
+        sinon.stub().rejects(new Error('error msg'));
+  `,
+        `
+        jest.fn().mockResolvedValue();
+        jest.fn().mockResolvedValue(1);
+        jest.fn().mockRejectedValue(new Error());
+        jest.fn().mockRejectedValue(new Error('error msg'));
+  `
+      )
+    })
+
+    it('handles .callsFake', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
+        sinon.stub().callsFake();
+        sinon.stub().callsFake((a, b) => a + b);
+        sinon.stub().callsFake(async () => ({ a: 1 }));
+  `,
+        `
+        jest.fn().mockImplementation();
+        jest.fn().mockImplementation((a, b) => a + b);
+        jest.fn().mockImplementation(async () => ({ a: 1 }));
+  `
+      )
+    })
+
+    it('handles .throws', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
+        sinon.stub().throws();
+        sinon.stub().throws(new Error('error msg'));
+  `,
+        `
+        jest.fn().mockImplementation(() => {
+                throw new Error();
+        });
+        jest.fn().mockImplementation(() => {
+                throw new Error('error msg');
+        });
+  `
+      )
+    })
+
     it('handles .withArgs returns', () => {
       expectTransformation(
         `
@@ -200,6 +252,7 @@ describe.each([
         sinon.stub(foo, 'bar').withArgs('foo', sinon.match.object).returns('something')
         sinon.stub().withArgs('foo', sinon.match.any).returns('something')
         sinon.stub().withArgs('boo', sinon.match.any).returnsArg(1)
+        sinon.stub().withArgs('boo').returns()
 `,
         `
         jest.fn().mockImplementation((...args) => {
@@ -240,6 +293,58 @@ describe.each([
         jest.fn().mockImplementation((...args) => {
                 if (args[0] === 'boo' && args.length >= 2) {
                         return args[1];
+                }
+        })
+        jest.fn().mockImplementation((...args) => {
+                if (args[0] === 'boo') {
+                        return undefined;
+                }
+        })
+`
+      )
+    })
+
+    it('handles .withArgs chained with .resolves/.rejects/.throws/.callsFake', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
+
+        sinon.stub().withArgs('foo').resolves('something')
+        sinon.stub().withArgs('foo', 'bar').rejects()
+        sinon.stub().withArgs('foo', 'bar', 1).rejects(new Error('something'))
+        sinon.stub(Api, 'get').withArgs('foo', 'bar', 1).throws()
+        const stub = sinon.stub(foo, 'bar').withArgs('foo', 1).throws(new Error('something'))
+        sinon.stub(foo, 'bar').withArgs('foo', sinon.match.object).callsFake((_, obj) => obj)
+`,
+        `
+        jest.fn().mockImplementation((...args) => {
+                if (args[0] === 'foo') {
+                        return Promise.resolve('something');
+                }
+        })
+        jest.fn().mockImplementation((...args) => {
+                if (args[0] === 'foo' && args[1] === 'bar') {
+                        return Promise.reject(new Error());
+                }
+        })
+        jest.fn().mockImplementation((...args) => {
+                if (args[0] === 'foo' && args[1] === 'bar' && args[2] === 1) {
+                        return Promise.reject(new Error('something'));
+                }
+        })
+        jest.spyOn(Api, 'get').mockClear().mockImplementation((...args) => {
+                if (args[0] === 'foo' && args[1] === 'bar' && args[2] === 1) {
+                        throw new Error();
+                }
+        })
+        const stub = jest.spyOn(foo, 'bar').mockClear().mockImplementation((...args) => {
+                if (args[0] === 'foo' && args[1] === 1) {
+                        throw new Error('something');
+                }
+        })
+        jest.spyOn(foo, 'bar').mockClear().mockImplementation((...args) => {
+                if (args[0] === 'foo' && typeof args[1] === 'object') {
+                        return ((_, obj) => obj)(...args);
                 }
         })
 `
@@ -392,6 +497,60 @@ describe.each([
         { parser: 'ts' }
       )
     })
+    it('handles .callsArg* after .on*Call/.withArgs', () => {
+      expectTransformation(
+        `
+        ${sinonImport}
+
+        apiStub.onFirstCall().callsArg(0)
+        apiStub.onSecondCall().callsArgOn(1, thisArg)
+        apiStub.onThirdCall().callsArgWith(2, 'a', 'b')
+        apiStub.onCall(2).callsArgOnWith(3, thisArg, 'c', 'd')
+
+        apiStub.withArgs('foo', 'bar').callsArg(0)
+        apiStub.withArgs(sinon.match.any, sinon.match.func).callsArgOn(1, thisArg)
+        apiStub.withArgs(sinon.match.any).callsArgWith(0, 'a', 'b')
+`,
+        `
+        apiStub.mockImplementation((...args) => {
+                if (apiStub.mock.calls.length === 0) {
+                        return args[0]();
+                }
+        })
+        apiStub.mockImplementation((...args) => {
+                if (apiStub.mock.calls.length === 1) {
+                        return args[1].call(thisArg);
+                }
+        })
+        apiStub.mockImplementation((...args) => {
+                if (apiStub.mock.calls.length === 2) {
+                        return args[2]('a', 'b');
+                }
+        })
+        apiStub.mockImplementation((...args) => {
+                if (apiStub.mock.calls.length === 2) {
+                        return args[3].call(thisArg, 'c', 'd');
+                }
+        })
+
+        apiStub.mockImplementation((...args) => {
+                if (args[0] === 'foo' && args[1] === 'bar') {
+                        return args[0]();
+                }
+        })
+        apiStub.mockImplementation((...args) => {
+                if (args.length >= 2 && typeof args[1] === 'function') {
+                        return args[1].call(thisArg);
+                }
+        })
+        apiStub.mockImplementation((...args) => {
+                if (args.length >= 1) {
+                        return args[0]('a', 'b');
+                }
+        })
+`
+      )
+    })
 
     it('handles on*Call', () => {
       expectTransformation(
@@ -470,6 +629,65 @@ describe.each([
       })
 `,
         { parser: 'tsx' }
+      )
+    })
+
+    it('handles on*Call chained with .resolves/.rejects/.throws/.callsFake', () => {
+      expectTransformation(
+        `
+      ${sinonSandboxImport}
+
+      stub.onFirstCall().resolves()
+      stub.onSecondCall().resolves(1)
+
+      stub.onFirstCall().rejects()
+      stub.onSecondCall().rejects(new Error('msg'))
+
+      stub.onThirdCall().throws()
+      stub.onThirdCall().throws(new Error('msg'))
+
+      stub.onCall(1).callsFake(() => 2)
+`,
+        `
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 0) {
+                  return Promise.resolve();
+            }
+      })
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 1) {
+                  return Promise.resolve(1);
+            }
+      })
+
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 0) {
+                  return Promise.reject(new Error());
+            }
+      })
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 1) {
+                  return Promise.reject(new Error('msg'));
+            }
+      })
+
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 2) {
+                  throw new Error();
+            }
+      })
+      stub.mockImplementation(() => {
+            if (stub.mock.calls.length === 2) {
+                  throw new Error('msg');
+            }
+      })
+
+      stub.mockImplementation((...args) => {
+            if (stub.mock.calls.length === 1) {
+                  return (() => 2)(...args);
+            }
+      })
+`
       )
     })
   })
