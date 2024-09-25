@@ -713,6 +713,9 @@ describe.each([
         Api.get.restore()
         Api.get.reset()
         sinon.restore()
+        sinon.reset()
+        sinon.resetBehavior()
+        sinon.resetHistory()
         stub.resetBehavior()
         stub.resetHistory()
 `,
@@ -721,6 +724,9 @@ describe.each([
         Api.get.mockRestore()
         Api.get.mockReset()
         jest.restoreAllMocks()
+        jest.resetAllMocks()
+        jest.resetAllMocks()
+        jest.resetAllMocks()
         stub.mockReset()
         stub.mockReset()
 `
