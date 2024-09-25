@@ -40,14 +40,24 @@ const CHAI_CHAIN_MATCHERS = new Set(
     'toBeFalsy',
   ].map((a) => a.toLowerCase())
 )
-const SINON_CALLED_WITH_METHODS = ['calledWith', 'notCalledWith', 'neverCalledWith']
-const SINON_SPY_METHODS = ['spy', 'stub']
+const SINON_CALLED_WITH_METHODS = [
+  'calledWith',
+  'notCalledWith',
+  'neverCalledWith',
+] as const
+const SINON_SPY_METHODS = ['spy', 'stub'] as const
 const SINON_MOCK_RESETS = {
   reset: 'mockReset',
   resetBehavior: 'mockReset',
   resetHistory: 'mockReset',
   restore: 'mockRestore',
-}
+} as const
+const SINON_GLOBAL_MOCK_RESETS = {
+  reset: 'resetAllMocks',
+  resetBehavior: 'resetAllMocks',
+  resetHistory: 'resetAllMocks',
+  restore: 'restoreAllMocks',
+} as const
 const _sinonMockImpls = [
   'returns',
   'returnsArg',
@@ -701,13 +711,13 @@ function transformMockResets(j, ast) {
         },
         property: {
           type: 'Identifier',
-          name: 'restore',
+          name: (name) => Object.hasOwn(SINON_GLOBAL_MOCK_RESETS, name),
         },
       },
     })
-    .forEach((np) => {
-      np.node.callee.object.name = 'jest'
-      np.node.callee.property.name = 'restoreAllMocks'
+    .forEach(({ node }) => {
+      node.callee.object.name = 'jest'
+      node.callee.property.name = SINON_GLOBAL_MOCK_RESETS[node.callee.property.name]
     })
 
   ast
