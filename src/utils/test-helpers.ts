@@ -16,10 +16,22 @@ export function api(options): jscodeshift.API {
   }
 }
 
-export function runPlugin(plugin: jscodeshift.Transform, source: string, options = {}) {
-  return plugin({ source, path: 'test.js' }, api(options), options)
+type File = {
+  path: string
+  source: string
+}
+
+export function runPlugin(
+  plugin: jscodeshift.Transform,
+  file: string | File,
+  options = {}
+) {
+  const source = typeof file === 'string' ? file : file.source
+  const path = typeof file === 'string' ? 'test.js' : file.path
+  return plugin({ source, path }, api(options), options)
 }
 
 export function wrapPlugin(plugin: jscodeshift.Transform) {
-  return (source: string, options = {}) => runPlugin(plugin, source, options) || null
+  return (source: string | File, options = {}) =>
+    runPlugin(plugin, source, options) || null
 }

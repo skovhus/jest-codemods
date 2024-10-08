@@ -185,7 +185,7 @@ describe('suite', () => {
   )
 })
 
-test('adds any type to the test context with typescript (tsx)', () => {
+test('does not add any type to the test context with javascript', () => {
   expectTransformation(
     `
 describe('describe', function () {
@@ -203,6 +203,52 @@ describe('describe', function () {
   })
 })
 `,
+    `
+describe('describe', () => {
+  let testContext;
+
+  beforeEach(() => {
+    testContext = {};
+  });
+
+  beforeEach(() => {
+    testContext.hello = 'hi';
+  });
+
+  describe('context', () => {
+    test('test', () => {
+      console.log(testContext.hello);
+    });
+    it('it', () => {
+      console.log(testContext.hello);
+    });
+  })
+})
+`
+  )
+})
+
+test('adds any type to the test context with typescript (tsx)', () => {
+  expectTransformation(
+    {
+      path: 'test.tsx',
+      source: `
+describe('describe', function () {
+  beforeEach(function () {
+    this.hello = 'hi';
+  });
+
+  context('context', () => {
+    test('test', function () {
+      console.log(this.hello);
+    });
+    it('it', function () {
+      console.log(this.hello);
+    });
+  })
+})
+`,
+    },
     `
 describe('describe', () => {
   let testContext: any;
@@ -231,7 +277,9 @@ describe('describe', () => {
 
 test('adds any type to the test context with typescript (ts)', () => {
   expectTransformation(
-    `
+    {
+      path: 'test.ts',
+      source: `
 describe('describe', function () {
   beforeEach(function () {
     this.hello = 'hi';
@@ -247,6 +295,7 @@ describe('describe', function () {
   })
 })
 `,
+    },
     `
 describe('describe', () => {
   let testContext: any;
