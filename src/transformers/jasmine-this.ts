@@ -174,9 +174,10 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
           j.variableDeclarator(
             j.identifier.from({
               name: contextName,
-              typeAnnotation: ['ts', 'tsx'].includes(options.parser)
-                ? j.typeAnnotation(j.anyTypeAnnotation())
-                : null,
+              typeAnnotation:
+                ['ts', 'tsx'].includes(options.parser) && /\.tsx?$/.test(fileInfo.path)
+                  ? j.typeAnnotation(j.anyTypeAnnotation())
+                  : null,
             }),
             null
           ),

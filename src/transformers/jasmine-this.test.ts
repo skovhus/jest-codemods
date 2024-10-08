@@ -517,7 +517,7 @@ describe('foo', () => {
   )
 })
 
-test('adds any type to the test context with typescript (tsx)', () => {
+test('does not add any type to the test context with javascript', () => {
   expectTransformation(
     `
   beforeEach(function () {
@@ -534,6 +534,50 @@ test('adds any type to the test context with typescript (tsx)', () => {
       });
   });
   `,
+    `
+  let testContext;
+
+  beforeEach(() => {
+      testContext = {};
+  });
+
+  beforeEach(() => {
+      testContext.hello = 'hi';
+  });
+
+  afterEach(() => {
+      console.log(testContext.hello);
+  });
+
+  describe('context', () => {
+      it('should work', () => {
+          console.log(testContext.hello);
+      });
+  });
+  `
+  )
+})
+
+test('adds any type to the test context with typescript (tsx)', () => {
+  expectTransformation(
+    {
+      path: 'test.tsx',
+      source: `
+  beforeEach(function () {
+      this.hello = 'hi';
+  });
+
+  afterEach(function () {
+      console.log(this.hello);
+  });
+
+  describe('context', () => {
+      it('should work', function () {
+          console.log(this.hello);
+      });
+  });
+  `,
+    },
     `
   let testContext: any;
 
@@ -561,7 +605,9 @@ test('adds any type to the test context with typescript (tsx)', () => {
 
 test('adds any type to the test context with typescript (ts)', () => {
   expectTransformation(
-    `
+    {
+      path: 'test.ts',
+      source: `
 beforeEach(function () {
     this.hello = 'hi';
 });
@@ -576,6 +622,7 @@ describe('context', () => {
     });
 });
 `,
+    },
     `
 let testContext: any;
 
