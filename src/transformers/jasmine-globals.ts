@@ -322,7 +322,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
 
           for (const argument of path.node.arguments) {
             mockReturnValuesCall = j.callExpression(
-              j.memberExpression(mockReturnValuesCall, j.identifier('mockReturnValue')),
+              j.memberExpression(mockReturnValuesCall, j.identifier('mockReturnValueOnce')),
               [argument]
             )
           }

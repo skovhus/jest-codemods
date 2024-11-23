@@ -150,7 +150,7 @@ test('spyOn', () => {
     jest.spyOn(stuff).mockImplementation(() => 'lol');
     existingSpy.mockImplementation(() => 'lol');
     jest.spyOn(stuff).mockReturnValue('lmao');
-    jest.spyOn(stuff).mockReturnValue(1).mockReturnValue(2).mockReturnValue(3);
+    jest.spyOn(stuff).mockReturnValueOnce(1).mockReturnValueOnce(2).mockReturnValueOnce(3);
     existingSpy.mockReturnValue('lmao');
     jest.spyOn();
     jest.spyOn(stuff).mockImplementation(() => {});
