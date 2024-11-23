@@ -315,10 +315,7 @@ export default function jasmineGlobals(fileInfo, api, options) {
         }
 
         case 'returnValues': {
-          let mockReturnValuesCall = j.callExpression(
-            j.memberExpression(j.identifier('jest'), j.identifier('spyOn')),
-            path.node.callee.object.object.arguments ?? []
-          )
+          let mockReturnValuesCall = path.node.callee.object.object
 
           for (const argument of path.node.arguments) {
             mockReturnValuesCall = j.callExpression(

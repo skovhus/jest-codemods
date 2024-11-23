@@ -143,6 +143,7 @@ test('spyOn', () => {
     existingSpy.and.callThrough();
     spyOn(something, 'foo').and.stub().and.returnValue(42);
     mySpy.and.stub();
+    anotherSpy.and.returnValues('a', 'b');
     `,
     `
     jest.spyOn().mockReturnValue();
@@ -161,6 +162,7 @@ test('spyOn', () => {
     existingSpy.mockRestore();
     jest.spyOn(something, 'foo').mockReturnValue(42);
     mySpy.mockImplementation(() => {});
+    anotherSpy.mockReturnValueOnce('a').mockReturnValueOnce('b');
     `
   )
 })
