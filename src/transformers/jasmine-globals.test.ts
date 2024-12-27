@@ -143,6 +143,7 @@ test('spyOn', () => {
     existingSpy.and.callThrough();
     spyOn(something, 'foo').and.stub().and.returnValue(42);
     mySpy.and.stub();
+    anotherSpy.and.returnValues('a', 'b');
     `,
     `
     jest.spyOn().mockReturnValue();
@@ -150,7 +151,7 @@ test('spyOn', () => {
     jest.spyOn(stuff).mockImplementation(() => 'lol');
     existingSpy.mockImplementation(() => 'lol');
     jest.spyOn(stuff).mockReturnValue('lmao');
-    jest.spyOn(stuff).mockReturnValue(1).mockReturnValue(2).mockReturnValue(3);
+    jest.spyOn(stuff).mockReturnValueOnce(1).mockReturnValueOnce(2).mockReturnValueOnce(3);
     existingSpy.mockReturnValue('lmao');
     jest.spyOn();
     jest.spyOn(stuff).mockImplementation(() => {});
@@ -161,6 +162,7 @@ test('spyOn', () => {
     existingSpy.mockRestore();
     jest.spyOn(something, 'foo').mockReturnValue(42);
     mySpy.mockImplementation(() => {});
+    anotherSpy.mockReturnValueOnce('a').mockReturnValueOnce('b');
     `
   )
 })
