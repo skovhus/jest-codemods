@@ -12,8 +12,16 @@ if [ "$version" = "$publishedVersion" ]; then
     exit 0
 fi
 
-echo "Deploying version $version."
+if ! git diff --quiet; then
+  echo "Uncommited changes detected:"
+  echo "==========================="
+  git status
+  git diff
+  echo "==========================="
+  exit 1
+fi
 
+echo "Deploying version $version."
 pnpm publish
 
 tag=$version
