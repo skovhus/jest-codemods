@@ -1,7 +1,7 @@
 /**
  * Codemod for transforming Jasmine globals into Jest.
  */
-import { ObjectProperty } from 'jscodeshift'
+import { match, ObjectProperty } from 'jscodeshift'
 
 import finale from '../utils/finale'
 import logger from '../utils/logger'
@@ -135,6 +135,50 @@ export default function jasmineGlobals(fileInfo, api, options) {
           )
           matcherArgs[0] = j.literal(true)
           matcher.name = 'toBe'
+          break
+        }
+      }
+    })
+
+  root
+    .find(j.MemberExpression, {
+      object: {
+        type: 'CallExpression',
+        callee: { type: 'Identifier', name: 'expectAsync' },
+      },
+      property: { type: 'Identifier' },
+    })
+    .forEach((path) => {
+      const parentNode = path.parent.node
+      const argument = parentNode.arguments[0]
+
+      const isNegatedMatcher = path.node.property.name === 'not'
+      const matcher = isNegatedMatcher ? path.parent.node.property : path.node.property
+
+      // reset expectAsync with expect
+      parentNode.callee.object.callee.name = 'expect'
+
+      switch (matcher.name) {
+        case 'toBeResolvedTo': {
+          parentNode.callee.property.name = argument
+            ? 'resolves.toBe'
+            : 'resolves.toBeUndefined'
+          break
+        }
+        case 'toBeResolved': {
+          parentNode.callee.property.name = 'resolves.toBeUndefined'
+          break
+        }
+        case 'toBeRejected': {
+          parentNode.callee.property.name = 'rejects.toBeDefined'
+          break
+        }
+        case 'toBeRejectedWith': {
+          parentNode.callee.property.name = 'rejects.toEqual'
+          break
+        }
+        case 'toBeRejectedWithError': {
+          parentNode.callee.property.name = 'rejects.toThrow'
           break
         }
       }
