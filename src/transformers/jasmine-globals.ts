@@ -1,7 +1,7 @@
 /**
  * Codemod for transforming Jasmine globals into Jest.
  */
-import { match, ObjectProperty } from 'jscodeshift'
+import { ObjectProperty } from 'jscodeshift'
 
 import finale from '../utils/finale'
 import logger from '../utils/logger'
