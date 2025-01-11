@@ -150,16 +150,14 @@ export default function jasmineGlobals(fileInfo, api, options) {
     })
     .forEach((path) => {
       const parentNode = path.parent.node
-      const argument = parentNode.arguments[0]
+      const matcher = path.node.property
 
-      const isNegatedMatcher = path.node.property.name === 'not'
-      const matcher = isNegatedMatcher ? path.parent.node.property : path.node.property
-
-      // reset expectAsync with expect
       parentNode.callee.object.callee.name = 'expect'
 
       switch (matcher.name) {
         case 'toBeResolvedTo': {
+          const argument = parentNode.arguments[0]
+
           parentNode.callee.property.name = argument
             ? 'resolves.toBe'
             : 'resolves.toBeUndefined'
