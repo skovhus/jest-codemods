@@ -124,6 +124,39 @@ describe('jasmine matchers', () => {
   })
 })
 
+describe('expectAsync matchers', () => {
+  test('toBeResolved', () => {
+    expectTransformation(
+      'await expectAsync(promise).toBeResolved()',
+      'await expect(promise).resolves.toBeUndefined()'
+    )
+  })
+
+  test('toBeResolvedTo', () =>
+    expectTransformation(
+      'await expectAsync(Promise.resolve(42)).toBeResolvedTo(42)',
+      'await expect(Promise.resolve(42)).resolves.toBe(42)'
+    ))
+
+  test('toBeRejected', () =>
+    expectTransformation(
+      'await expectAsync(Promise.reject()).toBeRejected()',
+      'await expect(Promise.reject()).rejects.toBeDefined()'
+    ))
+
+  test('toBeRejectedWith', () =>
+    expectTransformation(
+      'await expectAsync(Promise.reject({error: 42})).toBeRejectedWith({error: 42})',
+      'await expect(Promise.reject({error: 42})).rejects.toEqual({error: 42})'
+    ))
+
+  test('toBeRejectedWithError', () =>
+    expectTransformation(
+      `await expectAsync(rejectingPromise).toBeRejectedWithError(new Error('mayday'))`,
+      `await expect(rejectingPromise).rejects.toThrow(new Error('mayday'))`
+    ))
+})
+
 test('spyOn', () => {
   expectTransformation(
     `

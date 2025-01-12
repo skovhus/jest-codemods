@@ -141,6 +141,48 @@ export default function jasmineGlobals(fileInfo, api, options) {
     })
 
   root
+    .find(j.MemberExpression, {
+      object: {
+        type: 'CallExpression',
+        callee: { type: 'Identifier', name: 'expectAsync' },
+      },
+      property: { type: 'Identifier' },
+    })
+    .forEach((path) => {
+      const parentNode = path.parent.node
+      const matcher = path.node.property
+
+      parentNode.callee.object.callee.name = 'expect'
+
+      switch (matcher.name) {
+        case 'toBeResolvedTo': {
+          const argument = parentNode.arguments[0]
+
+          parentNode.callee.property.name = argument
+            ? 'resolves.toBe'
+            : 'resolves.toBeUndefined'
+          break
+        }
+        case 'toBeResolved': {
+          parentNode.callee.property.name = 'resolves.toBeUndefined'
+          break
+        }
+        case 'toBeRejected': {
+          parentNode.callee.property.name = 'rejects.toBeDefined'
+          break
+        }
+        case 'toBeRejectedWith': {
+          parentNode.callee.property.name = 'rejects.toEqual'
+          break
+        }
+        case 'toBeRejectedWithError': {
+          parentNode.callee.property.name = 'rejects.toThrow'
+          break
+        }
+      }
+    })
+
+  root
     .find(j.CallExpression, {
       // find `jasmine.createSpy(*).and.*()` expressions
       callee: {
