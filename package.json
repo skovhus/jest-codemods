@@ -65,7 +65,7 @@
   "devDependencies": {
     "@jest/globals": "29.7.0",
     "@types/jest": "29.5.14",
-    "@types/jscodeshift": "0.11.11",
+    "@types/jscodeshift": "0.12.0",
     "@types/update-notifier": "5.1.0",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
