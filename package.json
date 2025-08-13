@@ -59,7 +59,7 @@
     "inquirer": "8.2.7",
     "is-git-clean": "1.1.0",
     "jscodeshift": "0.16.1",
-    "meow": "7.1.1",
+    "meow": "13.2.0",
     "update-notifier": "5.1.0"
   },
   "devDependencies": {
