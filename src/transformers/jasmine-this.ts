@@ -246,6 +246,12 @@ const jasmineThis: jscodeshift.Transform = (fileInfo, api, options) => {
         isFunctionExpressionWithinSpecificFunctions(path, allFunctionNames)
       )
       .filter((path) => !path.value.generator)
+      .filter(
+        (path) =>
+          !path.value.params.some(
+            (param) => param.type === 'Identifier' && param.name === 'this'
+          )
+      )
       .replaceWith((path) => {
         const newFn = j.arrowFunctionExpression(
           path.value.params,

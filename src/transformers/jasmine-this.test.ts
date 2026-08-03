@@ -90,6 +90,16 @@ describe('foo', function*() {
   )
 })
 
+test('does not transform functions with a TypeScript this parameter', () => {
+  const source = `
+describe('foo', function(this: { value: string }) {
+  expect(getValue()).toBe('foo');
+});
+`
+
+  expectTransformation({ path: 'test.ts', source }, null, { parser: 'ts' })
+})
+
 test('transforms only test functions context', () => {
   expectTransformation(
     `
