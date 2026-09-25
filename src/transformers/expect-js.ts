@@ -69,56 +69,85 @@ export default function expectJsTransfomer(fileInfo, api, options) {
   const t = makeTransformApi(j)
 
   // transform expect.js assertion syntax
+  // Match CallExpressions (not only ExpressionStatements) so concise arrow
+  // bodies like `.then((id) => expect(id).to.be.ok())` are converted too (#162).
   ast
-    .find(j.ExpressionStatement, {
-      expression: {
-        type: 'CallExpression',
-        callee: {
-          type: 'MemberExpression',
-          property: (node) => {
-            return node.type === 'Identifier' && MATCHER_METHODS.indexOf(node.name) !== -1
-          },
+    .find(j.CallExpression, {
+      callee: {
+        type: 'MemberExpression',
+        property: (node) => {
+          return node.type === 'Identifier' && MATCHER_METHODS.indexOf(node.name) !== -1
         },
       },
     })
-    .replaceWith((path) => {
-      const callExpression = path.value.expression
+    .filter((path) => Boolean(getExpectCallExpression(path.value)))
+    .forEach((path) => {
+      const callExpression = path.value
       const expectCall = getExpectCallExpression(callExpression)
-      if (!expectCall) {
-        return path.node
-      }
-
       const negation = hasNegation(callExpression)
       const matcherArg = callExpression.arguments[0]
       const { name } = callExpression.callee.property
+
+      let replacement
       switch (name) {
         case 'ok':
-          return t.transform(negation ? 'toBeFalsy' : 'toBeTruthy', expectCall)
+          replacement = t.transform(negation ? 'toBeFalsy' : 'toBeTruthy', expectCall)
+          break
         case 'fail':
-          return j.throwStatement(
+          replacement = j.throwStatement(
             j.callExpression(j.identifier('Error'), matcherArg ? [matcherArg] : [])
           )
+          break
         case 'a':
         case 'an':
-          return t.makeInstanceOfExpect(expectCall, negation, matcherArg)
+          replacement = t.makeInstanceOfExpect(expectCall, negation, matcherArg)
+          break
         case 'empty':
-          return t.transform('toHaveLength', expectCall, negation, j.identifier('0'))
+          replacement = t.transform(
+            'toHaveLength',
+            expectCall,
+            negation,
+            j.identifier('0')
+          )
+          break
         case 'throwError':
         case 'throw':
         case 'throwException':
-          return t.makeThrowExpect(expectCall, negation, matcherArg)
+          replacement = t.makeThrowExpect(expectCall, negation, matcherArg)
+          break
         case 'within':
-          return t.makeWithinExpect(
+          replacement = t.makeWithinExpect(
             expectCall,
             negation,
             matcherArg,
             callExpression.arguments[1]
           )
+          break
         case 'keys':
           logWarning('Unsupported Expect.js Assertion "*.keys"', path)
-          return path.node
+          return
         default:
-          return t.transform(MATCHES[name], expectCall, negation, matcherArg)
+          replacement = t.transform(MATCHES[name], expectCall, negation, matcherArg)
+      }
+
+      const { parent } = path
+      const isStatement =
+        replacement.type === 'ExpressionStatement' ||
+        replacement.type === 'ThrowStatement' ||
+        replacement.type === 'TryStatement'
+
+      if (parent.value.type === 'ExpressionStatement') {
+        j(parent).replaceWith(
+          isStatement ? replacement : j.expressionStatement(replacement)
+        )
+      } else if (isStatement && parent.value.type === 'ArrowFunctionExpression') {
+        // Concise arrow cannot host a statement — expand body into a block.
+        const bodyStmt = isStatement ? replacement : j.expressionStatement(replacement)
+        parent.value.body = j.blockStatement([bodyStmt])
+      } else if (isStatement) {
+        logWarning('Unsupported Expect.js assertion in non-statement position', path)
+      } else {
+        j(path).replaceWith(replacement)
       }
     })
 
@@ -131,11 +160,9 @@ function makeTransformApi(j) {
   }
 
   function transform(matcher, expectCall, negation = false, expectation = null) {
-    return j.expressionStatement(
-      j.callExpression(
-        j.memberExpression(expectCall, j.identifier((negation ? 'not.' : '') + matcher)),
-        expectation ? [expectation] : []
-      )
+    return j.callExpression(
+      j.memberExpression(expectCall, j.identifier((negation ? 'not.' : '') + matcher)),
+      expectation ? [expectation] : []
     )
   }
 
