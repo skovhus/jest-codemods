@@ -130,7 +130,7 @@ export default function expectJsTransfomer(fileInfo, api, options) {
           replacement = t.transform(MATCHES[name], expectCall, negation, matcherArg)
       }
 
-      const parent = path.parent
+      const { parent } = path
       const isStatement =
         replacement.type === 'ExpressionStatement' ||
         replacement.type === 'ThrowStatement' ||
@@ -142,15 +142,10 @@ export default function expectJsTransfomer(fileInfo, api, options) {
         )
       } else if (isStatement && parent.value.type === 'ArrowFunctionExpression') {
         // Concise arrow cannot host a statement — expand body into a block.
-        const bodyStmt = isStatement
-          ? replacement
-          : j.expressionStatement(replacement)
+        const bodyStmt = isStatement ? replacement : j.expressionStatement(replacement)
         parent.value.body = j.blockStatement([bodyStmt])
       } else if (isStatement) {
-        logWarning(
-          'Unsupported Expect.js assertion in non-statement position',
-          path
-        )
+        logWarning('Unsupported Expect.js assertion in non-statement position', path)
       } else {
         j(path).replaceWith(replacement)
       }
