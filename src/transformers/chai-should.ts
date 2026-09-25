@@ -958,7 +958,54 @@ export default function transformer(fileInfo, api, options) {
       })
       .size()
 
+  /**
+   * Split `expect(x).to…(a).and.to…(b)` into two expect statements so each
+   * assertion can be mapped to Jest. Only splits when `.and` is followed by
+   * `.to` (same-subject re-assertion). Leaves property-value chains like
+   * `.property('foo').and.equal('bar')` alone (those still need a warning).
+   * https://github.com/skovhus/jest-codemods/issues/171
+   */
+  const splitExpectAndChains = () => {
+    let splitCount = 0
+    // Iterate one split at a time; each replacement invalidates paths.
+    for (;;) {
+      const andPath = root
+        .find(j.MemberExpression, {
+          property: { type: 'Identifier', name: 'and' },
+          object: { type: 'CallExpression' },
+        })
+        .filter(
+          (p) =>
+            isExpectCall(p.value) &&
+            p.parentPath.value.type === 'MemberExpression' &&
+            p.parentPath.value.property.type === 'Identifier' &&
+            p.parentPath.value.property.name === 'to' &&
+            Boolean(findParentOfType(p, 'ExpressionStatement')) &&
+            getExpectNode(p.value.object).arguments.length > 0
+        )
+        .paths()[0]
+
+      if (!andPath) break
+
+      const statementPath = findParentOfType(andPath, 'ExpressionStatement')
+      const leftCall = andPath.value.object
+      const expectNode = getExpectNode(leftCall)
+
+      const freshExpect = j.callExpression(j.identifier('expect'), [
+        expectNode.arguments[0],
+      ])
+
+      // Turn `left.and.to…` into `expect(subject).to…` (the right-hand assertion).
+      j(andPath).replaceWith(freshExpect)
+      // Keep the already-complete left-hand assertion as its own statement.
+      j(statementPath).insertBefore(j.expressionStatement(leftCall))
+      splitCount += 1
+    }
+    return splitCount
+  }
+
   reverseNotToExpressions()
+  mutations += splitExpectAndChains()
   mutations += shouldChainedToExpect()
   mutations += shouldIdentifierToExpect()
   mutations += updateCallExpressions()
