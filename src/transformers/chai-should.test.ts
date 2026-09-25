@@ -881,6 +881,21 @@ test('converts "ok"', () => {
   )
 })
 
+test('converts property("callCount", n) to toHaveBeenCalledTimes', () => {
+  expectTransformation(
+    `
+        expect(stub).to.have.property('callCount', 1);
+        expect(stub).to.have.property("callCount", 2);
+        expect(stub).not.to.have.property('callCount', 0);
+    `,
+    `
+        expect(stub).toHaveBeenCalledTimes(1);
+        expect(stub).toHaveBeenCalledTimes(2);
+        expect(stub).not.toHaveBeenCalledTimes(0);
+    `
+  )
+})
+
 test('converts "ownproperty"', () => {
   expectTransformation(
     `expect('test').to.have.ownProperty('length')`,
@@ -1389,5 +1404,33 @@ test('supports chai-arrays plugin', () => {
   )
 })
 
-// TODO: warn about chaining not working
+test('splits chai expect().and.to chains into separate expects (issue #171)', () => {
+  expectTransformation(
+    `
+        expect(ticketNumber).to.be.above(0).and.to.be.below(46);
+        expect(ticketNumber).to.be.above(0).and.to.be.below(46)
+    `,
+    `
+        expect(ticketNumber).toBeGreaterThan(0);
+        expect(ticketNumber).toBeLessThan(46);
+        expect(ticketNumber).toBeGreaterThan(0);
+        expect(ticketNumber).toBeLessThan(46)
+    `
+  )
+})
+
+test('splits multiple .and.to links on one expect (issue #171)', () => {
+  expectTransformation(
+    `
+        expect(n).to.be.above(0).and.to.be.below(10).and.to.be.above(-1);
+    `,
+    `
+        expect(n).toBeGreaterThan(0);
+        expect(n).toBeLessThan(10);
+        expect(n).toBeGreaterThan(-1);
+    `
+  )
+})
+
+// TODO: warn about chaining not working for subject-changing chains
 // E.g. expect({ foo: 'baz' }).to.have.property('foo').and.not.equal('bar');

@@ -194,6 +194,27 @@ function transformCallCountAssertions(j, ast) {
       value.arguments = newArgs
       return value
     })
+
+  // expect(stub).to.have.property('callCount', 1) -> expect(stub).toHaveBeenCalledTimes(1)
+  // Handles sinon-before-chai ordering (issue #637) without requiring a second pass.
+  ast
+    .find(j.CallExpression, {
+      callee: {
+        type: j.MemberExpression.name,
+        property: {
+          name: 'property',
+        },
+        object: (node) =>
+          chainContains('have', node, 'should') && isExpectCallUtil(j, node),
+      },
+      arguments: (args) => args?.length >= 2 && args[0]?.value === 'callCount',
+    })
+    .replaceWith((np) => {
+      const { node } = np
+      const containsNot = chainContains('not', node.callee, isPrefix)
+      const rest = getAllBefore(isPrefix, node.callee, 'should')
+      return createCall('toHaveBeenCalledTimes', [node.arguments[1]], rest, containsNot)
+    })
 }
 
 /*
