@@ -879,6 +879,18 @@ export default function transformer(fileInfo, api, options) {
               containsNot
             )
           case 'property':
+            // sinon-chai / chai often assert stub call counts via
+            // expect(stub).to.have.property('callCount', n). Prefer the Jest
+            // spy matcher so a later sinon→jest pass (or chai-only run) does
+            // not leave a meaningless toHaveProperty('callCount', n).
+            // See https://github.com/skovhus/jest-codemods/issues/637
+            if (
+              numberOfArgs >= 2 &&
+              (firstArg?.type === 'Literal' || firstArg?.type === 'StringLiteral') &&
+              firstArg.value === 'callCount'
+            ) {
+              return createCall('toHaveBeenCalledTimes', [args[1]], rest, containsNot)
+            }
             return createCall('toHaveProperty', args, rest, containsNot)
           case 'ownproperty':
             return createCall(
@@ -958,7 +970,68 @@ export default function transformer(fileInfo, api, options) {
       })
       .size()
 
+
+  /**
+   * Split `expect(x).to…(a).and.to…(b)` into two expect statements so each
+   * assertion can be mapped to Jest. Only splits when `.and` is followed by
+   * `.to` (same-subject re-assertion). Leaves property-value chains like
+   * `.property('foo').and.equal('bar')` alone (those still need a warning).
+   * https://github.com/skovhus/jest-codemods/issues/171
+   */
+  const splitExpectAndChains = () => {
+    let splitCount = 0
+    // Iterate one split at a time; each replacement invalidates paths.
+    for (;;) {
+      const andPath = root
+        .find(j.MemberExpression, {
+          property: { type: 'Identifier', name: 'and' },
+          object: { type: 'CallExpression' },
+        })
+        .filter((p) => {
+          if (!isExpectCall(p.value)) return false
+          const parent = p.parentPath
+          if (!parent || parent.value.type !== 'MemberExpression') return false
+          // Require `.and.to…` so we only split same-subject chains.
+          return (
+            parent.value.property &&
+            parent.value.property.type === 'Identifier' &&
+            parent.value.property.name === 'to'
+          )
+        })
+        .paths()[0]
+
+      if (!andPath) break
+
+      const statementPath = findParentOfType(andPath, 'ExpressionStatement')
+      if (!statementPath) break
+
+      const leftCall = andPath.value.object
+      const expectNode = getExpectNode(leftCall)
+      if (
+        !expectNode ||
+        expectNode.type !== 'CallExpression' ||
+        !expectNode.arguments ||
+        expectNode.arguments.length === 0
+      ) {
+        break
+      }
+
+      const freshExpect = j.callExpression(
+        j.identifier('expect'),
+        [expectNode.arguments[0]]
+      )
+
+      // Turn `left.and.to…` into `expect(subject).to…` (the right-hand assertion).
+      j(andPath).replaceWith(freshExpect)
+      // Keep the already-complete left-hand assertion as its own statement.
+      j(statementPath).insertBefore(j.expressionStatement(leftCall))
+      splitCount += 1
+    }
+    return splitCount
+  }
+
   reverseNotToExpressions()
+  mutations += splitExpectAndChains()
   mutations += shouldChainedToExpect()
   mutations += shouldIdentifierToExpect()
   mutations += updateCallExpressions()
