@@ -970,7 +970,6 @@ export default function transformer(fileInfo, api, options) {
       })
       .size()
 
-
   /**
    * Split `expect(x).to…(a).and.to…(b)` into two expect statements so each
    * assertion can be mapped to Jest. Only splits when `.and` is followed by
@@ -1016,10 +1015,9 @@ export default function transformer(fileInfo, api, options) {
         break
       }
 
-      const freshExpect = j.callExpression(
-        j.identifier('expect'),
-        [expectNode.arguments[0]]
-      )
+      const freshExpect = j.callExpression(j.identifier('expect'), [
+        expectNode.arguments[0],
+      ])
 
       // Turn `left.and.to…` into `expect(subject).to…` (the right-hand assertion).
       j(andPath).replaceWith(freshExpect)

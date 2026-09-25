@@ -1404,7 +1404,6 @@ test('supports chai-arrays plugin', () => {
   )
 })
 
-
 test('splits chai expect().and.to chains into separate expects (issue #171)', () => {
   expectTransformation(
     `
