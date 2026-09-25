@@ -335,6 +335,36 @@ test('maps expect within matchers', () => {
   )
 })
 
+test('converts concise arrow-body expect.js assertions (#162)', () => {
+  expectTransformation(
+    `
+    import expect from 'expect.js';
+
+    return model.generate(TITLE)
+      .then((id) => expect(id).to.be.ok());
+    `,
+    `
+    return model.generate(TITLE)
+      .then((id) => expect(id).toBeTruthy());
+    `
+  )
+})
+
+test('converts chained matchers inside concise arrow bodies', () => {
+  expectTransformation(
+    `
+    import expect from 'expect.js';
+
+    promise.then((value) => expect(value).to.be.equal(42));
+    promise.then((value) => expect(value).to.not.be.a('string'));
+    `,
+    `
+    promise.then((value) => expect(value).toBe(42));
+    promise.then((value) => expect(typeof value).not.toBe('string'));
+    `
+  )
+})
+
 test('warns about unsupported matchers', () => {
   wrappedPlugin(`
         import expect from 'expect.js';
