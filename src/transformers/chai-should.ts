@@ -879,6 +879,14 @@ export default function transformer(fileInfo, api, options) {
               containsNot
             )
           case 'property':
+            // sinon-chai / chai often assert stub call counts via
+            // expect(stub).to.have.property('callCount', n). Prefer the Jest
+            // spy matcher so a later sinon→jest pass (or chai-only run) does
+            // not leave a meaningless toHaveProperty('callCount', n).
+            // See https://github.com/skovhus/jest-codemods/issues/637
+            if (numberOfArgs >= 2 && firstArg.value === 'callCount') {
+              return createCall('toHaveBeenCalledTimes', [args[1]], rest, containsNot)
+            }
             return createCall('toHaveProperty', args, rest, containsNot)
           case 'ownproperty':
             return createCall(

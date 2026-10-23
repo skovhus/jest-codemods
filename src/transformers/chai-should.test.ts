@@ -881,6 +881,21 @@ test('converts "ok"', () => {
   )
 })
 
+test('converts property("callCount", n) to toHaveBeenCalledTimes', () => {
+  expectTransformation(
+    `
+        expect(stub).to.have.property('callCount', 1);
+        expect(stub).to.have.property("callCount", 2);
+        expect(stub).not.to.have.property('callCount', 0);
+    `,
+    `
+        expect(stub).toHaveBeenCalledTimes(1);
+        expect(stub).toHaveBeenCalledTimes(2);
+        expect(stub).not.toHaveBeenCalledTimes(0);
+    `
+  )
+})
+
 test('converts "ownproperty"', () => {
   expectTransformation(
     `expect('test').to.have.ownProperty('length')`,

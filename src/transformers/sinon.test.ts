@@ -898,6 +898,21 @@ describe.each([
       )
     })
 
+    it(`handles chai .to.have.property('callCount', n)`, () => {
+      expectTransformation(
+        `
+      ${sinonSandboxImport}
+
+      expect(stub).to.have.property('callCount', 1);
+      expect(stub).not.to.have.property('callCount', 0);
+    `,
+        `
+      expect(stub).toHaveBeenCalledTimes(1);
+      expect(stub).not.toHaveBeenCalledTimes(0);
+    `
+      )
+    })
+
     it('handles call counts with args', () => {
       expectTransformation(
         `
