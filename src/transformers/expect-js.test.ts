@@ -335,16 +335,52 @@ test('maps expect within matchers', () => {
   )
 })
 
+test('converts concise arrow-body expect.js assertions (#162)', () => {
+  expectTransformation(
+    `
+    import expect from 'expect.js';
+
+    return model.generate(TITLE)
+      .then((id) => expect(id).to.be.ok())
+      .catch(() => expect().to.fail());
+    `,
+    `
+    return model.generate(TITLE)
+      .then((id) => expect(id).toBeTruthy())
+      .catch(() => {
+      throw Error();
+    });
+    `
+  )
+})
+
+test('converts chained matchers inside concise arrow bodies', () => {
+  expectTransformation(
+    `
+    import expect from 'expect.js';
+
+    promise.then((value) => expect(value).to.be.equal(42));
+    promise.then((value) => expect(value).to.not.be.a('string'));
+    `,
+    `
+    promise.then((value) => expect(value).toBe(42));
+    promise.then((value) => expect(typeof value).not.toBe('string'));
+    `
+  )
+})
+
 test('warns about unsupported matchers', () => {
   wrappedPlugin(`
         import expect from 'expect.js';
 
         test(() => {
           expect({ a: 'b', c: 'd' }).to.only.have.keys(['a', 'c']);
+          const x = expect().to.fail();
         });
     `)
   expect(consoleWarnings).toEqual([
     'jest-codemods warning: (test.js line 5) Unsupported Expect.js Assertion "*.keys"',
+    'jest-codemods warning: (test.js line 6) Unsupported Expect.js assertion in non-statement position',
   ])
 })
 
