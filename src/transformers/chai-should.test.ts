@@ -799,6 +799,7 @@ test('converts "members"', () => {
         expect([5, 2]).to.not.have.members([5, 2, 1]);
 
         expect([{ id: 1 }]).to.deep.include.members([{ id: 1 }]);
+        expect([{ a: 1 }, { b: 2 }]).to.deep.include.members([{ b: 2 }, { a: 1 }]);
 
         expect({ id: 1 }).to.include.members({ id: 1 });
     `,
@@ -809,7 +810,8 @@ test('converts "members"', () => {
         expect([4, 2]).toEqual(expect.arrayContaining([2, 4]));
         expect([5, 2]).not.toEqual(expect.arrayContaining([5, 2, 1]));
 
-        expect([{ id: 1 }]).toEqual(expect.arrayContaining([{ id: 1 }]));
+        expect([{ id: 1 }]).toContainEqual({ id: 1 });
+        expect([{ a: 1 }, { b: 2 }]).toEqual(expect.arrayContaining([{ b: 2 }, { a: 1 }]));
 
         expect({ id: 1 }).toEqual(expect.objectContaining({ id: 1 }));
     `
