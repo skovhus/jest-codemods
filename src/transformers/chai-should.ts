@@ -781,6 +781,27 @@ export default function transformer(fileInfo, api, options) {
               logWarning('Unsupported Chai Assertion "ordered"', p)
             }
 
+            if (chainContains('deep', value.callee, isPrefix)) {
+              const expectedArray = args[0]
+              if (args.length === 1 && expectedArray?.type === j.ArrayExpression.name) {
+                if (expectedArray.elements.length === 1) {
+                  return createCall(
+                    'toContainEqual',
+                    [expectedArray.elements[0]],
+                    rest,
+                    containsNot
+                  )
+                }
+
+                return createCall(
+                  'toEqual',
+                  [createCallChain(['expect', 'arrayContaining'], [expectedArray])],
+                  rest,
+                  containsNot
+                )
+              }
+            }
+
             return createCall('toEqual', args.map(containing), rest, containsNot)
           case 'key':
             return createCall('toHaveProperty', args, rest, containsNot)

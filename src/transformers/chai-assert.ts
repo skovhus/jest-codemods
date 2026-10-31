@@ -262,6 +262,25 @@ export default function transformer(fileInfo, api, options) {
     expectation?: any
   }) => makeNegativeExpectation(identifier, actual, expectation)
 
+  const makeIncludeDeepMembersExpectation = (path, negative: boolean) => {
+    const actual = path.value.arguments[0]
+    const expected = path.value.arguments[1]
+    const make = negative ? makeNegativeExpectation : makeExpectation
+
+    if (expected?.type === j.ArrayExpression.name && expected.elements?.length === 1) {
+      return make('toContainEqual', actual, expected.elements[0])
+    }
+
+    return make(
+      'toEqual',
+      actual,
+      j.callExpression(
+        j.memberExpression(j.identifier('expect'), j.identifier('arrayContaining')),
+        [expected]
+      )
+    )
+  }
+
   assertToExpectMapping.forEach(
     ({ assert, expect, ignoreExpectedValue, includeNegative, expectedOverride }) => {
       let override
@@ -497,39 +516,23 @@ export default function transformer(fileInfo, api, options) {
       )
     })
 
-  // assert.includeDeepMembers -> expect([]).toEqual(expect.arrayContaining([]))
+  // assert.includeDeepMembers -> expect(actual).toContainEqual(expected) or
+  // expect(actual).toEqual(expect.arrayContaining(expected))
   ast
     .find(
       j.CallExpression,
       getAssertionExpression(chaiAssertExpression, 'includeDeepMembers')
     )
-    .replaceWith((path) => {
-      return makeExpectation(
-        'toEqual',
-        path.value.arguments[0],
-        j.callExpression(
-          j.memberExpression(j.identifier('expect'), j.identifier('arrayContaining')),
-          [path.value.arguments[1]]
-        )
-      )
-    })
+    .replaceWith((path) => makeIncludeDeepMembersExpectation(path, false))
 
-  // assert.notIncludeDeepMembers -> expect([]).not.toEqual(expect.arrayContaining([]))
+  // assert.notIncludeDeepMembers -> expect(actual).not.toContainEqual(expected) or
+  // expect(actual).not.toEqual(expect.arrayContaining(expected))
   ast
     .find(
       j.CallExpression,
       getAssertionExpression(chaiAssertExpression, 'notIncludeDeepMembers')
     )
-    .replaceWith((path) => {
-      return makeNegativeExpectation(
-        'toEqual',
-        path.value.arguments[0],
-        j.callExpression(
-          j.memberExpression(j.identifier('expect'), j.identifier('arrayContaining')),
-          [path.value.arguments[1]]
-        )
-      )
-    })
+    .replaceWith((path) => makeIncludeDeepMembersExpectation(path, true))
 
   // assert.isArray -> expect(Array.isArray).toBe(true)
   ast

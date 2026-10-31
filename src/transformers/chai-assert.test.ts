@@ -176,8 +176,16 @@ describe('Mapping Test', () => {
       'expect([{ a: 1 }, { b: 2 }, { c: 3 }]).toEqual(expect.arrayContaining([{ b: 2 }, { a: 1 }, { b: 2 }]));',
     ],
     [
+      'assert.includeDeepMembers([{ id: 1 }], [{ id: 1 }]);',
+      'expect([{ id: 1 }]).toContainEqual({ id: 1 });',
+    ],
+    [
       'assert.notIncludeDeepMembers([{ a: 1 }, { b: 2 }, { c: 3 }], [{ b: 2 }, { f: 5 }]);',
       'expect([{ a: 1 }, { b: 2 }, { c: 3 }]).not.toEqual(expect.arrayContaining([{ b: 2 }, { f: 5 }]));',
+    ],
+    [
+      'assert.notIncludeDeepMembers([{ id: 1 }], [{ id: 2 }]);',
+      'expect([{ id: 1 }]).not.toContainEqual({ id: 2 });',
     ],
     ['assert.isExtensible(foo);', 'expect(Object.isExtensible(foo)).toBe(true);'],
     ['assert.isNotExtensible(foo);', 'expect(Object.isExtensible(foo)).not.toBe(true);'],
